@@ -1,0 +1,77 @@
+{{define "title"}}Применить шаблон{{end}}
+
+{{define "head_extra"}}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{{end}}
+
+{{define "content"}}
+{{$t := .Template}}
+<div class="flex items-center gap-3 mb-6">
+  <a href="/templates/{{$t.ID}}" class="text-gray-400 hover:text-gray-600">← {{if $t.Title}}{{$t.Title}}{{else}}Шаблон{{end}}</a>
+  <h1 class="text-2xl font-bold text-gray-800">Применить шаблон</h1>
+</div>
+
+{{if .Error}}
+<div class="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{{.Error}}</div>
+{{end}}
+
+<form method="POST" action="/templates/{{$t.ID}}/apply" class="space-y-5">
+
+  <div class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Дата тренировки</label>
+        <input type="text" name="workout_date" id="workout_date" required
+          value="{{.Today}}"
+          placeholder="ДД.ММ.ГГГГ" readonly
+          class="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Зал</label>
+        <select name="gym_id"
+          class="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">— не выбран —</option>
+          {{range .Gyms}}
+          <option value="{{.ID}}">{{.Name}}</option>
+          {{end}}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold text-gray-800 mb-3">Выберите клиентов</h2>
+    {{if .Clients}}
+    <div class="space-y-2">
+      {{range .Clients}}
+      <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
+        <input type="checkbox" name="client_ids" value="{{.ID}}"
+          class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+        <span class="text-gray-800">{{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}</span>
+      </label>
+      {{end}}
+    </div>
+    {{else}}
+    <p class="text-gray-400 text-sm">Нет назначенных клиентов</p>
+    {{end}}
+  </div>
+
+  <button type="submit"
+    class="w-full bg-blue-600 text-white rounded-xl py-4 font-semibold text-base hover:bg-blue-700 active:bg-blue-800 transition">
+    Создать тренировки
+  </button>
+</form>
+{{end}}
+
+{{define "scripts"}}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+<script>
+flatpickr("#workout_date", {
+  dateFormat: "d.m.Y",
+  locale: "ru",
+  allowInput: false,
+  disableMobile: false
+});
+</script>
+{{end}}

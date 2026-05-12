@@ -19,7 +19,7 @@
 
   <button type="button"
     hx-get="/workouts/htmx/add-set?ex_idx={{.ExIdx}}&set_idx={{len .Ex.Sets}}"
-    hx-target="closest .exercise-block .sets-list"
+    hx-target="previous .sets-list"
     hx-swap="beforeend"
     class="text-sm text-blue-600 hover:text-blue-800 font-medium">
     + Подход

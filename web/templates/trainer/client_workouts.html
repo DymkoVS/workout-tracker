@@ -1,0 +1,44 @@
+{{define "title"}}Тренировки: {{if .Client.FullName}}{{.Client.FullName}}{{else}}{{.Client.Login}}{{end}}{{end}}
+
+{{define "content"}}
+{{$clientID := .Client.ID}}
+<div class="flex items-center justify-between mb-6">
+  <div class="flex items-center gap-3">
+    <a href="/trainer/clients" class="text-gray-400 hover:text-gray-600">← Клиенты</a>
+    <h1 class="text-2xl font-bold text-gray-800">
+      {{if .Client.FullName}}{{.Client.FullName}}{{else}}{{.Client.Login}}{{end}}
+    </h1>
+  </div>
+  <a href="/workouts/new?for_client={{$clientID}}"
+    class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+    + Новая тренировка
+  </a>
+</div>
+
+{{if .Workouts}}
+<div class="space-y-3">
+  {{range .Workouts}}
+  <a href="/workouts/{{.ID}}" class="block bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
+    <div class="flex items-center justify-between mb-1">
+      <div class="font-medium text-gray-800">
+        {{if .Title}}{{.Title}}{{else}}Тренировка{{end}}
+      </div>
+      <div class="text-sm text-gray-400">{{.WorkoutDate.Format "02.01.2006"}}</div>
+    </div>
+    <div class="flex items-center gap-3 text-sm text-gray-500">
+      {{if .GymName}}<span>{{.GymName}}</span>{{end}}
+      {{if .Wellbeing}}<span>{{wellbeingEmoji .Wellbeing}}</span>{{end}}
+      {{if .TrainerID}}<span class="text-blue-400 text-xs">тренер</span>{{end}}
+    </div>
+  </a>
+  {{end}}
+</div>
+{{else}}
+<div class="text-center text-gray-400 py-12">
+  <p class="text-lg mb-2">Тренировок пока нет</p>
+  <a href="/workouts/new?for_client={{$clientID}}" class="text-blue-500 hover:underline text-sm">
+    Добавить первую тренировку
+  </a>
+</div>
+{{end}}
+{{end}}

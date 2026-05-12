@@ -41,6 +41,14 @@ func (r *GymRepository) Create(ctx context.Context, name string) (model.Gym, err
 	return g, err
 }
 
+func (r *GymRepository) GetByID(ctx context.Context, id uuid.UUID) (model.Gym, error) {
+	var g model.Gym
+	err := r.db.QueryRow(ctx,
+		`SELECT id, name, created_at FROM gyms WHERE id=$1`, id,
+	).Scan(&g.ID, &g.Name, &g.CreatedAt)
+	return g, err
+}
+
 func (r *GymRepository) Update(ctx context.Context, id uuid.UUID, name string) error {
 	_, err := r.db.Exec(ctx, `UPDATE gyms SET name=$1 WHERE id=$2`, name, id)
 	return err

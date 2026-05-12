@@ -62,3 +62,33 @@ type FormExercise struct {
 	Notes string
 	Sets  []FormSet
 }
+
+type WorkoutTemplate struct {
+	ID        uuid.UUID
+	TrainerID uuid.UUID
+	Title     string
+	Notes     string
+	Exercises []TemplateExercise
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type TemplateExercise struct {
+	ID         uuid.UUID
+	TemplateID uuid.UUID
+	Name       string
+	OrderNum   int
+	Notes      string
+	Sets       []TemplateSet
+}
+
+type TemplateSet struct {
+	ID                 uuid.UUID
+	TemplateExerciseID uuid.UUID
+	SetNum             int
+	Weight             *float64
+	Reps               *int
+	RPE                *float64
+	RestSeconds        *int
+	Notes              string
+}

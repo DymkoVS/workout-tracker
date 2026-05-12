@@ -64,6 +64,13 @@ var tmplFuncs = template.FuncMap{
 		}
 		return *p
 	},
+	"dateRU": func(t interface{}) string {
+		switch v := t.(type) {
+		case interface{ Format(string) string }:
+			return v.Format("02.01.2006")
+		}
+		return ""
+	},
 }
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data map[string]any) {
@@ -81,6 +88,7 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data ma
 	}
 	// Подключаем партиалы тренировок если они нужны форме
 	partials := []string{
+		"web/templates/workouts/partials/exercise_block.html",
 		"web/templates/workouts/partials/exercise_row.html",
 		"web/templates/workouts/partials/set_row.html",
 	}

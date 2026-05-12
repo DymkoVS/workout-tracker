@@ -16,10 +16,17 @@ import (
 type WorkoutHandler struct {
 	workouts *repository.WorkoutRepository
 	gyms     *repository.GymRepository
+	tc       *repository.TrainerClientRepository
+	users    *repository.UserRepository
 }
 
-func NewWorkoutHandler(workouts *repository.WorkoutRepository, gyms *repository.GymRepository) *WorkoutHandler {
-	return &WorkoutHandler{workouts: workouts, gyms: gyms}
+func NewWorkoutHandler(
+	workouts *repository.WorkoutRepository,
+	gyms *repository.GymRepository,
+	tc *repository.TrainerClientRepository,
+	users *repository.UserRepository,
+) *WorkoutHandler {
+	return &WorkoutHandler{workouts: workouts, gyms: gyms, tc: tc, users: users}
 }
 
 func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -35,11 +42,22 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WorkoutHandler) NewForm(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
 	gyms, _ := h.gyms.List(r.Context())
-	renderTemplate(w, r, "workouts/form.html", map[string]any{
+	data := map[string]any{
 		"Gyms":  gyms,
-		"Today": time.Now().Format("2006-01-02"),
-	})
+		"Today": time.Now().Format("02.01.2006"),
+	}
+	if forClientStr := r.URL.Query().Get("for_client"); forClientStr != "" && user.IsTrainer() {
+		if clientID, err := uuid.Parse(forClientStr); err == nil {
+			if ok, _ := h.tc.IsAssigned(r.Context(), user.ID, clientID); ok {
+				if client, err := h.users.GetByID(r.Context(), clientID); err == nil {
+					data["ForClient"] = client
+				}
+			}
+		}
+	}
+	renderTemplate(w, r, "workouts/form.html", data)
 }
 
 func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -49,11 +67,26 @@ func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	targetUserID := user.ID
+	var trainerID *uuid.UUID
+	var redirectAfter string
+
+	if forClientStr := r.FormValue("for_client_id"); forClientStr != "" && user.IsTrainer() {
+		if clientID, err := uuid.Parse(forClientStr); err == nil {
+			if ok, _ := h.tc.IsAssigned(r.Context(), user.ID, clientID); ok {
+				targetUserID = clientID
+				trainerID = &user.ID
+				redirectAfter = fmt.Sprintf("/trainer/clients/%s/workouts", clientID)
+			}
+		}
+	}
+
 	wo := model.Workout{
 		Title:       r.FormValue("title"),
 		Notes:       r.FormValue("notes"),
 		WorkoutDate: parseDate(r.FormValue("workout_date")),
 		GymID:       parseUUIDPtr(r.FormValue("gym_id")),
+		TrainerID:   trainerID,
 	}
 	if wb := r.FormValue("wellbeing"); wb != "" {
 		if v, err := strconv.Atoi(wb); err == nil {
@@ -62,15 +95,19 @@ func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	exercises := parseExercisesFromForm(r)
-
-	workout, err := h.workouts.Create(r.Context(), user.ID, wo, exercises)
+	workout, err := h.workouts.Create(r.Context(), targetUserID, wo, exercises)
 	if err != nil {
 		gyms, _ := h.gyms.List(r.Context())
 		renderTemplate(w, r, "workouts/form.html", map[string]any{
 			"Error": "Ошибка сохранения: " + err.Error(),
 			"Gyms":  gyms,
-			"Today": time.Now().Format("2006-01-02"),
+			"Today": time.Now().Format("02.01.2006"),
 		})
+		return
+	}
+
+	if redirectAfter != "" {
+		http.Redirect(w, r, redirectAfter, http.StatusSeeOther)
 		return
 	}
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%s", workout.ID), http.StatusSeeOther)
@@ -83,14 +120,24 @@ func (h *WorkoutHandler) Show(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+
 	workout, err := h.workouts.GetByID(r.Context(), id, user.ID)
+	if err != nil && user.IsTrainer() {
+		workout, err = h.workouts.GetByIDForTrainer(r.Context(), id, user.ID)
+	}
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	renderTemplate(w, r, "workouts/show.html", map[string]any{
-		"Workout": workout,
-	})
+
+	data := map[string]any{"Workout": workout}
+	if workout.UserID != user.ID && user.IsTrainer() {
+		data["BackURL"] = fmt.Sprintf("/trainer/clients/%s/workouts", workout.UserID)
+		data["CanEdit"] = workout.TrainerID != nil && *workout.TrainerID == user.ID
+	} else {
+		data["CanEdit"] = true
+	}
+	renderTemplate(w, r, "workouts/show.html", data)
 }
 
 func (h *WorkoutHandler) EditForm(w http.ResponseWriter, r *http.Request) {
@@ -100,17 +147,36 @@ func (h *WorkoutHandler) EditForm(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+
 	workout, err := h.workouts.GetByID(r.Context(), id, user.ID)
+	isTrainerEdit := false
+	if err != nil && user.IsTrainer() {
+		workout, err = h.workouts.GetByIDForTrainer(r.Context(), id, user.ID)
+		if err == nil {
+			if workout.TrainerID == nil || *workout.TrainerID != user.ID {
+				http.Error(w, "Нет доступа", http.StatusForbidden)
+				return
+			}
+			isTrainerEdit = true
+		}
+	}
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
+
 	gyms, _ := h.gyms.List(r.Context())
-	renderTemplate(w, r, "workouts/form.html", map[string]any{
+	data := map[string]any{
 		"Workout": workout,
 		"Gyms":    gyms,
-		"Today":   time.Now().Format("2006-01-02"),
-	})
+		"Today":   time.Now().Format("02.01.2006"),
+	}
+	if isTrainerEdit {
+		if client, err := h.users.GetByID(r.Context(), workout.UserID); err == nil {
+			data["ForClient"] = client
+		}
+	}
+	renderTemplate(w, r, "workouts/form.html", data)
 }
 
 func (h *WorkoutHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -136,11 +202,19 @@ func (h *WorkoutHandler) Update(w http.ResponseWriter, r *http.Request) {
 			wo.Wellbeing = &v
 		}
 	}
-
 	exercises := parseExercisesFromForm(r)
 
-	if err := h.workouts.Update(r.Context(), id, user.ID, wo, exercises); err != nil {
+	updateErr := h.workouts.Update(r.Context(), id, user.ID, wo, exercises)
+	if updateErr != nil && user.IsTrainer() {
+		updateErr = h.workouts.UpdateByTrainer(r.Context(), id, user.ID, wo, exercises)
+	}
+	if updateErr != nil {
 		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
+		return
+	}
+
+	if forClientStr := r.FormValue("for_client_id"); forClientStr != "" {
+		http.Redirect(w, r, fmt.Sprintf("/trainer/clients/%s/workouts", forClientStr), http.StatusSeeOther)
 		return
 	}
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%s", id), http.StatusSeeOther)
@@ -153,11 +227,19 @@ func (h *WorkoutHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	_ = h.workouts.Delete(r.Context(), id, user.ID)
+
+	deleteErr := h.workouts.Delete(r.Context(), id, user.ID)
+	if deleteErr != nil && user.IsTrainer() {
+		deleteErr = h.workouts.DeleteByTrainer(r.Context(), id, user.ID)
+	}
+
+	if ref := r.Header.Get("Referer"); ref != "" && deleteErr == nil {
+		http.Redirect(w, r, ref, http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/workouts", http.StatusSeeOther)
 }
 
-// AddExerciseRow возвращает HTMX-партиал: пустую строку нового упражнения
 func (h *WorkoutHandler) AddExerciseRow(w http.ResponseWriter, r *http.Request) {
 	idx, _ := strconv.Atoi(r.URL.Query().Get("idx"))
 	renderPartial(w, r, "workouts/partials/exercise_row.html", map[string]any{
@@ -166,7 +248,6 @@ func (h *WorkoutHandler) AddExerciseRow(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-// AddSetRow возвращает HTMX-партиал: пустую строку нового подхода
 func (h *WorkoutHandler) AddSetRow(w http.ResponseWriter, r *http.Request) {
 	exIdx, _ := strconv.Atoi(r.URL.Query().Get("ex_idx"))
 	setIdx, _ := strconv.Atoi(r.URL.Query().Get("set_idx"))
@@ -176,13 +257,11 @@ func (h *WorkoutHandler) AddSetRow(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// parseExercisesFromForm парсит вложенную структуру exercises[N][field] из формы
 func parseExercisesFromForm(r *http.Request) []model.FormExercise {
 	var exercises []model.FormExercise
 	for i := 0; ; i++ {
 		name := r.FormValue(fmt.Sprintf("exercises[%d][name]", i))
 		if name == "" && i > 0 {
-			// проверяем есть ли ещё упражнения дальше
 			found := false
 			for j := i + 1; j < i+5; j++ {
 				if r.FormValue(fmt.Sprintf("exercises[%d][name]", j)) != "" {
@@ -199,17 +278,17 @@ func parseExercisesFromForm(r *http.Request) []model.FormExercise {
 			Notes: r.FormValue(fmt.Sprintf("exercises[%d][notes]", i)),
 		}
 		for j := 0; ; j++ {
-			w := r.FormValue(fmt.Sprintf("exercises[%d][sets][%d][weight]", i, j))
+			wt := r.FormValue(fmt.Sprintf("exercises[%d][sets][%d][weight]", i, j))
 			reps := r.FormValue(fmt.Sprintf("exercises[%d][sets][%d][reps]", i, j))
 			rpe := r.FormValue(fmt.Sprintf("exercises[%d][sets][%d][rpe]", i, j))
 			rest := r.FormValue(fmt.Sprintf("exercises[%d][sets][%d][rest]", i, j))
 			notes := r.FormValue(fmt.Sprintf("exercises[%d][sets][%d][notes]", i, j))
-			if w == "" && reps == "" && j > 0 {
+			if wt == "" && reps == "" && j > 0 {
 				break
 			}
-			if w != "" || reps != "" {
+			if wt != "" || reps != "" {
 				ex.Sets = append(ex.Sets, model.FormSet{
-					Weight: w, Reps: reps, RPE: rpe, RestSeconds: rest, Notes: notes,
+					Weight: wt, Reps: reps, RPE: rpe, RestSeconds: rest, Notes: notes,
 				})
 			}
 			if j > 50 {
@@ -225,11 +304,16 @@ func parseExercisesFromForm(r *http.Request) []model.FormExercise {
 }
 
 func parseDate(s string) time.Time {
-	t, err := time.Parse("2006-01-02", s)
-	if err != nil {
-		return time.Now()
+	for _, layout := range []string{"02.01.2006", "2006-01-02", "01/02/2006"} {
+		if t, err := time.Parse(layout, s); err == nil {
+			return t
+		}
 	}
-	return t
+	return time.Now()
+}
+
+func formatDateRU(t time.Time) string {
+	return t.Format("02.01.2006")
 }
 
 func parseUUIDPtr(s string) *uuid.UUID {

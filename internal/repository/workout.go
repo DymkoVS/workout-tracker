@@ -210,6 +210,78 @@ func (r *WorkoutRepository) Delete(ctx context.Context, id, userID uuid.UUID) er
 	return err
 }
 
+// GetByIDForTrainer возвращает тренировку если тренер назначен к клиенту или сам создал тренировку
+func (r *WorkoutRepository) GetByIDForTrainer(ctx context.Context, id, trainerID uuid.UUID) (*model.Workout, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
+		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
+		FROM workouts w
+		LEFT JOIN gyms g ON g.id = w.gym_id
+		WHERE w.id = $1 AND (
+			w.trainer_id = $2 OR
+			EXISTS(SELECT 1 FROM trainer_clients tc WHERE tc.trainer_id=$2 AND tc.client_id=w.user_id)
+		)`, id, trainerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	w, err := pgx.CollectOneRow(rows, func(row pgx.CollectableRow) (model.Workout, error) {
+		return scanWorkout(row)
+	})
+	if err != nil {
+		return nil, err
+	}
+	w.Exercises, err = r.loadExercises(ctx, w.ID)
+	return &w, err
+}
+
+// UpdateByTrainer обновляет только тренировки, которые тренер сам создал
+func (r *WorkoutRepository) UpdateByTrainer(ctx context.Context, id, trainerID uuid.UUID, w model.Workout, exercises []model.FormExercise) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	res, err := tx.Exec(ctx, `
+		UPDATE workouts SET gym_id=$1, title=$2, workout_date=$3, notes=$4, wellbeing=$5, updated_at=NOW()
+		WHERE id=$6 AND trainer_id=$7`,
+		w.GymID, w.Title, w.WorkoutDate, w.Notes, w.Wellbeing, id, trainerID)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("workout not found or access denied")
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM workout_exercises WHERE workout_id=$1`, id); err != nil {
+		return err
+	}
+	for i, ex := range exercises {
+		if ex.Name == "" {
+			continue
+		}
+		var exID uuid.UUID
+		if err = tx.QueryRow(ctx,
+			`INSERT INTO workout_exercises (workout_id, name, order_num, notes) VALUES ($1,$2,$3,$4) RETURNING id`,
+			id, ex.Name, i+1, ex.Notes,
+		).Scan(&exID); err != nil {
+			return err
+		}
+		for j, s := range ex.Sets {
+			if err := insertSet(ctx, tx, exID, j+1, s); err != nil {
+				return err
+			}
+		}
+	}
+	return tx.Commit(ctx)
+}
+
+// DeleteByTrainer удаляет тренировку, созданную тренером
+func (r *WorkoutRepository) DeleteByTrainer(ctx context.Context, id, trainerID uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM workouts WHERE id=$1 AND trainer_id=$2`, id, trainerID)
+	return err
+}
+
 func insertSet(ctx context.Context, tx pgx.Tx, exID uuid.UUID, num int, s model.FormSet) error {
 	weight := parseOptFloat(s.Weight)
 	reps := parseOptInt(s.Reps)

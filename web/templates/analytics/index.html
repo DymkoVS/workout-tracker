@@ -1,0 +1,193 @@
+{{define "title"}}Аналитика{{end}}
+
+{{define "head_extra"}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{{end}}
+
+{{define "content"}}
+<div class="flex items-center gap-3 mb-6">
+  <a href="/" class="text-gray-400 hover:text-gray-600">← Назад</a>
+  <h1 class="text-2xl font-bold text-gray-800">Аналитика</h1>
+</div>
+
+{{if .Clients}}
+<div class="mb-5 bg-white rounded-2xl shadow-sm p-4">
+  <form method="GET" action="/analytics" class="flex flex-wrap gap-3 items-center">
+    <label class="text-sm font-medium text-gray-700">Показать данные для:</label>
+    <select name="user_id" onchange="this.form.submit()"
+      class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+      <option value="">— Мои тренировки —</option>
+      {{range .Clients}}
+      <option value="{{.ID}}" {{if eq .ID.String $.SelectedClientID}}selected{{end}}>
+        {{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}
+      </option>
+      {{end}}
+    </select>
+  </form>
+</div>
+{{end}}
+
+<div class="space-y-5">
+
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold text-gray-700 mb-1">Тоннаж за тренировку</h2>
+    <p class="text-xs text-gray-400 mb-4">последние 90 дней · кг (вес × повторения)</p>
+    {{if .TonnageCount}}
+    <canvas id="tonnageChart"></canvas>
+    {{else}}
+    <p class="text-sm text-gray-400 py-8 text-center">Нет данных о тоннаже</p>
+    {{end}}
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold text-gray-700 mb-1">Частота тренировок</h2>
+    <p class="text-xs text-gray-400 mb-4">последние 8 недель</p>
+    {{if .FreqCount}}
+    <canvas id="freqChart"></canvas>
+    {{else}}
+    <p class="text-sm text-gray-400 py-8 text-center">Нет данных о частоте тренировок</p>
+    {{end}}
+  </div>
+
+  {{if .Exercises}}
+  <div class="bg-white rounded-2xl shadow-sm p-5">
+    <h2 class="font-semibold text-gray-700 mb-1">Прогресс по упражнению</h2>
+    <p class="text-xs text-gray-400 mb-4">максимальный вес за тренировку · кг</p>
+    <select id="exerciseSelect"
+      class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white mb-4">
+      <option value="">— Выберите упражнение —</option>
+      {{range .Exercises}}
+      <option value="{{.}}">{{.}}</option>
+      {{end}}
+    </select>
+    <div id="exerciseChartWrap" class="hidden">
+      <canvas id="exerciseChart"></canvas>
+    </div>
+    <p id="exerciseNoData" class="text-sm text-gray-400 py-4 text-center hidden">Нет данных для этого упражнения</p>
+  </div>
+  {{end}}
+
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+const tonnageLabels = {{.TonnageLabels}};
+const tonnageValues = {{.TonnageValues}};
+const freqLabels    = {{.FreqLabels}};
+const freqValues    = {{.FreqValues}};
+const targetUserID  = "{{.TargetUserID}}";
+
+const baseScales = {
+  x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+  y: { beginAtZero: true, ticks: { font: { size: 11 } } }
+};
+
+if (tonnageLabels.length > 0) {
+  new Chart(document.getElementById('tonnageChart'), {
+    type: 'line',
+    data: {
+      labels: tonnageLabels,
+      datasets: [{
+        data: tonnageValues,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.08)',
+        tension: 0.3,
+        fill: true,
+        pointRadius: 3,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        ...baseScales,
+        y: { ...baseScales.y, title: { display: true, text: 'кг', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+if (freqLabels.length > 0) {
+  new Chart(document.getElementById('freqChart'), {
+    type: 'bar',
+    data: {
+      labels: freqLabels,
+      datasets: [{
+        data: freqValues,
+        backgroundColor: 'rgba(16,185,129,0.7)',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        ...baseScales,
+        y: {
+          ...baseScales.y,
+          ticks: { ...baseScales.y.ticks, stepSize: 1 },
+          title: { display: true, text: 'трен.', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+let exerciseChart = null;
+
+document.getElementById('exerciseSelect')?.addEventListener('change', function() {
+  const name = this.value;
+  const wrap   = document.getElementById('exerciseChartWrap');
+  const noData = document.getElementById('exerciseNoData');
+
+  if (!name) {
+    wrap.classList.add('hidden');
+    noData.classList.add('hidden');
+    return;
+  }
+
+  const params = new URLSearchParams({ name });
+  if (targetUserID) params.set('user_id', targetUserID);
+
+  fetch('/analytics/exercise-data?' + params.toString())
+    .then(r => r.json())
+    .then(data => {
+      if (!data.labels || data.labels.length === 0) {
+        wrap.classList.add('hidden');
+        noData.classList.remove('hidden');
+        return;
+      }
+
+      noData.classList.add('hidden');
+      wrap.classList.remove('hidden');
+
+      if (exerciseChart) exerciseChart.destroy();
+      exerciseChart = new Chart(document.getElementById('exerciseChart'), {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            data: data.values,
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245,158,11,0.08)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            ...baseScales,
+            y: { ...baseScales.y, title: { display: true, text: 'кг', font: { size: 11 } } }
+          }
+        }
+      });
+    });
+});
+</script>
+{{end}}

@@ -1,0 +1,55 @@
+{{define "exercise_block"}}
+<div class="exercise-block border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
+  <div class="flex items-center gap-2">
+    <input type="text"
+      name="exercises[{{.ExIdx}}][name]"
+      value="{{if .Ex}}{{.Ex.Name}}{{end}}"
+      placeholder="Название упражнения"
+      class="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+    <button type="button" onclick="this.closest('.exercise-block').remove()"
+      class="text-red-400 hover:text-red-600 px-2 py-2 text-lg leading-none">✕</button>
+  </div>
+
+  <div id="sets-{{.ExIdx}}" class="sets-list space-y-2">
+    {{if .Ex}}
+      {{range $si, $s := .Ex.Sets}}
+      <div class="set-row flex gap-2 items-center">
+        <span class="text-xs text-gray-400 w-5 text-right shrink-0">{{add $si 1}}</span>
+        <input type="number" step="0.5" min="0"
+          name="exercises[{{$.ExIdx}}][sets][{{$si}}][weight]"
+          value="{{if $s.Weight}}{{printf "%.4g" (derefF $s.Weight)}}{{end}}"
+          placeholder="кг"
+          class="w-20 border border-gray-300 rounded-lg px-2 py-2 text-base text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <span class="text-gray-400 text-sm">×</span>
+        <input type="number" min="1"
+          name="exercises[{{$.ExIdx}}][sets][{{$si}}][reps]"
+          value="{{if $s.Reps}}{{derefI $s.Reps}}{{end}}"
+          placeholder="повт"
+          class="w-20 border border-gray-300 rounded-lg px-2 py-2 text-base text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <input type="number" step="0.5" min="1" max="10"
+          name="exercises[{{$.ExIdx}}][sets][{{$si}}][rpe]"
+          value="{{if $s.RPE}}{{printf "%.3g" (derefF $s.RPE)}}{{end}}"
+          placeholder="RPE"
+          class="w-16 border border-gray-300 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <button type="button" onclick="this.closest('.set-row').remove()"
+          class="text-gray-300 hover:text-red-400 text-lg leading-none ml-auto">✕</button>
+      </div>
+      {{end}}
+    {{end}}
+  </div>
+
+  <button type="button"
+    hx-get="/workouts/htmx/add-set?ex_idx={{.ExIdx}}&set_idx={{if .Ex}}{{len .Ex.Sets}}{{else}}0{{end}}"
+    hx-target="previous .sets-list"
+    hx-swap="beforeend"
+    class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+    + Подход
+  </button>
+
+  <input type="text"
+    name="exercises[{{.ExIdx}}][notes]"
+    value="{{if .Ex}}{{.Ex.Notes}}{{end}}"
+    placeholder="Заметка к упражнению (необязательно)"
+    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-500">
+</div>
+{{end}}

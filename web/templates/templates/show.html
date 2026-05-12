@@ -1,52 +1,33 @@
-{{define "title"}}{{if .Workout.Title}}{{.Workout.Title}}{{else}}Тренировка{{end}}{{end}}
+{{define "title"}}{{if .Template.Title}}{{.Template.Title}}{{else}}Шаблон{{end}}{{end}}
 
 {{define "content"}}
-{{$w := .Workout}}
+{{$t := .Template}}
 <div class="flex items-center justify-between mb-6">
   <div class="flex items-center gap-3">
-    <a href="{{if .BackURL}}{{.BackURL}}{{else}}/workouts{{end}}" class="text-gray-400 hover:text-gray-600">← Назад</a>
+    <a href="/templates" class="text-gray-400 hover:text-gray-600">← Шаблоны</a>
     <h1 class="text-2xl font-bold text-gray-800">
-      {{if $w.Title}}{{$w.Title}}{{else}}Тренировка{{end}}
+      {{if $t.Title}}{{$t.Title}}{{else}}Шаблон{{end}}
     </h1>
   </div>
-  {{if .CanEdit}}
   <div class="flex gap-2">
-    <a href="/workouts/{{$w.ID}}/edit"
+    <a href="/templates/{{$t.ID}}/apply"
+      class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+      Применить к клиентам
+    </a>
+    <a href="/templates/{{$t.ID}}/edit"
       class="border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">
       Изменить
     </a>
-    <form method="POST" action="/workouts/{{$w.ID}}/delete"
-      onsubmit="return confirm('Удалить тренировку?')">
+    <form method="POST" action="/templates/{{$t.ID}}/delete"
+      onsubmit="return confirm('Удалить шаблон?')">
       <button class="border border-red-200 text-red-500 px-3 py-1.5 rounded-lg text-sm hover:bg-red-50 transition">
         Удалить
       </button>
     </form>
   </div>
-  {{end}}
 </div>
 
-{{/* Шапка */}}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-4 flex flex-wrap gap-4 text-sm">
-  <div>
-    <div class="text-gray-400 text-xs mb-0.5">Дата</div>
-    <div class="font-medium">{{$w.WorkoutDate.Format "02.01.2006"}}</div>
-  </div>
-  {{if $w.GymName}}
-  <div>
-    <div class="text-gray-400 text-xs mb-0.5">Зал</div>
-    <div class="font-medium">{{$w.GymName}}</div>
-  </div>
-  {{end}}
-  {{if $w.Wellbeing}}
-  <div>
-    <div class="text-gray-400 text-xs mb-0.5">Самочувствие</div>
-    <div class="text-xl">{{wellbeingEmoji $w.Wellbeing}}</div>
-  </div>
-  {{end}}
-</div>
-
-{{/* Упражнения */}}
-{{range $w.Exercises}}
+{{range $t.Exercises}}
 <div class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <div class="font-semibold text-gray-800 mb-3">{{.Name}}</div>
   {{if .Sets}}
@@ -68,10 +49,10 @@
 </div>
 {{end}}
 
-{{if $w.Notes}}
+{{if $t.Notes}}
 <div class="bg-white rounded-2xl shadow-sm p-5">
   <div class="text-xs text-gray-400 uppercase mb-1">Заметка</div>
-  <p class="text-gray-700">{{$w.Notes}}</p>
+  <p class="text-gray-700">{{$t.Notes}}</p>
 </div>
 {{end}}
 {{end}}

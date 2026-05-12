@@ -1,0 +1,30 @@
+{{define "title"}}Залы{{end}}
+
+{{define "content"}}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Залы</h1>
+  <a href="/gyms/new"
+    class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+    + Добавить зал
+  </a>
+</div>
+
+{{if .Gyms}}
+<div class="space-y-2">
+  {{range .Gyms}}
+  <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
+    <span class="font-medium text-gray-800">{{.Name}}</span>
+    <a href="/gyms/{{.ID}}/edit"
+      class="text-sm text-gray-500 hover:text-blue-600 border border-gray-200 px-3 py-1 rounded-lg hover:border-blue-300 transition">
+      Изменить
+    </a>
+  </div>
+  {{end}}
+</div>
+{{else}}
+<div class="text-center text-gray-400 py-12">
+  <p class="text-lg mb-2">Залы не добавлены</p>
+  <a href="/gyms/new" class="text-blue-500 hover:underline text-sm">Добавить первый зал</a>
+</div>
+{{end}}
+{{end}}

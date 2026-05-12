@@ -1,0 +1,43 @@
+{{define "title"}}Шаблоны тренировок{{end}}
+
+{{define "content"}}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Шаблоны тренировок</h1>
+  <a href="/templates/new"
+    class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+    + Новый шаблон
+  </a>
+</div>
+
+{{if .Templates}}
+<div class="space-y-3">
+  {{range .Templates}}
+  <div class="bg-white rounded-2xl shadow-sm p-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="font-medium text-gray-800">{{if .Title}}{{.Title}}{{else}}Без названия{{end}}</div>
+        <div class="text-sm text-gray-400 mt-0.5">{{len .Exercises}} упр.</div>
+      </div>
+      <div class="flex gap-2">
+        <a href="/templates/{{.ID}}/apply"
+          class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-700 transition">
+          Применить
+        </a>
+        <a href="/templates/{{.ID}}"
+          class="border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">
+          Открыть
+        </a>
+      </div>
+    </div>
+  </div>
+  {{end}}
+</div>
+{{else}}
+<div class="text-center text-gray-400 py-12">
+  <p class="text-lg mb-2">Шаблонов пока нет</p>
+  <a href="/templates/new" class="text-blue-500 hover:underline text-sm">
+    Создать первый шаблон
+  </a>
+</div>
+{{end}}
+{{end}}

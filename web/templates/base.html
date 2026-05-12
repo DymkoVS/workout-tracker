@@ -7,6 +7,7 @@
   <title>{{block "title" .}}Трекер тренировок{{end}}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  {{block "head_extra" .}}{{end}}
 </head>
 <body class="bg-gray-100 min-h-screen">
 
@@ -15,8 +16,12 @@
   <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
     <a href="/" class="font-semibold text-gray-800">💪 Тренировки</a>
     <div class="flex items-center gap-4 text-sm">
+      {{if .CurrentUser.IsTrainer}}
+      <a href="/trainer/clients" class="text-gray-600 hover:text-gray-900">Клиенты</a>
+      {{end}}
       {{if .CurrentUser.IsAdmin}}
       <a href="/admin/users" class="text-gray-600 hover:text-gray-900">Пользователи</a>
+      <a href="/admin/assign" class="text-gray-600 hover:text-gray-900">Назначения</a>
       {{end}}
       <span class="text-gray-500">{{.CurrentUser.DisplayName}}</span>
       <form method="POST" action="/logout">
@@ -31,6 +36,7 @@
   {{block "content" .}}{{end}}
 </main>
 
+{{block "scripts" .}}{{end}}
 </body>
 </html>
 {{end}}

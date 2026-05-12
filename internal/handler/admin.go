@@ -12,10 +12,11 @@ import (
 
 type AdminHandler struct {
 	users *repository.UserRepository
+	tc    *repository.TrainerClientRepository
 }
 
-func NewAdminHandler(users *repository.UserRepository) *AdminHandler {
-	return &AdminHandler{users: users}
+func NewAdminHandler(users *repository.UserRepository, tc *repository.TrainerClientRepository) *AdminHandler {
+	return &AdminHandler{users: users, tc: tc}
 }
 
 func (h *AdminHandler) UsersList(w http.ResponseWriter, r *http.Request) {
@@ -112,4 +113,58 @@ func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		_ = h.users.SetPassword(r.Context(), id, newPass)
 	}
 	http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
+}
+
+// AssignPage показывает страницу управления связями тренер-клиент
+func (h *AdminHandler) AssignPage(w http.ResponseWriter, r *http.Request) {
+	trainers, err := h.tc.GetAllTrainers(r.Context())
+	if err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+	clients, err := h.tc.GetAllClients(r.Context())
+	if err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+
+	// Для каждого тренера получаем его клиентов
+	type trainerRow struct {
+		Trainer *model.User
+		Clients []*model.User
+	}
+	var rows []trainerRow
+	for _, t := range trainers {
+		tClients, _ := h.tc.GetClients(r.Context(), t.ID)
+		rows = append(rows, trainerRow{Trainer: t, Clients: tClients})
+	}
+
+	renderTemplate(w, r, "admin/assign.html", map[string]any{
+		"Rows":    rows,
+		"Clients": clients,
+	})
+}
+
+// Assign назначает клиента к тренеру
+func (h *AdminHandler) Assign(w http.ResponseWriter, r *http.Request) {
+	trainerID, err1 := uuid.Parse(r.FormValue("trainer_id"))
+	clientID, err2 := uuid.Parse(r.FormValue("client_id"))
+	if err1 != nil || err2 != nil {
+		http.Error(w, "Неверные параметры", http.StatusBadRequest)
+		return
+	}
+	_ = h.tc.Assign(r.Context(), trainerID, clientID)
+	http.Redirect(w, r, "/admin/assign", http.StatusSeeOther)
+}
+
+// Unassign убирает клиента от тренера
+func (h *AdminHandler) Unassign(w http.ResponseWriter, r *http.Request) {
+	trainerID, err1 := uuid.Parse(chi.URLParam(r, "trainerID"))
+	clientID, err2 := uuid.Parse(chi.URLParam(r, "clientID"))
+	if err1 != nil || err2 != nil {
+		http.Error(w, "Неверные параметры", http.StatusBadRequest)
+		return
+	}
+	_ = h.tc.Unassign(r.Context(), trainerID, clientID)
+	http.Redirect(w, r, "/admin/assign", http.StatusSeeOther)
 }
