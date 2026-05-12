@@ -31,14 +31,4 @@ CREATE TABLE trainer_clients (
     PRIMARY KEY (trainer_id, client_id)
 );
 
--- Первый admin-пользователь (логин: admin, пароль: admin123)
--- Хэш bcrypt для "admin123"
-INSERT INTO users (login, email, password_hash, role, is_admin, full_name)
-VALUES (
-    'admin',
-    'admin@localhost',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
-    'trainer',
-    TRUE,
-    'Администратор'
-);
+-- Первый admin создаётся через: go run ./cmd/seed
