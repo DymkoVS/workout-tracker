@@ -1,0 +1,59 @@
+{{define "title"}}Пользователи{{end}}
+
+{{define "content"}}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Пользователи</h1>
+  <a href="/admin/users/new"
+    class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition text-sm">
+    + Добавить
+  </a>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden" id="users-table">
+  {{template "users_rows" .}}
+</div>
+{{end}}
+
+{{define "users_rows"}}
+<table class="w-full text-sm">
+  <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+    <tr>
+      <th class="px-4 py-3 text-left">Имя / Логин</th>
+      <th class="px-4 py-3 text-left">Роль</th>
+      <th class="px-4 py-3 text-left">Статус</th>
+      <th class="px-4 py-3 text-left">Admin</th>
+      <th class="px-4 py-3"></th>
+    </tr>
+  </thead>
+  <tbody class="divide-y divide-gray-100">
+    {{range .Users}}
+    <tr class="hover:bg-gray-50">
+      <td class="px-4 py-3">
+        <div class="font-medium text-gray-800">{{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}</div>
+        <div class="text-gray-400">{{.Login}}</div>
+      </td>
+      <td class="px-4 py-3">
+        <span class="{{if .IsTrainer}}bg-blue-100 text-blue-700{{else}}bg-green-100 text-green-700{{end}} px-2 py-0.5 rounded text-xs font-medium">
+          {{.Role | roleLabel}}
+        </span>
+      </td>
+      <td class="px-4 py-3">
+        {{if .IsActive}}
+        <span class="text-green-600">Активен</span>
+        {{else}}
+        <span class="text-red-400">Деактивирован</span>
+        {{end}}
+      </td>
+      <td class="px-4 py-3">
+        {{if .IsAdmin}}<span class="text-yellow-600 font-medium">Да</span>{{else}}<span class="text-gray-300">—</span>{{end}}
+      </td>
+      <td class="px-4 py-3 text-right">
+        <a href="/admin/users/{{.ID}}/edit" class="text-blue-500 hover:text-blue-700">Изменить</a>
+      </td>
+    </tr>
+    {{else}}
+    <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Пользователей пока нет</td></tr>
+    {{end}}
+  </tbody>
+</table>
+{{end}}

@@ -1,0 +1,85 @@
+{{define "title"}}{{if .EditUser}}Изменить пользователя{{else}}Новый пользователь{{end}}{{end}}
+
+{{define "content"}}
+<div class="max-w-lg">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/admin/users" class="text-gray-400 hover:text-gray-600">← Назад</a>
+    <h1 class="text-2xl font-bold text-gray-800">
+      {{if .EditUser}}Изменить пользователя{{else}}Новый пользователь{{end}}
+    </h1>
+  </div>
+
+  {{if .Error}}
+  <div class="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{{.Error}}</div>
+  {{end}}
+
+  {{$u := .EditUser}}
+  <form method="POST"
+    action="{{if $u}}/admin/users/{{$u.ID}}{{else}}/admin/users{{end}}"
+    class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Полное имя</label>
+        <input type="text" name="full_name" value="{{if $u}}{{$u.FullName}}{{end}}"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Логин <span class="text-red-500">*</span></label>
+        <input type="text" name="login" required value="{{if $u}}{{$u.Login}}{{end}}"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input type="email" name="email" value="{{if $u}}{{$u.Email}}{{end}}"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div class="col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Пароль{{if $u}} <span class="text-gray-400 font-normal">(оставьте пустым, чтобы не менять)</span>{{else}}<span class="text-red-500">*</span>{{end}}
+        </label>
+        <input type="password" name="password" {{if not $u}}required{{end}}
+          class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Роль <span class="text-red-500">*</span></label>
+        <select name="role" required
+          class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="trainer" {{if and $u (eq $u.Role "trainer")}}selected{{end}}>Тренер</option>
+          <option value="client" {{if and $u (eq $u.Role "client")}}selected{{end}}>Клиент</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex gap-6 pt-2">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_admin" {{if and $u $u.IsAdmin}}checked{{end}}
+          class="w-4 h-4 rounded text-blue-600">
+        <span class="text-sm text-gray-700">Администратор</span>
+      </label>
+      {{if $u}}
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_active" {{if $u.IsActive}}checked{{end}}
+          class="w-4 h-4 rounded text-blue-600">
+        <span class="text-sm text-gray-700">Активен</span>
+      </label>
+      {{end}}
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button type="submit"
+        class="flex-1 bg-blue-600 text-white rounded-lg py-3 font-semibold hover:bg-blue-700 transition">
+        {{if $u}}Сохранить{{else}}Создать{{end}}
+      </button>
+      <a href="/admin/users"
+        class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium">
+        Отмена
+      </a>
+    </div>
+  </form>
+</div>
+{{end}}

@@ -1,0 +1,48 @@
+{{define "title"}}Главная{{end}}
+
+{{define "content"}}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">
+    Привет, {{.CurrentUser.DisplayName}}!
+  </h1>
+  <p class="text-gray-500 mt-1">
+    {{if .CurrentUser.IsTrainer}}Тренер{{else}}Клиент{{end}}
+    {{if .CurrentUser.IsAdmin}} · Администратор{{end}}
+  </p>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <a href="/workouts" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block">
+    <div class="text-3xl mb-2">🏋️</div>
+    <div class="font-semibold text-gray-800">Тренировки</div>
+    <div class="text-sm text-gray-500 mt-1">История и новая тренировка</div>
+  </a>
+
+  {{if .CurrentUser.IsTrainer}}
+  <a href="/clients" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block">
+    <div class="text-3xl mb-2">👥</div>
+    <div class="font-semibold text-gray-800">Клиенты</div>
+    <div class="text-sm text-gray-500 mt-1">Список клиентов и планы</div>
+  </a>
+  <a href="/templates" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block">
+    <div class="text-3xl mb-2">📋</div>
+    <div class="font-semibold text-gray-800">Шаблоны</div>
+    <div class="text-sm text-gray-500 mt-1">Шаблоны тренировок</div>
+  </a>
+  {{end}}
+
+  <a href="/analytics" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block">
+    <div class="text-3xl mb-2">📊</div>
+    <div class="font-semibold text-gray-800">Аналитика</div>
+    <div class="text-sm text-gray-500 mt-1">Прогресс и статистика</div>
+  </a>
+
+  {{if .CurrentUser.IsAdmin}}
+  <a href="/admin/users" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block border-2 border-dashed border-gray-200">
+    <div class="text-3xl mb-2">⚙️</div>
+    <div class="font-semibold text-gray-800">Пользователи</div>
+    <div class="text-sm text-gray-500 mt-1">Управление аккаунтами</div>
+  </a>
+  {{end}}
+</div>
+{{end}}
