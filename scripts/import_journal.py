@@ -41,6 +41,8 @@ def normalize(text):
     text = re.sub(r'по\s+по\s*(\d)', r'по \1', text)
     # "по по N" (with space before N)
     text = re.sub(r'по\s+по\s+', 'по ', text)
+    # "по 1ой/по 2ой" attachment selector — not a set notation, strip it
+    text = re.sub(r'по\s+\d+(?:ой|ей|ий)\s+', '', text, flags=re.IGNORECASE)
     return text
 
 # ─── date parsing ─────────────────────────────────────────────────────────────
@@ -91,11 +93,16 @@ def expand(rest, weight):
     rest = rest.strip()
     rest = re.sub(r'^×\s*', '', rest)   # strip leading × (e.g. "пустая ×15" → "15")
     rest = rest.strip().rstrip('.')
-    # strip trailing notes
+    # strip trailing failure/technique notes
     rest = re.sub(
-        r'\s*(в\s+отказ|отказ|\d+ий\s+в\s+отказ|всё\s+в\s+отказ)\s*$',
+        r'\s*(в\s+\S+\s*отказ|отказ|\d+[а-яё]+\s+в\s+отказ|всё\s+в\s+отказ)\s*$',
         '', rest, flags=re.IGNORECASE
     ).strip()
+    # strip trailing prose after ". " (e.g. "10×2. Прекрасно и в отказ!")
+    rest = re.sub(r'\s*\.\s+.*$', '', rest).strip()
+    # strip remaining trailing Cyrillic words (e.g. "10×3 оба в жёсткий")
+    rest = re.sub(r'\s+[а-яёА-ЯЁ].+$', '', rest).strip()
+    rest = rest.rstrip('.')
     if not rest:
         return []
 
@@ -142,7 +149,11 @@ def parse_group(group):
     """
     g = group.strip()
     # strip trailing technique notes
-    g = re.sub(r'\s*(в отказ|отказ|дроп\s*сет)\s*$', '', g, flags=re.IGNORECASE).strip()
+    g = re.sub(
+        r'\s*(оба\s+в\s+\S+|обе\s+в\s+\S+|в\s+\S+\s+отказ|в отказ|отказ|дроп\s*сет)\s*$',
+        '', g, flags=re.IGNORECASE
+    ).strip()
+    g = re.sub(r'\s*\.\s+.*$', '', g).strip()
     if not g:
         return []
 
@@ -174,6 +185,11 @@ def parse_group(group):
     bm = re.match(r'^б/в\s*×?\s*(.+)$', g)
     if bm:
         return expand(bm.group(1), None)
+
+    # "+N плюх[а/и] [×R[×S]]" — plate count notation, weight unknown → None
+    pm = re.match(r'^\+\d+\s+плюх(?:а|и)?\s*(.*)', g, re.IGNORECASE)
+    if pm:
+        return expand(pm.group(1), None)
 
     # "+N ×R[×S]"  (added machine weight)
     pm = re.match(r'^\+(\d+(?:[,\.]\d+)?)\s*×\s*(.+)$', g)
@@ -241,6 +257,8 @@ def parse_exercise_line(raw_line):
         return line.strip().rstrip('.'), [], raw_line.strip()
 
     name = line[:m.start()].strip().rstrip('.')
+    # strip inline prose note from exercise name (e.g. ". Здесь не хуярим, надо включить.")
+    name = re.sub(r'\.\s+[А-ЯЁа-яё].+$', '', name).strip()
     sets_text = line[m.start():]
 
     # If there's an inline date reference "NN.MM. " — use only data after it
@@ -265,9 +283,49 @@ def parse_exercise_line(raw_line):
 
 # ─── workout block parsing ────────────────────────────────────────────────────
 
+def _parse_block_old(lines):
+    """Old format: 'Тренировка N. Title.' on line 0, date on line 1."""
+    title_m = re.match(r'Тренировка\s+\d+\.\s*(.+?)\.?\s*$', lines[0])
+    if not title_m:
+        return None
+    title = title_m.group(1).strip()
+    workout_date = None
+    ex_start = 2
+    for idx in range(1, len(lines)):
+        d = parse_date(lines[idx])
+        if d:
+            workout_date = d
+            ex_start = idx + 1
+            break
+    if not workout_date:
+        return None
+    return title, workout_date, ex_start
+
+
+def _parse_block_new(lines):
+    """New format: 'Тренировка DD.MM.YYYY. Title.' on line 0."""
+    m = re.match(r'Тренировка\s+(\d{2}\.\d{2}\.\d{4})\.\s*(.+?)\.?\s*$', lines[0])
+    if not m:
+        return None
+    try:
+        d, mo, y = m.group(1).split('.')
+        workout_date = date(int(y), int(mo), int(d))
+    except ValueError:
+        return None
+    title = m.group(2).strip()
+    return title, workout_date, 1
+
+
 def parse_workouts(content):
     workouts = []
-    blocks = re.split(r'\n\s*---+\s*\n', content)
+
+    # Choose splitting strategy based on presence of --- separators
+    if re.search(r'\n\s*---+\s*\n', content):
+        blocks = re.split(r'\n\s*---+\s*\n', content)
+        parse_header = _parse_block_old
+    else:
+        blocks = re.split(r'\n{2,}', content)
+        parse_header = _parse_block_new
 
     for block in blocks:
         block = block.strip()
@@ -277,23 +335,10 @@ def parse_workouts(content):
         if len(lines) < 2:
             continue
 
-        # First line: "Тренировка N. Title."
-        title_m = re.match(r'Тренировка\s+\d+\.\s*(.+?)\.?\s*$', lines[0])
-        if not title_m:
+        result = parse_header(lines)
+        if not result:
             continue
-        title = title_m.group(1).strip()
-
-        # Second non-empty line: date
-        workout_date = None
-        ex_start = 2
-        for idx in range(1, len(lines)):
-            d = parse_date(lines[idx])
-            if d:
-                workout_date = d
-                ex_start = idx + 1
-                break
-        if not workout_date:
-            continue
+        title, workout_date, ex_start = result
 
         exercises = []
         for line in lines[ex_start:]:
