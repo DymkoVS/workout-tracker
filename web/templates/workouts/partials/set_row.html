@@ -1,0 +1,20 @@
+{{define "set_row.html"}}
+<div class="set-row flex gap-2 items-center">
+  <span class="text-xs text-gray-400 w-5 text-right shrink-0">{{add .SetIdx 1}}</span>
+  <input type="number" step="0.5" min="0"
+    name="exercises[{{.ExIdx}}][sets][{{.SetIdx}}][weight]"
+    placeholder="кг"
+    class="w-20 border border-gray-300 rounded-lg px-2 py-2 text-base text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+  <span class="text-gray-400 text-sm">×</span>
+  <input type="number" min="1"
+    name="exercises[{{.ExIdx}}][sets][{{.SetIdx}}][reps]"
+    placeholder="повт"
+    class="w-20 border border-gray-300 rounded-lg px-2 py-2 text-base text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+  <input type="number" step="0.5" min="1" max="10"
+    name="exercises[{{.ExIdx}}][sets][{{.SetIdx}}][rpe]"
+    placeholder="RPE"
+    class="w-16 border border-gray-300 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+  <button type="button" onclick="this.closest('.set-row').remove()"
+    class="text-gray-300 hover:text-red-400 text-lg leading-none ml-auto">✕</button>
+</div>
+{{end}}

@@ -1,0 +1,64 @@
+package model
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type Gym struct {
+	ID        uuid.UUID
+	Name      string
+	CreatedAt time.Time
+}
+
+type Workout struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	TrainerID   *uuid.UUID
+	GymID       *uuid.UUID
+	GymName     string
+	Title       string
+	WorkoutDate time.Time
+	Notes       string
+	Wellbeing   *int
+	Exercises   []WorkoutExercise
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type WorkoutExercise struct {
+	ID        uuid.UUID
+	WorkoutID uuid.UUID
+	Name      string
+	OrderNum  int
+	Notes     string
+	Sets      []Set
+}
+
+type Set struct {
+	ID                 uuid.UUID
+	WorkoutExerciseID  uuid.UUID
+	SetNum             int
+	Weight             *float64
+	Reps               *int
+	RPE                *float64
+	RestSeconds        *int
+	Notes              string
+}
+
+// FormSet — данные одного подхода из HTML-формы (строки, до парсинга)
+type FormSet struct {
+	Weight      string
+	Reps        string
+	RPE         string
+	RestSeconds string
+	Notes       string
+}
+
+// FormExercise — данные одного упражнения из HTML-формы
+type FormExercise struct {
+	Name  string
+	Notes string
+	Sets  []FormSet
+}

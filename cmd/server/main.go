@@ -25,9 +25,12 @@ func main() {
 
 	sessionStore := session.NewStore(pool)
 	userRepo := repository.NewUserRepository(pool)
+	gymRepo := repository.NewGymRepository(pool)
+	workoutRepo := repository.NewWorkoutRepository(pool)
 
 	authHandler := handler.NewAuthHandler(userRepo, sessionStore)
 	adminHandler := handler.NewAdminHandler(userRepo)
+	workoutHandler := handler.NewWorkoutHandler(workoutRepo, gymRepo)
 	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo)
 
 	r := chi.NewRouter()
@@ -45,6 +48,19 @@ func main() {
 		r.Use(authMiddleware.RequireAuth)
 
 		r.Get("/", handler.Dashboard)
+
+		// Тренировки
+		r.Get("/workouts", workoutHandler.List)
+		r.Get("/workouts/new", workoutHandler.NewForm)
+		r.Post("/workouts", workoutHandler.Create)
+		r.Get("/workouts/{id}", workoutHandler.Show)
+		r.Get("/workouts/{id}/edit", workoutHandler.EditForm)
+		r.Post("/workouts/{id}", workoutHandler.Update)
+		r.Post("/workouts/{id}/delete", workoutHandler.Delete)
+
+		// HTMX-партиалы для формы
+		r.Get("/workouts/htmx/add-exercise", workoutHandler.AddExerciseRow)
+		r.Get("/workouts/htmx/add-set", workoutHandler.AddSetRow)
 
 		// Маршруты администратора
 		r.Group(func(r chi.Router) {

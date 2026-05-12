@@ -1,0 +1,39 @@
+{{define "title"}}Тренировки{{end}}
+
+{{define "content"}}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Тренировки</h1>
+  <a href="/workouts/new"
+    class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition text-sm">
+    + Новая
+  </a>
+</div>
+
+{{if not .Workouts}}
+<div class="bg-white rounded-2xl shadow-sm p-12 text-center text-gray-400">
+  <div class="text-5xl mb-3">🏋️</div>
+  <div class="font-medium text-gray-600 mb-1">Тренировок пока нет</div>
+  <a href="/workouts/new" class="text-blue-600 text-sm hover:underline">Добавить первую</a>
+</div>
+{{else}}
+<div class="space-y-3">
+  {{range .Workouts}}
+  <a href="/workouts/{{.ID}}" class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between hover:shadow-md transition block">
+    <div>
+      <div class="font-semibold text-gray-800">{{if .Title}}{{.Title}}{{else}}Тренировка{{end}}</div>
+      <div class="text-sm text-gray-500 mt-0.5">
+        {{.WorkoutDate.Format "02.01.2006"}}
+        {{if .GymName}} · {{.GymName}}{{end}}
+      </div>
+    </div>
+    <div class="flex items-center gap-3 text-right">
+      {{if .Wellbeing}}
+      <span class="text-lg">{{wellbeingEmoji .Wellbeing}}</span>
+      {{end}}
+      <span class="text-gray-300">›</span>
+    </div>
+  </a>
+  {{end}}
+</div>
+{{end}}
+{{end}}
