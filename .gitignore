@@ -2,3 +2,4 @@
 bin/
 uploads/
 *.test
+.DS_Store
