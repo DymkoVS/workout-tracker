@@ -7,11 +7,19 @@ import (
 )
 
 type ProfileHandler struct {
-	workouts *repository.WorkoutRepository
+	workouts  *repository.WorkoutRepository
+	gyms      *repository.GymRepository
+	tc        *repository.TrainerClientRepository
+	templates *repository.TemplateRepository
 }
 
-func NewProfileHandler(workouts *repository.WorkoutRepository) *ProfileHandler {
-	return &ProfileHandler{workouts: workouts}
+func NewProfileHandler(
+	workouts *repository.WorkoutRepository,
+	gyms *repository.GymRepository,
+	tc *repository.TrainerClientRepository,
+	templates *repository.TemplateRepository,
+) *ProfileHandler {
+	return &ProfileHandler{workouts: workouts, gyms: gyms, tc: tc, templates: templates}
 }
 
 func (h *ProfileHandler) Show(w http.ResponseWriter, r *http.Request) {
@@ -24,9 +32,22 @@ func (h *ProfileHandler) Show(w http.ResponseWriter, r *http.Request) {
 		totalTonnage += c.Tonnage
 	}
 
-	renderTemplate(w, r, "profile.html", map[string]any{
+	gymList, _ := h.gyms.List(r.Context())
+
+	data := map[string]any{
 		"Stats":        stats,
 		"TotalCount":   len(cards),
 		"TotalTonnage": totalTonnage,
-	})
+		"GymCount":     len(gymList),
+	}
+
+	if user.IsTrainer() {
+		clients, _ := h.tc.GetClients(r.Context(), user.ID)
+		data["ClientCount"] = len(clients)
+
+		templateList, _ := h.templates.List(r.Context(), user.ID)
+		data["TemplateCount"] = len(templateList)
+	}
+
+	renderTemplate(w, r, "profile.html", data)
 }

@@ -39,7 +39,7 @@ func main() {
 	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo)
 	templateHandler := handler.NewTemplateHandler(templateRepo, tcRepo, gymRepo)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo)
-	profileHandler := handler.NewProfileHandler(workoutRepo)
+	profileHandler := handler.NewProfileHandler(workoutRepo, gymRepo, tcRepo, templateRepo)
 	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo)
 
 	r := chi.NewRouter()

@@ -8,7 +8,7 @@
 
 {{/* Header */}}
 <div style="padding:56px 24px 24px;border-bottom:1px solid #2e2e2e">
-  <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">СТАТИСТИКА</div>
+  <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">ПОСЛЕДНИЕ 90 ДНЕЙ</div>
   <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px">ПРОГРЕСС</div>
 </div>
 
@@ -34,26 +34,31 @@
 </div>
 {{end}}
 
-{{/* Tonnage chart */}}
+{{/* Tonnage hero card */}}
 <div style="padding:20px 24px 0">
   <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
-    <div class="font-display" style="font-size:18px;letter-spacing:0.5px;margin-bottom:4px">ТОННАЖ</div>
-    <div class="eyebrow eyebrow-dim2" style="margin-bottom:16px">последние 90 дней · кг</div>
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:12px">ТОННАЖ · 90 ДНЕЙ</div>
     {{if .TonnageCount}}
-    <canvas id="tonnageChart" style="max-height:180px"></canvas>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px">
+      <div id="tonnageHero" class="font-display" style="font-size:64px;line-height:0.9;letter-spacing:0.5px;color:#D7FF1A">—</div>
+    </div>
+    <canvas id="tonnageChart" style="max-height:160px"></canvas>
     {{else}}
     <div style="padding:40px 0;text-align:center;color:#6a6a6a;font-size:13px">Нет данных о тоннаже</div>
     {{end}}
   </div>
 </div>
 
-{{/* Frequency chart */}}
+{{/* Frequency hero card */}}
 <div style="padding:16px 24px 0">
   <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
-    <div class="font-display" style="font-size:18px;letter-spacing:0.5px;margin-bottom:4px">ЧАСТОТА</div>
-    <div class="eyebrow eyebrow-dim2" style="margin-bottom:16px">тренировок за неделю · последние 8 нед.</div>
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:12px">ЧАСТОТА · 8 НЕДЕЛЬ</div>
     {{if .FreqCount}}
-    <canvas id="freqChart" style="max-height:160px"></canvas>
+    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:16px">
+      <div id="freqHero" class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">—</div>
+      <div style="font-family:'Space Grotesk',system-ui;font-size:14px;color:#9a9a9a">/нед</div>
+    </div>
+    <canvas id="freqChart" style="max-height:140px"></canvas>
     {{else}}
     <div style="padding:40px 0;text-align:center;color:#6a6a6a;font-size:13px">Нет данных о частоте</div>
     {{end}}
@@ -107,7 +112,18 @@ const baseScales = {
   y: { beginAtZero: true, grid: { color: '#1f1f1f' }, ticks: { color: '#6a6a6a' } }
 };
 
+// Tonnage hero number
 if (tonnageLabels.length > 0) {
+  const total = tonnageValues.reduce(function(a, b) { return a + b; }, 0);
+  var formatted;
+  if (total >= 1000) {
+    formatted = (total / 1000).toFixed(1) + 'т';
+  } else {
+    formatted = Math.round(total) + 'кг';
+  }
+  var hero = document.getElementById('tonnageHero');
+  if (hero) hero.textContent = formatted;
+
   new Chart(document.getElementById('tonnageChart'), {
     type: 'line',
     data: {
@@ -131,7 +147,12 @@ if (tonnageLabels.length > 0) {
   });
 }
 
+// Frequency hero number
 if (freqLabels.length > 0) {
+  const avg = freqValues.reduce(function(a, b) { return a + b; }, 0) / freqValues.length;
+  var freqHeroEl = document.getElementById('freqHero');
+  if (freqHeroEl) freqHeroEl.textContent = avg.toFixed(1);
+
   new Chart(document.getElementById('freqChart'), {
     type: 'bar',
     data: {
@@ -148,8 +169,8 @@ if (freqLabels.length > 0) {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        ...baseScales,
-        y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, stepSize: 1 } }
+        x: baseScales.x,
+        y: { beginAtZero: true, grid: { color: '#1f1f1f' }, ticks: { color: '#6a6a6a', stepSize: 1 } }
       }
     }
   });
@@ -172,8 +193,8 @@ document.getElementById('exerciseSelect')?.addEventListener('change', function()
   if (targetUserID) params.set('user_id', targetUserID);
 
   fetch('/analytics/exercise-data?' + params.toString())
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
       if (!data.labels || data.labels.length === 0) {
         wrap.style.display = 'none';
         noData.style.display = 'block';

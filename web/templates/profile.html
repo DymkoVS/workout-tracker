@@ -6,96 +6,102 @@
 
 {{/* Header */}}
 <div style="padding:56px 24px 24px;border-bottom:1px solid #2e2e2e">
-  <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">ПРОФИЛЬ</div>
-  <div class="font-display" style="font-size:40px;line-height:0.95;letter-spacing:0.5px">
+  <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">
+    {{if and $u.IsTrainer $u.IsAdmin}}ТРЕНЕР · АДМИНИСТРАТОР
+    {{else if $u.IsTrainer}}ТРЕНЕР
+    {{else if $u.IsAdmin}}АДМИНИСТРАТОР
+    {{else}}КЛИЕНТ{{end}}
+  </div>
+  <div class="font-display" style="font-size:48px;line-height:0.95;letter-spacing:0.5px">
     {{if $u.FullName}}{{toUpper $u.FullName}}{{else}}{{toUpper $u.Login}}{{end}}
   </div>
   {{if $u.FullName}}
   <div style="font-size:13px;color:#9a9a9a;margin-top:6px">@{{$u.Login}}</div>
   {{end}}
-  <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-    {{if $u.IsTrainer}}
-    <span style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;background:#D7FF1A;color:#000;padding:3px 8px">ТРЕНЕР</span>
-    {{else}}
-    <span style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;background:#2e2e2e;color:#9a9a9a;padding:3px 8px">КЛИЕНТ</span>
-    {{end}}
-    {{if $u.IsAdmin}}
-    <span style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;background:#2e2e2e;color:#D7FF1A;padding:3px 8px">ADMIN</span>
-    {{end}}
-  </div>
+  <div style="width:56px;height:4px;background:#D7FF1A;margin-top:14px"></div>
 </div>
 
-{{/* All-time stats */}}
+{{/* All-time stats 2×2 */}}
 <div style="padding:24px 24px 0">
-  <div class="eyebrow" style="margin-bottom:14px">ВСЕ ВРЕМЯ</div>
+  <div class="eyebrow" style="margin-bottom:12px">ВСЕ ВРЕМЯ</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#2e2e2e">
+
     <div style="background:#0a0a0a;padding:20px 18px">
       <div class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.TotalCount}}</div>
       <div class="eyebrow eyebrow-dim2" style="margin-top:6px;letter-spacing:1.5px">ТРЕНИРОВОК</div>
     </div>
+
     <div style="background:#0a0a0a;padding:20px 18px">
       <div class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px;color:#D7FF1A">{{formatTonnage .TotalTonnage}}</div>
       <div class="eyebrow eyebrow-accent" style="margin-top:6px;letter-spacing:1.5px">ТОННАЖ</div>
     </div>
+
+    <div style="background:#0a0a0a;padding:20px 18px;border-top:1px solid #2e2e2e">
+      <div style="display:flex;align-items:baseline;gap:4px">
+        <span class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{$s.Streak}}</span>
+        <span style="font-size:14px;color:#9a9a9a">дн</span>
+      </div>
+      <div class="eyebrow eyebrow-dim2" style="margin-top:6px;letter-spacing:1.5px">СТРИК</div>
+    </div>
+
+    <div style="background:#0a0a0a;padding:20px 18px;border-top:1px solid #2e2e2e">
+      <div class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.GymCount}}</div>
+      <div class="eyebrow eyebrow-dim2" style="margin-top:6px;letter-spacing:1.5px">ЗАЛОВ</div>
+    </div>
+
   </div>
 </div>
 
-{{/* This week */}}
+{{/* Trainer section */}}
+{{if $u.IsTrainer}}
 <div style="padding:24px 24px 0">
-  <div class="eyebrow" style="margin-bottom:14px">ЭТА НЕДЕЛЯ</div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#2e2e2e">
-    <div style="background:#0a0a0a;padding:16px 14px">
-      <div class="font-display" style="font-size:32px;line-height:0.9;letter-spacing:0.5px">{{$s.WeekCount}}</div>
-      <div class="eyebrow eyebrow-dim2" style="margin-top:6px;letter-spacing:1.4px">ТРЕН.</div>
-    </div>
-    <div style="background:#0a0a0a;padding:16px 14px">
-      <div class="font-display" style="font-size:32px;line-height:0.9;letter-spacing:0.5px;color:#D7FF1A">{{formatTonnage $s.WeekTonnage}}</div>
-      <div class="eyebrow eyebrow-accent" style="margin-top:6px;letter-spacing:1.4px">ТОННАЖ</div>
-    </div>
-    <div style="background:#0a0a0a;padding:16px 14px">
-      <div class="font-display" style="font-size:32px;line-height:0.9;letter-spacing:0.5px">{{$s.Streak}}</div>
-      <div class="eyebrow eyebrow-dim2" style="margin-top:6px;letter-spacing:1.4px">СТРИК</div>
-    </div>
+  <div class="eyebrow" style="margin-bottom:12px">ТРЕНЕРСКОЕ</div>
+  <div style="background:#141414;border:1px solid #2e2e2e">
+
+    <a href="/trainer/clients" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none">
+      <span style="font-size:15px;font-weight:500;color:#fafafa">Клиенты</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        {{if .ClientCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">{{.ClientCount}}</span>{{end}}
+        <span style="color:#6a6a6a;font-size:16px">›</span>
+      </div>
+    </a>
+
+    <a href="/templates" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #1f1f1f">
+      <span style="font-size:15px;font-weight:500;color:#fafafa">Шаблоны тренировок</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        {{if .TemplateCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">{{.TemplateCount}}</span>{{end}}
+        <span style="color:#6a6a6a;font-size:16px">›</span>
+      </div>
+    </a>
+
+    <a href="/gyms" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #1f1f1f">
+      <span style="font-size:15px;font-weight:500;color:#fafafa">Залы</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        {{if .GymCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">{{.GymCount}}</span>{{end}}
+        <span style="color:#6a6a6a;font-size:16px">›</span>
+      </div>
+    </a>
+
   </div>
 </div>
+{{end}}
 
-{{/* Quick links for trainer/admin */}}
-{{if or $u.IsTrainer $u.IsAdmin}}
+{{/* Admin section */}}
+{{if $u.IsAdmin}}
 <div style="padding:24px 24px 0">
-  <div class="eyebrow" style="margin-bottom:12px">УПРАВЛЕНИЕ</div>
-  <div style="display:flex;flex-direction:column;gap:1px;background:#2e2e2e">
-    {{if $u.IsTrainer}}
-    <a href="/trainer/clients" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:16px 18px;text-decoration:none">
-      <div>
-        <div style="font-size:14px;font-weight:600;color:#fafafa">Мои клиенты</div>
-        <div style="font-size:12px;color:#6a6a6a;margin-top:2px">Тренировки и прогресс</div>
-      </div>
-      <span style="color:#6a6a6a;font-size:18px">›</span>
+  <div class="eyebrow" style="margin-bottom:12px">АДМИНИСТРАЦИЯ</div>
+  <div style="background:#141414;border:1px solid #2e2e2e">
+
+    <a href="/admin/users" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none">
+      <span style="font-size:15px;font-weight:500;color:#fafafa">Пользователи</span>
+      <span style="color:#6a6a6a;font-size:16px">›</span>
     </a>
-    <a href="/templates" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:16px 18px;text-decoration:none">
-      <div>
-        <div style="font-size:14px;font-weight:600;color:#fafafa">Шаблоны</div>
-        <div style="font-size:12px;color:#6a6a6a;margin-top:2px">Программы тренировок</div>
-      </div>
-      <span style="color:#6a6a6a;font-size:18px">›</span>
+
+    <a href="/admin/assign" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #1f1f1f">
+      <span style="font-size:15px;font-weight:500;color:#fafafa">Назначения тренер–клиент</span>
+      <span style="color:#6a6a6a;font-size:16px">›</span>
     </a>
-    {{end}}
-    {{if $u.IsAdmin}}
-    <a href="/admin/users" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:16px 18px;text-decoration:none">
-      <div>
-        <div style="font-size:14px;font-weight:600;color:#fafafa">Пользователи</div>
-        <div style="font-size:12px;color:#6a6a6a;margin-top:2px">Управление аккаунтами</div>
-      </div>
-      <span style="color:#6a6a6a;font-size:18px">›</span>
-    </a>
-    <a href="/admin/assign" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:16px 18px;text-decoration:none">
-      <div>
-        <div style="font-size:14px;font-weight:600;color:#fafafa">Тренеры и клиенты</div>
-        <div style="font-size:12px;color:#6a6a6a;margin-top:2px">Назначение клиентов</div>
-      </div>
-      <span style="color:#6a6a6a;font-size:18px">›</span>
-    </a>
-    {{end}}
+
   </div>
 </div>
 {{end}}
@@ -103,7 +109,8 @@
 {{/* Logout */}}
 <div style="padding:24px 24px 0">
   <form method="POST" action="/logout">
-    <button type="submit" style="width:100%;background:#141414;border:1px solid #2e2e2e;color:#ff453a;font-family:'Space Grotesk',system-ui;font-size:12px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;padding:16px;cursor:pointer">
+    <button type="submit"
+      style="width:100%;background:transparent;border:1px solid #2e2e2e;color:#ff453a;font-family:'Space Grotesk',system-ui;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:16px;cursor:pointer">
       ВЫЙТИ ИЗ АККАУНТА
     </button>
   </form>
