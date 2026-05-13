@@ -216,6 +216,7 @@ func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]
 	rows, err := r.db.Query(ctx, `
 		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
 		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		       w.started_at, w.ended_at,
 		       COUNT(DISTINCT we.id) AS exercise_count,
 		       COUNT(s.id) AS set_count,
 		       COALESCE(SUM(s.weight * s.reps), 0) AS tonnage
@@ -224,7 +225,7 @@ func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]
 		LEFT JOIN workout_exercises we ON we.workout_id = w.id
 		LEFT JOIN sets s ON s.workout_exercise_id = we.id
 		WHERE w.user_id = $1
-		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
+		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
 		ORDER BY w.workout_date DESC, w.created_at DESC`, userID)
 	if err != nil {
 		return nil, err
@@ -236,6 +237,7 @@ func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]
 		if err := rows.Scan(
 			&c.ID, &c.UserID, &c.TrainerID, &c.GymID, &c.GymName,
 			&c.Title, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
+			&c.StartedAt, &c.EndedAt,
 			&c.ExerciseCount, &c.SetCount, &c.Tonnage,
 		); err != nil {
 			return nil, err
@@ -299,6 +301,7 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 	err = r.db.QueryRow(ctx, `
 		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
 		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		       w.started_at, w.ended_at,
 		       COUNT(DISTINCT we.id) AS exercise_count,
 		       COUNT(s.id) AS set_count,
 		       COALESCE(SUM(s.weight * s.reps), 0) AS tonnage
@@ -307,11 +310,12 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 		LEFT JOIN workout_exercises we ON we.workout_id = w.id
 		LEFT JOIN sets s ON s.workout_exercise_id = we.id
 		WHERE w.user_id = $1
-		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
+		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
 		ORDER BY w.workout_date DESC, w.created_at DESC
 		LIMIT 1`, userID).Scan(
 		&c.ID, &c.UserID, &c.TrainerID, &c.GymID, &c.GymName,
 		&c.Title, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
+		&c.StartedAt, &c.EndedAt,
 		&c.ExerciseCount, &c.SetCount, &c.Tonnage,
 	)
 	if err == nil {

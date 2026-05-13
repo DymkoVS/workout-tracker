@@ -57,6 +57,7 @@
             <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#6a6a6a;letter-spacing:1px;text-transform:uppercase">{{.ExerciseCount}} УПР.</span>
             <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#6a6a6a;letter-spacing:1px;text-transform:uppercase">{{.SetCount}} ПОДХ.</span>
             <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#D7FF1A;letter-spacing:1px;text-transform:uppercase">{{formatTonnage .Tonnage}}</span>
+            {{$d := workoutDuration .StartedAt .EndedAt}}{{if $d}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9a9a9a;letter-spacing:0.5px">{{$d}}</span>{{end}}
           </div>
         </div>
       </a>

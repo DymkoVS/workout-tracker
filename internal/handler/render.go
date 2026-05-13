@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 	"workout-tracker/internal/middleware"
 	"workout-tracker/internal/model"
 )
@@ -127,6 +128,21 @@ var tmplFuncs = template.FuncMap{
 			}
 		}
 		return best
+	},
+	"workoutDuration": func(startedAt, endedAt *time.Time) string {
+		if startedAt == nil || endedAt == nil {
+			return ""
+		}
+		dur := endedAt.Sub(*startedAt)
+		if dur <= 0 {
+			return ""
+		}
+		h := int(dur.Hours())
+		m := int(dur.Minutes()) % 60
+		if h > 0 {
+			return fmt.Sprintf("%dч %dм", h, m)
+		}
+		return fmt.Sprintf("%dм", m)
 	},
 }
 

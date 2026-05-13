@@ -70,6 +70,18 @@
   </div>
 </div>
 
+{{/* Duration strip */}}
+{{$dur := workoutDuration $w.StartedAt $w.EndedAt}}
+{{if $dur}}
+<div style="padding:14px 24px 0;display:flex;align-items:center;gap:6px">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9a9a9a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+  </svg>
+  <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;color:#D7FF1A;letter-spacing:0.5px">{{$dur}}</span>
+  <span class="eyebrow eyebrow-dim2" style="margin-left:2px">ДЛИТЕЛЬНОСТЬ</span>
+</div>
+{{end}}
+
 {{/* Start session button */}}
 {{if .CanStart}}
 <div style="padding:20px 24px 0">
