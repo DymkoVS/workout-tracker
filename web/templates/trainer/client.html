@@ -1,0 +1,121 @@
+{{define "title"}}{{if .Detail.FullName}}{{.Detail.FullName}}{{else}}{{.Detail.Login}}{{end}}{{end}}
+
+{{define "tabbar"}}{{end}}
+
+{{define "content"}}
+{{$d := .Detail}}
+
+{{/* Top bar */}}
+<div style="padding:56px 24px 0">
+  <a href="/trainer/clients" style="display:flex;align-items:center;gap:8px;color:#9a9a9a;text-decoration:none">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.4px;text-transform:uppercase">КЛИЕНТЫ</span>
+  </a>
+</div>
+
+{{/* Title block */}}
+<div style="padding:20px 24px 0">
+  <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">@{{$d.Login}}</div>
+  <div class="font-display" style="font-size:44px;line-height:0.95;letter-spacing:0.5px">
+    {{if $d.FullName}}{{toUpper $d.FullName}}{{else}}{{toUpper $d.Login}}{{end}}
+  </div>
+  <div style="width:56px;height:4px;background:#D7FF1A;margin-top:16px"></div>
+</div>
+
+{{/* 4-up stats */}}
+<div style="padding:24px 24px 0">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+
+    <div>
+      <div class="font-display" style="font-size:30px;line-height:0.9;letter-spacing:0.5px">{{$d.TotalWorkouts}}</div>
+      <div class="eyebrow eyebrow-dim2" style="margin-top:5px">ТРЕН.</div>
+    </div>
+
+    <div>
+      <div class="font-display" style="font-size:30px;line-height:0.9;letter-spacing:0.5px;{{if ge $d.WeekDone $d.WeekPlan}}color:#D7FF1A{{end}}">
+        {{$d.WeekDone}}<span style="font-size:14px;color:#9a9a9a;margin-left:2px">/{{$d.WeekPlan}}</span>
+      </div>
+      <div class="eyebrow eyebrow-dim2" style="margin-top:5px">НЕДЕЛЯ</div>
+    </div>
+
+    <div>
+      <div class="font-display" style="font-size:30px;line-height:0.9;letter-spacing:0.5px;{{if gt $d.Streak 0}}color:#D7FF1A{{else}}color:#6a6a6a{{end}}">{{$d.Streak}}</div>
+      <div class="eyebrow eyebrow-dim2" style="margin-top:5px">СТРИК</div>
+    </div>
+
+    <div>
+      <div class="font-display" style="font-size:30px;line-height:0.9;letter-spacing:0.5px">{{$d.AvgTonnageFmt}}</div>
+      <div class="eyebrow eyebrow-dim2" style="margin-top:5px">СРЕДН.</div>
+    </div>
+
+  </div>
+</div>
+
+{{/* Compliance grid */}}
+{{if $d.Compliance}}
+<div style="padding:24px 24px 0">
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:18px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+      <div class="eyebrow eyebrow-dim2">СОБЛЮДЕНИЕ ПЛАНА · 4 НЕД.</div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:#D7FF1A">{{$d.CompliancePct}}</div>
+    </div>
+    <div style="display:flex;gap:4px">
+      {{range $d.Compliance}}
+      <div style="flex:1;height:28px;background:{{if .}}#D7FF1A{{else}}#2e2e2e{{end}}"></div>
+      {{end}}
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px">
+      <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;color:#6a6a6a">нед -3</span>
+      <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;color:#6a6a6a">нед -2</span>
+      <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;color:#6a6a6a">нед -1</span>
+      <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;color:#6a6a6a">сейчас</span>
+    </div>
+  </div>
+</div>
+{{end}}
+
+{{/* Recent workouts */}}
+{{if $d.RecentWorkouts}}
+<div style="padding:28px 24px 0">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+    <div class="eyebrow eyebrow-dim2">ПОСЛЕДНИЕ ТРЕНИРОВКИ</div>
+    <a href="/trainer/clients/{{$d.ID}}/workouts"
+      style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#9a9a9a;letter-spacing:1.4px;text-transform:uppercase;text-decoration:none">Все →</a>
+  </div>
+  <div style="background:#141414;border:1px solid #2e2e2e">
+    {{range $i, $rw := $d.RecentWorkouts}}
+    <div style="padding:14px 18px;{{if gt $i 0}}border-top:1px solid #1f1f1f;{{end}}display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9a9a9a;flex-shrink:0">{{$rw.DateFmt}}</div>
+        <div>
+          <div class="font-display" style="font-size:18px;line-height:1;letter-spacing:0.5px">
+            {{if $rw.Title}}{{toUpper $rw.Title}}{{else}}ТРЕНИРОВКА{{end}}
+          </div>
+          {{if $rw.TonnageFmt}}
+          <div style="font-size:11px;color:#9a9a9a;margin-top:4px">тоннаж · <span style="font-family:'JetBrains Mono',ui-monospace,monospace;color:#D7FF1A">{{$rw.TonnageFmt}}</span></div>
+          {{end}}
+        </div>
+      </div>
+      {{if $rw.Wellbeing}}<span class="wellbeing-emoji">{{wellbeingEmoji $rw.Wellbeing}}</span>{{end}}
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}
+
+{{/* Actions */}}
+<div style="padding:24px 24px 0;display:flex;flex-direction:column;gap:10px">
+  <a href="/templates"
+    style="display:block;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:18px;letter-spacing:2px;padding:18px;text-align:center;text-decoration:none">
+    + НАЗНАЧИТЬ ТРЕНИРОВКУ
+  </a>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <button style="background:transparent;color:#fafafa;border:1px solid #2e2e2e;padding:14px;font-family:'Space Grotesk',system-ui;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;cursor:pointer">НАПИСАТЬ</button>
+    <button style="background:transparent;color:#fafafa;border:1px solid #2e2e2e;padding:14px;font-family:'Space Grotesk',system-ui;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;cursor:pointer">ПЛАН НЕДЕЛИ</button>
+  </div>
+</div>
+
+<div style="height:40px"></div>
+{{end}}

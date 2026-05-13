@@ -80,6 +80,7 @@ func main() {
 
 		// Тренер: список клиентов и их тренировки
 		r.Get("/trainer/clients", trainerHandler.Clients)
+		r.Get("/trainer/clients/{id}", trainerHandler.ClientDetail)
 		r.Get("/trainer/clients/{id}/workouts", trainerHandler.ClientWorkouts)
 
 		// Шаблоны тренировок (только для тренеров)

@@ -69,6 +69,32 @@ func (h *TrainerHandler) Clients(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ClientDetail показывает страницу детали клиента с compliance grid и статистикой.
+func (h *TrainerHandler) ClientDetail(w http.ResponseWriter, r *http.Request) {
+	trainer := middleware.UserFromContext(r.Context())
+	clientID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	ok, err := h.tc.IsAssigned(r.Context(), trainer.ID, clientID)
+	if err != nil || !ok {
+		http.Error(w, "Нет доступа", http.StatusForbidden)
+		return
+	}
+
+	cd, err := h.tc.GetClientDetailData(r.Context(), trainer.ID, clientID)
+	if err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+
+	renderTemplate(w, r, "trainer/client.html", map[string]any{
+		"Detail": cd,
+	})
+}
+
 // ClientWorkouts показывает тренировки клиента (только для назначенного тренера)
 func (h *TrainerHandler) ClientWorkouts(w http.ResponseWriter, r *http.Request) {
 	trainer := middleware.UserFromContext(r.Context())
