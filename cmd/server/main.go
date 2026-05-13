@@ -39,6 +39,7 @@ func main() {
 	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo)
 	templateHandler := handler.NewTemplateHandler(templateRepo, tcRepo, gymRepo)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo)
+	profileHandler := handler.NewProfileHandler(workoutRepo)
 	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo)
 
 	r := chi.NewRouter()
@@ -91,6 +92,9 @@ func main() {
 		r.Post("/templates/{id}/delete", templateHandler.Delete)
 		r.Get("/templates/{id}/apply", templateHandler.ApplyForm)
 		r.Post("/templates/{id}/apply", templateHandler.Apply)
+
+		// Профиль
+		r.Get("/profile", profileHandler.Show)
 
 		// Аналитика
 		r.Get("/analytics", analyticsHandler.Index)

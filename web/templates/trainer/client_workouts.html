@@ -1,44 +1,70 @@
-{{define "title"}}Тренировки: {{if .Client.FullName}}{{.Client.FullName}}{{else}}{{.Client.Login}}{{end}}{{end}}
+{{define "title"}}{{if .Client.FullName}}{{.Client.FullName}}{{else}}{{.Client.Login}}{{end}}{{end}}
+
+{{define "tabbar"}}{{end}}
 
 {{define "content"}}
 {{$clientID := .Client.ID}}
-<div class="flex items-center justify-between mb-6">
-  <div class="flex items-center gap-3">
-    <a href="/trainer/clients" class="text-gray-400 hover:text-gray-600">← Клиенты</a>
-    <h1 class="text-2xl font-bold text-gray-800">
-      {{if .Client.FullName}}{{.Client.FullName}}{{else}}{{.Client.Login}}{{end}}
-    </h1>
-  </div>
+
+{{/* Top bar */}}
+<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #262626">
+  <a href="/trainer/clients" style="display:flex;align-items:center;gap:8px;color:#7a7a7a;text-decoration:none">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.4px;text-transform:uppercase">КЛИЕНТЫ</span>
+  </a>
   <a href="/workouts/new?for_client={{$clientID}}"
-    class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
-    + Новая тренировка
+    style="display:flex;align-items:center;gap:6px;background:#D7FF1A;color:#000;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:10px 14px;text-decoration:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    НОВАЯ
   </a>
 </div>
 
-{{if .Workouts}}
-<div class="space-y-3">
-  {{range .Workouts}}
-  <a href="/workouts/{{.ID}}" class="block bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
-    <div class="flex items-center justify-between mb-1">
-      <div class="font-medium text-gray-800">
-        {{if .Title}}{{.Title}}{{else}}Тренировка{{end}}
+{{/* Client name */}}
+<div style="padding:20px 24px 0">
+  <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">КЛИЕНТ</div>
+  <div class="font-display" style="font-size:40px;line-height:0.95;letter-spacing:0.5px">
+    {{if .Client.FullName}}{{toUpper .Client.FullName}}{{else}}{{toUpper .Client.Login}}{{end}}
+  </div>
+  <div style="width:40px;height:4px;background:#D7FF1A;margin-top:10px"></div>
+</div>
+
+{{if .Cards}}
+<div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
+  {{range .Cards}}
+  <a href="/workouts/{{.ID}}" style="display:flex;text-decoration:none;background:#141414;border:1px solid #262626">
+    <div style="width:4px;background:#D7FF1A;align-self:stretch;flex-shrink:0"></div>
+    <div style="padding:14px 16px;flex:1;min-width:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="eyebrow eyebrow-dim2">{{dateRU .WorkoutDate}}</div>
+        {{if .Wellbeing}}<span style="font-size:16px">{{wellbeingEmoji .Wellbeing}}</span>{{end}}
       </div>
-      <div class="text-sm text-gray-400">{{.WorkoutDate.Format "02.01.2006"}}</div>
-    </div>
-    <div class="flex items-center gap-3 text-sm text-gray-500">
-      {{if .GymName}}<span>{{.GymName}}</span>{{end}}
-      {{if .Wellbeing}}<span>{{wellbeingEmoji .Wellbeing}}</span>{{end}}
-      {{if .TrainerID}}<span class="text-blue-400 text-xs">тренер</span>{{end}}
+      <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;margin-bottom:4px">
+        {{if .Title}}{{toUpper .Title}}{{else}}ТРЕНИРОВКА{{end}}
+      </div>
+      {{if .GymName}}
+      <div style="font-size:11px;color:#7a7a7a;margin-bottom:8px">{{.GymName}}</div>
+      {{end}}
+      <div style="display:flex;gap:14px">
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#4a4a4a;letter-spacing:1px;text-transform:uppercase">{{.ExerciseCount}} УПР.</span>
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#4a4a4a;letter-spacing:1px;text-transform:uppercase">{{.SetCount}} ПОДХ.</span>
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#D7FF1A;letter-spacing:1px;text-transform:uppercase">{{formatTonnage .Tonnage}}</span>
+      </div>
     </div>
   </a>
   {{end}}
 </div>
 {{else}}
-<div class="text-center text-gray-400 py-12">
-  <p class="text-lg mb-2">Тренировок пока нет</p>
-  <a href="/workouts/new?for_client={{$clientID}}" class="text-blue-500 hover:underline text-sm">
-    Добавить первую тренировку
+<div style="padding:80px 24px;text-align:center">
+  <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#4a4a4a;margin-bottom:16px">ТРЕНИРОВОК ПОКА НЕТ</div>
+  <a href="/workouts/new?for_client={{$clientID}}"
+    style="display:inline-block;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:14px;letter-spacing:2px;padding:14px 28px;text-decoration:none">
+    + ДОБАВИТЬ ПЕРВУЮ
   </a>
 </div>
 {{end}}
+
+<div style="height:40px"></div>
 {{end}}

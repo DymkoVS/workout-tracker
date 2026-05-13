@@ -1,59 +1,62 @@
 {{define "title"}}Пользователи{{end}}
 
 {{define "content"}}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold text-gray-800">Пользователи</h1>
+
+<div style="padding:56px 24px 24px;border-bottom:1px solid #262626;display:flex;align-items:flex-end;justify-content:space-between">
+  <div>
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">АДМИНИСТРАТОР</div>
+    <div class="font-display" style="font-size:40px;line-height:1;letter-spacing:0.5px">ПОЛЬЗОВАТЕЛИ</div>
+  </div>
   <a href="/admin/users/new"
-    class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition text-sm">
-    + Добавить
+    style="width:44px;height:44px;background:#D7FF1A;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:4px">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
   </a>
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm overflow-hidden" id="users-table">
-  {{template "users_rows" .}}
+{{if .Users}}
+<div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
+  {{range .Users}}
+  <div style="background:#141414;border:1px solid #262626;display:flex;align-items:stretch">
+    <div style="width:4px;background:{{if .IsTrainer}}#D7FF1A{{else}}#262626{{end}};flex-shrink:0"></div>
+    <div style="padding:14px 16px;flex:1;min-width:0">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="min-width:0">
+          <div class="font-display" style="font-size:18px;line-height:1;letter-spacing:0.5px">
+            {{if .FullName}}{{toUpper .FullName}}{{else}}{{toUpper .Login}}{{end}}
+          </div>
+          {{if .FullName}}
+          <div style="font-size:12px;color:#4a4a4a;margin-top:4px">@{{.Login}}</div>
+          {{end}}
+        </div>
+        <a href="/admin/users/{{.ID}}/edit"
+          style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#7a7a7a;flex-shrink:0;padding-top:2px">
+          ИЗМЕНИТЬ
+        </a>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+        {{if .IsTrainer}}
+        <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#D7FF1A;color:#000;padding:2px 7px">ТРЕНЕР</span>
+        {{else}}
+        <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#1f1f1f;color:#7a7a7a;padding:2px 7px">КЛИЕНТ</span>
+        {{end}}
+        {{if .IsAdmin}}
+        <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#1f1f1f;color:#D7FF1A;padding:2px 7px">ADMIN</span>
+        {{end}}
+        {{if not .IsActive}}
+        <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#1f1f1f;color:#ff453a;padding:2px 7px">ДЕАКТИВИРОВАН</span>
+        {{end}}
+      </div>
+    </div>
+  </div>
+  {{end}}
+</div>
+{{else}}
+<div style="padding:80px 24px;text-align:center">
+  <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#4a4a4a;margin-bottom:12px">ПОЛЬЗОВАТЕЛЕЙ ПОКА НЕТ</div>
 </div>
 {{end}}
 
-{{define "users_rows"}}
-<table class="w-full text-sm">
-  <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
-    <tr>
-      <th class="px-4 py-3 text-left">Имя / Логин</th>
-      <th class="px-4 py-3 text-left">Роль</th>
-      <th class="px-4 py-3 text-left">Статус</th>
-      <th class="px-4 py-3 text-left">Admin</th>
-      <th class="px-4 py-3"></th>
-    </tr>
-  </thead>
-  <tbody class="divide-y divide-gray-100">
-    {{range .Users}}
-    <tr class="hover:bg-gray-50">
-      <td class="px-4 py-3">
-        <div class="font-medium text-gray-800">{{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}</div>
-        <div class="text-gray-400">{{.Login}}</div>
-      </td>
-      <td class="px-4 py-3">
-        <span class="{{if .IsTrainer}}bg-blue-100 text-blue-700{{else}}bg-green-100 text-green-700{{end}} px-2 py-0.5 rounded text-xs font-medium">
-          {{.Role | roleLabel}}
-        </span>
-      </td>
-      <td class="px-4 py-3">
-        {{if .IsActive}}
-        <span class="text-green-600">Активен</span>
-        {{else}}
-        <span class="text-red-400">Деактивирован</span>
-        {{end}}
-      </td>
-      <td class="px-4 py-3">
-        {{if .IsAdmin}}<span class="text-yellow-600 font-medium">Да</span>{{else}}<span class="text-gray-300">—</span>{{end}}
-      </td>
-      <td class="px-4 py-3 text-right">
-        <a href="/admin/users/{{.ID}}/edit" class="text-blue-500 hover:text-blue-700">Изменить</a>
-      </td>
-    </tr>
-    {{else}}
-    <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Пользователей пока нет</td></tr>
-    {{end}}
-  </tbody>
-</table>
+<div style="height:40px"></div>
 {{end}}

@@ -53,14 +53,15 @@ func (h *TrainerHandler) ClientWorkouts(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	workouts, err := h.workouts.List(r.Context(), clientID)
+	cards, err := h.workouts.ListCards(r.Context(), clientID)
 	if err != nil {
 		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
 		return
 	}
 
 	renderTemplate(w, r, "trainer/client_workouts.html", map[string]any{
-		"Client":   client,
-		"Workouts": workouts,
+		"Client":  client,
+		"Cards":   cards,
+		"BackURL": "/trainer/clients",
 	})
 }

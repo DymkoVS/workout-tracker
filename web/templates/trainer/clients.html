@@ -1,29 +1,43 @@
-{{define "title"}}Мои клиенты{{end}}
+{{define "title"}}Клиенты{{end}}
 
 {{define "content"}}
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-gray-800">Мои клиенты</h1>
+
+<div style="padding:56px 24px 24px;border-bottom:1px solid #262626">
+  <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">ТРЕНЕР</div>
+  <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px">МОИ<br>КЛИЕНТЫ</div>
 </div>
 
 {{if .Clients}}
-<div class="space-y-3">
+<div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
   {{range .Clients}}
-  <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
-    <div>
-      <div class="font-medium text-gray-800">{{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}</div>
-      {{if .FullName}}<div class="text-sm text-gray-400">@{{.Login}}</div>{{end}}
+  <div style="background:#141414;border:1px solid #262626;display:flex;align-items:stretch">
+    <div style="width:4px;background:#D7FF1A;flex-shrink:0"></div>
+    <div style="padding:16px 18px;flex:1;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div class="font-display" style="font-size:20px;line-height:1;letter-spacing:0.5px">
+          {{if .FullName}}{{toUpper .FullName}}{{else}}{{toUpper .Login}}{{end}}
+        </div>
+        {{if .FullName}}
+        <div style="font-size:12px;color:#4a4a4a;margin-top:4px">@{{.Login}}</div>
+        {{end}}
+      </div>
+      <a href="/trainer/clients/{{.ID}}/workouts"
+        style="display:flex;align-items:center;gap:6px;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#D7FF1A;flex-shrink:0">
+        ЖУРНАЛ
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
     </div>
-    <a href="/trainer/clients/{{.ID}}/workouts"
-      class="text-sm text-blue-600 hover:text-blue-800 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition">
-      Тренировки →
-    </a>
   </div>
   {{end}}
 </div>
 {{else}}
-<div class="text-center text-gray-400 py-12">
-  <p class="text-lg">У вас пока нет клиентов</p>
-  <p class="text-sm mt-1">Обратитесь к администратору для назначения клиентов</p>
+<div style="padding:80px 24px;text-align:center">
+  <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#4a4a4a;margin-bottom:12px">КЛИЕНТОВ ПОКА НЕТ</div>
+  <div style="color:#7a7a7a;font-size:13px">Обратитесь к администратору для назначения клиентов</div>
 </div>
 {{end}}
+
+<div style="height:40px"></div>
 {{end}}
