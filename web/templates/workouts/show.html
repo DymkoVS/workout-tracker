@@ -70,6 +70,16 @@
   </div>
 </div>
 
+{{/* Start session button */}}
+{{if .CanStart}}
+<div style="padding:20px 24px 0">
+  <a href="/workouts/{{$w.ID}}/active"
+    style="display:block;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:20px;letter-spacing:2px;padding:18px;text-align:center;text-decoration:none">
+    НАЧАТЬ ТРЕНИРОВКУ
+  </a>
+</div>
+{{end}}
+
 {{/* Exercises */}}
 <div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
 {{range $i, $ex := $w.Exercises}}

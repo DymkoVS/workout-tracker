@@ -392,6 +392,135 @@ func (r *WorkoutRepository) DeleteByTrainer(ctx context.Context, id, trainerID u
 	return err
 }
 
+// StartSession sets started_at = NOW() if not already set.
+func (r *WorkoutRepository) StartSession(ctx context.Context, workoutID, userID uuid.UUID) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE workouts SET started_at = COALESCE(started_at, NOW()) WHERE id = $1 AND user_id = $2`,
+		workoutID, userID)
+	return err
+}
+
+// FinishSession sets ended_at = NOW().
+func (r *WorkoutRepository) FinishSession(ctx context.Context, workoutID, userID uuid.UUID) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE workouts SET ended_at = NOW() WHERE id = $1 AND user_id = $2`,
+		workoutID, userID)
+	return err
+}
+
+// GetActiveSession loads a workout with started_at/ended_at and sets with done status.
+func (r *WorkoutRepository) GetActiveSession(ctx context.Context, id, userID uuid.UUID) (*model.Workout, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
+		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		       w.started_at, w.ended_at
+		FROM workouts w
+		LEFT JOIN gyms g ON g.id = w.gym_id
+		WHERE w.id = $1 AND w.user_id = $2`, id, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	w, err := pgx.CollectOneRow(rows, func(row pgx.CollectableRow) (model.Workout, error) {
+		var wo model.Workout
+		err := row.Scan(
+			&wo.ID, &wo.UserID, &wo.TrainerID, &wo.GymID, &wo.GymName,
+			&wo.Title, &wo.WorkoutDate, &wo.Notes, &wo.Wellbeing,
+			&wo.CreatedAt, &wo.UpdatedAt,
+			&wo.StartedAt, &wo.EndedAt,
+		)
+		return wo, err
+	})
+	if err != nil {
+		return nil, err
+	}
+	w.Exercises, err = r.loadExercisesActive(ctx, w.ID)
+	return &w, err
+}
+
+func (r *WorkoutRepository) loadExercisesActive(ctx context.Context, workoutID uuid.UUID) ([]model.WorkoutExercise, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT id, workout_id, name, order_num, notes FROM workout_exercises
+		 WHERE workout_id=$1 ORDER BY order_num`, workoutID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var exercises []model.WorkoutExercise
+	for rows.Next() {
+		var e model.WorkoutExercise
+		if err := rows.Scan(&e.ID, &e.WorkoutID, &e.Name, &e.OrderNum, &e.Notes); err != nil {
+			return nil, err
+		}
+		exercises = append(exercises, e)
+	}
+	rows.Close()
+
+	for i := range exercises {
+		exercises[i].Sets, err = r.loadSetsActive(ctx, exercises[i].ID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return exercises, nil
+}
+
+func (r *WorkoutRepository) loadSetsActive(ctx context.Context, exerciseID uuid.UUID) ([]model.Set, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT id, workout_exercise_id, set_num, weight, reps, rpe, rest_seconds, notes, done
+		 FROM sets WHERE workout_exercise_id=$1 ORDER BY set_num`, exerciseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var sets []model.Set
+	for rows.Next() {
+		var s model.Set
+		if err := rows.Scan(&s.ID, &s.WorkoutExerciseID, &s.SetNum,
+			&s.Weight, &s.Reps, &s.RPE, &s.RestSeconds, &s.Notes, &s.Done); err != nil {
+			return nil, err
+		}
+		sets = append(sets, s)
+	}
+	return sets, nil
+}
+
+// ToggleSetDone flips the done flag and returns the new state.
+func (r *WorkoutRepository) ToggleSetDone(ctx context.Context, setID, userID uuid.UUID) (bool, error) {
+	var done bool
+	err := r.db.QueryRow(ctx, `
+		UPDATE sets SET done = NOT done
+		WHERE id = $1
+		  AND workout_exercise_id IN (
+		      SELECT we.id FROM workout_exercises we
+		      JOIN workouts w ON w.id = we.workout_id
+		      WHERE w.user_id = $2
+		  )
+		RETURNING done`,
+		setID, userID).Scan(&done)
+	return done, err
+}
+
+// GetSetByID returns a single set (including done) verifying it belongs to userID.
+func (r *WorkoutRepository) GetSetByID(ctx context.Context, setID, userID uuid.UUID) (*model.Set, error) {
+	var s model.Set
+	err := r.db.QueryRow(ctx, `
+		SELECT s.id, s.workout_exercise_id, s.set_num, s.weight, s.reps, s.rpe, s.rest_seconds, s.notes, s.done
+		FROM sets s
+		JOIN workout_exercises we ON we.id = s.workout_exercise_id
+		JOIN workouts w ON w.id = we.workout_id
+		WHERE s.id = $1 AND w.user_id = $2`,
+		setID, userID).Scan(
+		&s.ID, &s.WorkoutExerciseID, &s.SetNum, &s.Weight, &s.Reps, &s.RPE, &s.RestSeconds, &s.Notes, &s.Done,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
 func insertSet(ctx context.Context, tx pgx.Tx, exID uuid.UUID, num int, s model.FormSet) error {
 	weight := parseOptFloat(s.Weight)
 	reps := parseOptInt(s.Reps)

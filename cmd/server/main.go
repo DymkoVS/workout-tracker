@@ -64,8 +64,11 @@ func main() {
 		r.Post("/workouts", workoutHandler.Create)
 		r.Get("/workouts/{id}", workoutHandler.Show)
 		r.Get("/workouts/{id}/edit", workoutHandler.EditForm)
+		r.Get("/workouts/{id}/active", workoutHandler.ActiveSession)
 		r.Post("/workouts/{id}", workoutHandler.Update)
 		r.Post("/workouts/{id}/delete", workoutHandler.Delete)
+		r.Post("/workouts/{id}/finish", workoutHandler.FinishSession)
+		r.Post("/workouts/sets/{setID}/done", workoutHandler.ToggleSetDone)
 
 		// HTMX-партиалы для формы
 		r.Get("/workouts/htmx/add-exercise", workoutHandler.AddExerciseRow)

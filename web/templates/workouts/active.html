@@ -1,0 +1,191 @@
+{{define "title"}}{{if .Workout.Title}}{{toUpper .Workout.Title}}{{else}}ТРЕНИРОВКА{{end}}{{end}}
+
+{{define "tabbar"}}{{end}}
+
+{{define "head_extra"}}
+<style>
+.asr { transition: opacity 0.15s; }
+.asr-done { opacity: 0.38; }
+#rest-toast {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #141414;
+  border-top: 2px solid #D7FF1A;
+  padding: 14px 24px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+  transform: translateY(100%);
+  transition: transform 0.22s ease;
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+}
+#rest-toast.visible { transform: translateY(0); }
+</style>
+{{end}}
+
+{{define "content"}}
+{{$w := .Workout}}
+
+{{/* Sticky header */}}
+<div style="position:sticky;top:0;z-index:50;background:#0a0a0a;border-bottom:1px solid #2e2e2e">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:54px 20px 12px">
+    <a href="/workouts/{{$w.ID}}" style="display:flex;align-items:center;gap:6px;color:#9a9a9a;text-decoration:none;min-width:48px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+    </a>
+    <div class="font-display" style="font-size:15px;letter-spacing:1px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">
+      {{if $w.Title}}{{toUpper $w.Title}}{{else}}ТРЕНИРОВКА{{end}}
+    </div>
+    <form method="POST" action="/workouts/{{$w.ID}}/finish" style="min-width:48px;text-align:right">
+      <button type="submit"
+        style="background:#D7FF1A;color:#000;border:none;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:8px 14px;cursor:pointer">
+        ГОТОВО
+      </button>
+    </form>
+  </div>
+
+  {{/* Progress bar */}}
+  <div style="height:2px;background:#1f1f1f">
+    <div id="progress-bar-fill" style="height:100%;background:#D7FF1A;transition:width 0.3s ease;width:0%"></div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px">
+    <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">
+      <span id="progress-text">0/0</span>&nbsp;<span style="letter-spacing:0.5px">ПОДХОДОВ</span>
+    </div>
+    <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9a9a9a" id="elapsed-timer">00:00</div>
+  </div>
+</div>
+
+{{/* Exercise blocks */}}
+<div style="padding:16px 20px 0;display:flex;flex-direction:column;gap:12px">
+{{range $i, $ex := $w.Exercises}}
+<div style="background:#141414;border:1px solid #2e2e2e">
+
+  {{/* Exercise header */}}
+  <div style="padding:14px 18px 10px">
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:4px">УПР. {{printf "%02d" (add $i 1)}}</div>
+    <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px">{{toUpper $ex.Name}}</div>
+    {{if $ex.Notes}}
+    <div style="font-size:12px;color:#6a6a6a;margin-top:4px">{{$ex.Notes}}</div>
+    {{end}}
+  </div>
+
+  {{/* Column headers */}}
+  {{if $ex.Sets}}
+  <div style="display:grid;grid-template-columns:24px 1fr 1fr 48px 80px;gap:0;padding:4px 18px 6px;border-top:1px solid #1f1f1f">
+    <span></span>
+    <span class="eyebrow eyebrow-dim2">ВЕС</span>
+    <span class="eyebrow eyebrow-dim2" style="text-align:center">ПОВТ.</span>
+    <span class="eyebrow eyebrow-dim2" style="text-align:center">RPE</span>
+    <span></span>
+  </div>
+
+  {{/* Set rows */}}
+  <div style="padding-bottom:8px">
+    {{range $s := $ex.Sets}}
+    {{template "active_set_row.html" dict "Set" $s}}
+    {{end}}
+  </div>
+  {{end}}
+
+</div>
+{{end}}
+</div>
+
+{{/* Bottom finish button */}}
+<div style="padding:24px 20px 40px">
+  <form method="POST" action="/workouts/{{$w.ID}}/finish">
+    <button type="submit"
+      style="width:100%;background:transparent;color:#9a9a9a;border:1px solid #2e2e2e;font-family:'Space Grotesk',system-ui;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:16px;cursor:pointer">
+      ЗАВЕРШИТЬ ТРЕНИРОВКУ
+    </button>
+  </form>
+</div>
+
+{{/* Rest timer toast */}}
+<div id="rest-toast">
+  <div>
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:4px">ОТДЫХ</div>
+    <div class="font-display" style="font-size:40px;line-height:1;letter-spacing:1px;color:#D7FF1A" id="rest-countdown">1:30</div>
+  </div>
+  <button onclick="cancelRest()"
+    style="background:none;border:1px solid #2e2e2e;color:#9a9a9a;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:10px 18px;cursor:pointer">
+    ПРОПУСТИТЬ
+  </button>
+</div>
+
+{{end}}
+
+{{define "scripts"}}
+<script>
+var sessionStartedAt = {{.StartedAtUnix}};
+var restTimer = null;
+
+function formatElapsed(startUnix) {
+  var secs = Math.max(0, Math.floor(Date.now() / 1000) - startUnix);
+  var m = Math.floor(secs / 60);
+  var s = secs % 60;
+  return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function updateProgress() {
+  var total = document.querySelectorAll('.asr').length;
+  var done = document.querySelectorAll('.asr-done').length;
+  document.getElementById('progress-text').textContent = done + '/' + total;
+  var pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('progress-bar-fill').style.width = pct + '%';
+}
+
+function startRestTimer(seconds) {
+  if (restTimer) clearInterval(restTimer);
+  var remaining = seconds;
+  var toast = document.getElementById('rest-toast');
+  var countdown = document.getElementById('rest-countdown');
+  toast.classList.add('visible');
+  function fmt(n) { return (n < 10 ? '0' : '') + n; }
+  function tick() {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(restTimer);
+      restTimer = null;
+      toast.classList.remove('visible');
+      return;
+    }
+    var m = Math.floor(remaining / 60);
+    var s = remaining % 60;
+    countdown.textContent = m + ':' + fmt(s);
+  }
+  tick();
+  restTimer = setInterval(tick, 1000);
+}
+
+function cancelRest() {
+  if (restTimer) { clearInterval(restTimer); restTimer = null; }
+  document.getElementById('rest-toast').classList.remove('visible');
+}
+
+// Elapsed timer — update every second
+setInterval(function() {
+  var el = document.getElementById('elapsed-timer');
+  if (el) el.textContent = formatElapsed(sessionStartedAt);
+}, 1000);
+document.getElementById('elapsed-timer').textContent = formatElapsed(sessionStartedAt);
+
+// HTMX hooks
+document.body.addEventListener('htmx:afterSwap', function() {
+  updateProgress();
+});
+
+document.body.addEventListener('startRestTimer', function() {
+  startRestTimer(90);
+});
+
+// Init progress
+updateProgress();
+</script>
+{{end}}

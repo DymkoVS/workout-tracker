@@ -193,8 +193,10 @@ func (h *WorkoutHandler) Show(w http.ResponseWriter, r *http.Request) {
 	if workout.UserID != user.ID && user.IsTrainer() {
 		data["BackURL"] = fmt.Sprintf("/trainer/clients/%s/workouts", workout.UserID)
 		data["CanEdit"] = workout.TrainerID != nil && *workout.TrainerID == user.ID
+		data["CanStart"] = false
 	} else {
 		data["CanEdit"] = true
+		data["CanStart"] = true
 	}
 	renderTemplate(w, r, "workouts/show.html", data)
 }
@@ -297,6 +299,66 @@ func (h *WorkoutHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/workouts", http.StatusSeeOther)
+}
+
+func (h *WorkoutHandler) ActiveSession(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	workout, err := h.workouts.GetActiveSession(r.Context(), id, user.ID)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if workout.StartedAt == nil {
+		_ = h.workouts.StartSession(r.Context(), id, user.ID)
+		now := time.Now()
+		workout.StartedAt = &now
+	}
+	startedUnix := workout.StartedAt.Unix()
+	renderTemplate(w, r, "workouts/active.html", map[string]any{
+		"Workout":       workout,
+		"StartedAtUnix": startedUnix,
+	})
+}
+
+func (h *WorkoutHandler) ToggleSetDone(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	setID, err := uuid.Parse(chi.URLParam(r, "setID"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	done, err := h.workouts.ToggleSetDone(r.Context(), setID, user.ID)
+	if err != nil {
+		http.Error(w, "Ошибка", http.StatusInternalServerError)
+		return
+	}
+	if done {
+		w.Header().Set("HX-Trigger", "startRestTimer")
+	}
+	s, err := h.workouts.GetSetByID(r.Context(), setID, user.ID)
+	if err != nil {
+		http.Error(w, "Ошибка", http.StatusInternalServerError)
+		return
+	}
+	renderPartial(w, r, "workouts/partials/active_set_row.html", map[string]any{
+		"Set": s,
+	})
+}
+
+func (h *WorkoutHandler) FinishSession(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	_ = h.workouts.FinishSession(r.Context(), id, user.ID)
+	http.Redirect(w, r, fmt.Sprintf("/workouts/%s", id), http.StatusSeeOther)
 }
 
 func (h *WorkoutHandler) AddExerciseRow(w http.ResponseWriter, r *http.Request) {

@@ -25,6 +25,8 @@ type Workout struct {
 	Exercises   []WorkoutExercise
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	StartedAt   *time.Time
+	EndedAt     *time.Time
 }
 
 type WorkoutExercise struct {
@@ -45,6 +47,7 @@ type Set struct {
 	RPE                *float64
 	RestSeconds        *int
 	Notes              string
+	Done               bool
 }
 
 // WorkoutCardData — workout with precomputed display stats for list/card views

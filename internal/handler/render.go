@@ -151,6 +151,7 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data ma
 		"web/templates/workouts/partials/exercise_block.html",
 		"web/templates/workouts/partials/exercise_row.html",
 		"web/templates/workouts/partials/set_row.html",
+		"web/templates/workouts/partials/active_set_row.html",
 	}
 	for _, p := range partials {
 		files = append(files, p)
