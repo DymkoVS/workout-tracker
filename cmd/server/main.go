@@ -47,6 +47,21 @@ func main() {
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.CleanPath)
 
+	// PWA static files (public, no auth required)
+	r.Get("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/manifest+json")
+		http.ServeFile(w, r, "web/static/manifest.json")
+	})
+	r.Get("/sw.js", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/javascript")
+		w.Header().Set("Service-Worker-Allowed", "/")
+		http.ServeFile(w, r, "web/static/sw.js")
+	})
+	r.Handle("/icons/*", http.StripPrefix("/icons", http.FileServer(http.Dir("web/static/icons"))))
+	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/static/icons/favicon-32.png")
+	})
+
 	// Публичные маршруты
 	r.Get("/login", authHandler.LoginPage)
 	r.Post("/login", authHandler.Login)
