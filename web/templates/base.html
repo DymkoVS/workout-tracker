@@ -3,38 +3,120 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{{block "title" .}}Трекер тренировок{{end}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:       '#0a0a0a',
+            surface:  '#141414',
+            surface2: '#1b1b1b',
+            hair:     '#262626',
+            hair2:    '#1f1f1f',
+            dim:      '#7a7a7a',
+            dim2:     '#4a4a4a',
+            accent:   '#D7FF1A',
+            accentDk: '#a8c800',
+            danger:   '#ff453a',
+            warn:     '#ff9f0a',
+          },
+          fontFamily: {
+            display: ['"Anton"', 'Impact', 'sans-serif'],
+            sans:    ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+            mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    :root {
+      --bg: #0a0a0a; --surface: #141414; --surface-2: #1b1b1b;
+      --hair: #262626; --hair-2: #1f1f1f;
+      --text: #fafafa; --dim: #7a7a7a; --dim-2: #4a4a4a;
+      --accent: #D7FF1A; --accent-dk: #a8c800;
+      --danger: #ff453a; --warn: #ff9f0a;
+    }
+    * { box-sizing: border-box; }
+    body { background: #0a0a0a; color: #fafafa; }
+    .eyebrow {
+      font-family: 'Space Grotesk', system-ui;
+      font-size: 10px; letter-spacing: 1.8px;
+      text-transform: uppercase; color: var(--dim); font-weight: 600;
+    }
+    .eyebrow-accent { color: var(--accent); }
+    .eyebrow-dim2   { color: var(--dim-2); }
+    .font-display   { font-family: 'Anton', Impact, sans-serif; }
+    .font-mono-wt   { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    a { text-decoration: none; color: inherit; }
+    input, button, select, textarea { font-family: inherit; }
+  </style>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   {{block "head_extra" .}}{{end}}
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="font-sans min-h-screen" style="background:#0a0a0a;color:#fafafa">
 
-{{if .CurrentUser}}
-<nav class="bg-white shadow-sm">
-  <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
-    <a href="/" class="font-semibold text-gray-800">💪 Тренировки</a>
-    <div class="flex items-center gap-4 text-sm">
-      {{if .CurrentUser.IsTrainer}}
-      <a href="/trainer/clients" class="text-gray-600 hover:text-gray-900">Клиенты</a>
-      {{end}}
-      {{if .CurrentUser.IsAdmin}}
-      <a href="/admin/users" class="text-gray-600 hover:text-gray-900">Пользователи</a>
-      <a href="/admin/assign" class="text-gray-600 hover:text-gray-900">Назначения</a>
-      {{end}}
-      <span class="text-gray-500">{{.CurrentUser.DisplayName}}</span>
-      <form method="POST" action="/logout">
-        <button class="text-gray-400 hover:text-red-500">Выйти</button>
-      </form>
-    </div>
-  </div>
-</nav>
-{{end}}
-
-<main class="max-w-5xl mx-auto px-4 py-6">
+<main class="{{if .CurrentUser}}pb-28{{end}}">
   {{block "content" .}}{{end}}
 </main>
+
+{{block "tabbar" .}}
+{{if .CurrentUser}}
+{{$p := .CurrentPath}}
+<nav style="position:fixed;bottom:0;left:0;right:0;background:#0a0a0a;border-top:1px solid #262626;display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:max(16px,env(safe-area-inset-bottom,16px))">
+
+  {{/* Главная */}}
+  <a href="/" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/"}}#fafafa{{else}}#4a4a4a{{end}}">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-7H10v7H5a1 1 0 01-1-1z"/>
+    </svg>
+    <span style="font-family:'Space Grotesk',sans-serif;font-size:8px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase">ГЛАВНАЯ</span>
+  </a>
+
+  {{/* Журнал */}}
+  <a href="/workouts" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/workouts"}}#fafafa{{else}}#4a4a4a{{end}}">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <path d="M3 6h18M3 12h18M3 18h18"/>
+    </svg>
+    <span style="font-family:'Space Grotesk',sans-serif;font-size:8px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase">ЖУРНАЛ</span>
+  </a>
+
+  {{/* + Новая (FAB) */}}
+  <a href="/workouts/new" style="display:flex;flex-direction:column;align-items:center;padding:10px 0 6px;gap:6px;color:#D7FF1A">
+    <div style="width:50px;height:50px;background:#D7FF1A;color:#000;display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 0 0 6px #0a0a0a">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </div>
+    <span style="font-family:'Space Grotesk',sans-serif;font-size:8px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">НОВАЯ</span>
+  </a>
+
+  {{/* Прогресс */}}
+  <a href="/analytics" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/analytics"}}#fafafa{{else}}#4a4a4a{{end}}">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <path d="M4 20V8M10 20V4M16 20v-8M22 20H2"/>
+    </svg>
+    <span style="font-family:'Space Grotesk',sans-serif;font-size:8px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase">ПРОГРЕСС</span>
+  </a>
+
+  {{/* Профиль */}}
+  <a href="/profile" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/profile"}}#fafafa{{else}}#4a4a4a{{end}}">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <circle cx="12" cy="8" r="4" fill="none"/>
+      <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+    </svg>
+    <span style="font-family:'Space Grotesk',sans-serif;font-size:8px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase">ПРОФИЛЬ</span>
+  </a>
+
+</nav>
+{{end}}
+{{end}}
 
 {{block "scripts" .}}{{end}}
 </body>

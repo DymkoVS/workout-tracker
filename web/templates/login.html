@@ -1,33 +1,56 @@
 {{define "title"}}Вход{{end}}
 
 {{define "content"}}
-<div class="min-h-screen flex items-center justify-center -mt-6">
-  <div class="bg-white rounded-2xl shadow-md p-8 w-full max-w-sm">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Вход в систему</h1>
+<div style="min-height:100vh;background:#0a0a0a;padding:120px 28px 32px;display:flex;flex-direction:column">
+
+  {{/* Wordmark */}}
+  <div style="flex:1">
+    <div class="eyebrow eyebrow-accent">v 1.0 · MOBILE</div>
+    <div class="font-display" style="font-size:96px;line-height:0.88;letter-spacing:1px;margin-top:16px">
+      WORK<br>OUT.
+    </div>
+    <div style="width:56px;height:6px;background:#D7FF1A;margin-top:24px"></div>
+    <div style="margin-top:24px;color:#7a7a7a;font-size:14px;line-height:1.45;max-width:280px">
+      Личный журнал тренировок.<br>
+      Подходы, RPE, тоннаж, прогресс.
+    </div>
+  </div>
+
+  {{/* Form */}}
+  <div style="display:flex;flex-direction:column;gap:12px">
 
     {{if .Error}}
-    <div class="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">
-      {{if eq .Error "invalid"}}Неверный логин или пароль{{end}}
-      {{if eq .Error "inactive"}}Аккаунт деактивирован{{end}}
+    <div style="padding:12px 14px;background:rgba(255,69,58,0.12);color:#ff453a;font-size:12px;letter-spacing:1.2px;text-transform:uppercase">
+      {{if eq .Error "invalid"}}НЕВЕРНЫЙ ЛОГИН ИЛИ ПАРОЛЬ{{end}}
+      {{if eq .Error "inactive"}}АККАУНТ ДЕАКТИВИРОВАН{{end}}
     </div>
     {{end}}
 
-    <form method="POST" action="/login" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Логин</label>
+    <form method="POST" action="/login" style="display:flex;flex-direction:column;gap:12px">
+
+      <label style="display:block">
+        <div class="eyebrow" style="margin-bottom:6px">ЛОГИН</div>
         <input type="text" name="login" required autofocus
-          class="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+          style="width:100%;background:transparent;color:#fafafa;border:none;border-bottom:1px solid #262626;padding:10px 0 12px;font-size:20px;font-family:'JetBrains Mono',ui-monospace,monospace;outline:none;letter-spacing:1px">
+      </label>
+
+      <label style="display:block">
+        <div class="eyebrow" style="margin-bottom:6px">ПАРОЛЬ</div>
         <input type="password" name="password" required
-          class="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </div>
+          style="width:100%;background:transparent;color:#fafafa;border:none;border-bottom:1px solid #262626;padding:10px 0 12px;font-size:20px;font-family:'JetBrains Mono',ui-monospace,monospace;outline:none;letter-spacing:1px">
+      </label>
+
       <button type="submit"
-        class="w-full bg-blue-600 text-white rounded-lg py-3 font-semibold text-base hover:bg-blue-700 active:bg-blue-800 transition">
-        Войти
+        style="margin-top:8px;height:60px;width:100%;background:#D7FF1A;color:#000;border:none;font-family:'Anton',Impact,sans-serif;font-size:22px;letter-spacing:2px;cursor:pointer">
+        ВОЙТИ →
       </button>
+
     </form>
+
+    <div style="color:#4a4a4a;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;text-align:center;margin-top:6px">
+      admin / admin123
+    </div>
+
   </div>
 </div>
 {{end}}

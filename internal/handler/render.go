@@ -80,6 +80,9 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data ma
 	if _, ok := data["CurrentUser"]; !ok {
 		data["CurrentUser"] = middleware.UserFromContext(r.Context())
 	}
+	if _, ok := data["CurrentPath"]; !ok {
+		data["CurrentPath"] = r.URL.Path
+	}
 
 	// Собираем все шаблоны: base + страница + партиалы упражнений
 	files := []string{
