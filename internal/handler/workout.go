@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 	"workout-tracker/internal/middleware"
 	"workout-tracker/internal/model"
@@ -376,6 +377,21 @@ func (h *WorkoutHandler) AddSetRow(w http.ResponseWriter, r *http.Request) {
 		"ExIdx":  exIdx,
 		"SetIdx": setIdx,
 	})
+}
+
+func (h *WorkoutHandler) ExerciseSuggest(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if len(q) < 2 {
+		w.Write([]byte(""))
+		return
+	}
+	names, err := h.workouts.SuggestExercises(r.Context(), user.ID, q)
+	if err != nil || len(names) == 0 {
+		w.Write([]byte(""))
+		return
+	}
+	renderPartial(w, r, "workouts/partials/exercise_suggest.html", map[string]any{"Names": names})
 }
 
 func parseExercisesFromForm(r *http.Request) []model.FormExercise {

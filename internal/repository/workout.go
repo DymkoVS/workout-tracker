@@ -618,3 +618,30 @@ func (r *WorkoutRepository) GetRecentPRs(ctx context.Context, userID uuid.UUID) 
 	}
 	return prs, nil
 }
+
+// SuggestExercises returns exercise names from the user's history matching the prefix.
+func (r *WorkoutRepository) SuggestExercises(ctx context.Context, userID uuid.UUID, q string) ([]string, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT we.name, COUNT(*) AS cnt
+		FROM workout_exercises we
+		JOIN workouts w ON w.id = we.workout_id
+		WHERE w.user_id = $1 AND we.name ILIKE $2
+		GROUP BY we.name
+		ORDER BY cnt DESC
+		LIMIT 6`,
+		userID, q+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var names []string
+	for rows.Next() {
+		var name string
+		var cnt int
+		if err := rows.Scan(&name, &cnt); err != nil {
+			return nil, err
+		}
+		names = append(names, name)
+	}
+	return names, nil
+}

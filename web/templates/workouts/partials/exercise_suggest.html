@@ -1,0 +1,9 @@
+{{define "exercise_suggest.html"}}
+{{range .Names}}
+<button type="button"
+  onclick="exSuggestPick(this)"
+  style="display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid #2e2e2e;padding:10px 12px;cursor:pointer;font-family:'Anton',Impact,sans-serif;font-size:15px;letter-spacing:0.5px;color:#fafafa;text-transform:uppercase"
+  onmouseenter="this.style.background='#2e2e2e'"
+  onmouseleave="this.style.background='none'">{{.}}</button>
+{{end}}
+{{end}}

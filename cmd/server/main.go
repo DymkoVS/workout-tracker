@@ -88,6 +88,7 @@ func main() {
 		// HTMX-партиалы для формы
 		r.Get("/workouts/htmx/add-exercise", workoutHandler.AddExerciseRow)
 		r.Get("/workouts/htmx/add-set", workoutHandler.AddSetRow)
+		r.Get("/workouts/htmx/exercise-suggest", workoutHandler.ExerciseSuggest)
 
 		// Залы
 		r.Get("/gyms", gymHandler.List)
