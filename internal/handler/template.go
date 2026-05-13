@@ -49,7 +49,7 @@ func (h *TemplateHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	exercises := parseExercisesFromForm(r)
-	tmpl, err := h.templates.Create(r.Context(), user.ID, r.FormValue("title"), r.FormValue("notes"), exercises)
+	tmpl, err := h.templates.Create(r.Context(), user.ID, r.FormValue("title"), r.FormValue("notes"), r.FormValue("type"), exercises)
 	if err != nil {
 		renderTemplate(w, r, "templates/form.html", map[string]any{
 			"Error": "Ошибка сохранения: " + err.Error(),
@@ -105,7 +105,7 @@ func (h *TemplateHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	exercises := parseExercisesFromForm(r)
-	if err := h.templates.Update(r.Context(), id, user.ID, r.FormValue("title"), r.FormValue("notes"), exercises); err != nil {
+	if err := h.templates.Update(r.Context(), id, user.ID, r.FormValue("title"), r.FormValue("notes"), r.FormValue("type"), exercises); err != nil {
 		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
 		return
 	}

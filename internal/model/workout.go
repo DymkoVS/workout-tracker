@@ -84,6 +84,8 @@ type WorkoutTemplate struct {
 	TrainerID uuid.UUID
 	Title     string
 	Notes     string
+	Type      string // "Сила" | "Кардио" | "Аксессуар"
+	UsedCount int    // number of workouts created from this template
 	Exercises []TemplateExercise
 	CreatedAt time.Time
 	UpdatedAt time.Time

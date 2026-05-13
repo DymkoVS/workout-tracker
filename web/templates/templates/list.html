@@ -35,9 +35,12 @@
 {{if .Templates}}
 <div id="templates-list" style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
   {{range .Templates}}
-  <div class="tpl-card" data-type="Сила" style="background:#141414;border:1px solid #2e2e2e;padding:18px 20px">
+  {{$setCount := 0}}
+  {{range .Exercises}}{{$setCount = add $setCount (len .Sets)}}{{end}}
+  <div class="tpl-card" data-type="{{.Type}}" style="background:#141414;border:1px solid #2e2e2e;padding:18px 20px">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
-      <div class="eyebrow eyebrow-dim2">СИЛА</div>
+      <div class="eyebrow eyebrow-dim2">{{toUpper .Type}}</div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:#6a6a6a">применён ×{{.UsedCount}}</div>
     </div>
     <div class="font-display" style="font-size:28px;line-height:1;letter-spacing:0.5px;margin-bottom:12px">
       {{if .Title}}{{toUpper .Title}}{{else}}БЕЗ НАЗВАНИЯ{{end}}
@@ -46,6 +49,10 @@
       <div>
         <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px">{{len .Exercises}}</div>
         <div style="font-family:'Space Grotesk',system-ui;font-size:9px;color:#9a9a9a;letter-spacing:1.4px;margin-top:3px">УПР.</div>
+      </div>
+      <div>
+        <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px">{{$setCount}}</div>
+        <div style="font-family:'Space Grotesk',system-ui;font-size:9px;color:#9a9a9a;letter-spacing:1.4px;margin-top:3px">ПОДХ.</div>
       </div>
     </div>
     <div style="display:flex;gap:8px">

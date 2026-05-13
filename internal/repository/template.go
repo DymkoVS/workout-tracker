@@ -21,10 +21,13 @@ func NewTemplateRepository(db *pgxpool.Pool) *TemplateRepository {
 
 func (r *TemplateRepository) List(ctx context.Context, trainerID uuid.UUID) ([]model.WorkoutTemplate, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, trainer_id, title, notes, created_at, updated_at
-		FROM workout_templates
-		WHERE trainer_id = $1
-		ORDER BY created_at DESC`, trainerID)
+		SELECT t.id, t.trainer_id, t.title, t.notes, t.type, t.created_at, t.updated_at,
+		       COUNT(w.id)::int AS used_count
+		FROM workout_templates t
+		LEFT JOIN workouts w ON w.template_id = t.id
+		WHERE t.trainer_id = $1
+		GROUP BY t.id, t.trainer_id, t.title, t.notes, t.type, t.created_at, t.updated_at
+		ORDER BY t.created_at DESC`, trainerID)
 	if err != nil {
 		return nil, err
 	}
@@ -33,13 +36,12 @@ func (r *TemplateRepository) List(ctx context.Context, trainerID uuid.UUID) ([]m
 	var list []model.WorkoutTemplate
 	for rows.Next() {
 		var t model.WorkoutTemplate
-		if err := rows.Scan(&t.ID, &t.TrainerID, &t.Title, &t.Notes, &t.CreatedAt, &t.UpdatedAt); err != nil {
+		if err := rows.Scan(&t.ID, &t.TrainerID, &t.Title, &t.Notes, &t.Type, &t.CreatedAt, &t.UpdatedAt, &t.UsedCount); err != nil {
 			return nil, err
 		}
 		list = append(list, t)
 	}
 
-	// Загружаем количество упражнений для каждого шаблона
 	for i := range list {
 		exs, err := r.loadExercises(ctx, list[i].ID)
 		if err != nil {
@@ -52,9 +54,12 @@ func (r *TemplateRepository) List(ctx context.Context, trainerID uuid.UUID) ([]m
 
 func (r *TemplateRepository) GetByID(ctx context.Context, id, trainerID uuid.UUID) (*model.WorkoutTemplate, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, trainer_id, title, notes, created_at, updated_at
-		FROM workout_templates
-		WHERE id = $1 AND trainer_id = $2`, id, trainerID)
+		SELECT t.id, t.trainer_id, t.title, t.notes, t.type, t.created_at, t.updated_at,
+		       COUNT(w.id)::int AS used_count
+		FROM workout_templates t
+		LEFT JOIN workouts w ON w.template_id = t.id
+		WHERE t.id = $1 AND t.trainer_id = $2
+		GROUP BY t.id, t.trainer_id, t.title, t.notes, t.type, t.created_at, t.updated_at`, id, trainerID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +67,7 @@ func (r *TemplateRepository) GetByID(ctx context.Context, id, trainerID uuid.UUI
 
 	t, err := pgx.CollectOneRow(rows, func(row pgx.CollectableRow) (model.WorkoutTemplate, error) {
 		var tm model.WorkoutTemplate
-		err := row.Scan(&tm.ID, &tm.TrainerID, &tm.Title, &tm.Notes, &tm.CreatedAt, &tm.UpdatedAt)
+		err := row.Scan(&tm.ID, &tm.TrainerID, &tm.Title, &tm.Notes, &tm.Type, &tm.CreatedAt, &tm.UpdatedAt, &tm.UsedCount)
 		return tm, err
 	})
 	if err != nil {
@@ -126,7 +131,10 @@ func (r *TemplateRepository) loadSets(ctx context.Context, exerciseID uuid.UUID)
 	return sets, nil
 }
 
-func (r *TemplateRepository) Create(ctx context.Context, trainerID uuid.UUID, title, notes string, exercises []model.FormExercise) (*model.WorkoutTemplate, error) {
+func (r *TemplateRepository) Create(ctx context.Context, trainerID uuid.UUID, title, notes, typeStr string, exercises []model.FormExercise) (*model.WorkoutTemplate, error) {
+	if typeStr == "" {
+		typeStr = "Сила"
+	}
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -135,8 +143,8 @@ func (r *TemplateRepository) Create(ctx context.Context, trainerID uuid.UUID, ti
 
 	var id uuid.UUID
 	if err := tx.QueryRow(ctx,
-		`INSERT INTO workout_templates (trainer_id, title, notes) VALUES ($1,$2,$3) RETURNING id`,
-		trainerID, title, notes,
+		`INSERT INTO workout_templates (trainer_id, title, notes, type) VALUES ($1,$2,$3,$4) RETURNING id`,
+		trainerID, title, notes, typeStr,
 	).Scan(&id); err != nil {
 		return nil, fmt.Errorf("insert template: %w", err)
 	}
@@ -151,7 +159,10 @@ func (r *TemplateRepository) Create(ctx context.Context, trainerID uuid.UUID, ti
 	return r.GetByID(ctx, id, trainerID)
 }
 
-func (r *TemplateRepository) Update(ctx context.Context, id, trainerID uuid.UUID, title, notes string, exercises []model.FormExercise) error {
+func (r *TemplateRepository) Update(ctx context.Context, id, trainerID uuid.UUID, title, notes, typeStr string, exercises []model.FormExercise) error {
+	if typeStr == "" {
+		typeStr = "Сила"
+	}
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return err
@@ -159,8 +170,8 @@ func (r *TemplateRepository) Update(ctx context.Context, id, trainerID uuid.UUID
 	defer tx.Rollback(ctx)
 
 	res, err := tx.Exec(ctx,
-		`UPDATE workout_templates SET title=$1, notes=$2, updated_at=NOW() WHERE id=$3 AND trainer_id=$4`,
-		title, notes, id, trainerID)
+		`UPDATE workout_templates SET title=$1, notes=$2, type=$3, updated_at=NOW() WHERE id=$4 AND trainer_id=$5`,
+		title, notes, typeStr, id, trainerID)
 	if err != nil {
 		return err
 	}
@@ -199,9 +210,9 @@ func (r *TemplateRepository) Apply(ctx context.Context, templateID, trainerID uu
 	for _, clientID := range clientIDs {
 		var workoutID uuid.UUID
 		if err := tx.QueryRow(ctx, `
-			INSERT INTO workouts (user_id, trainer_id, gym_id, title, workout_date, notes)
-			VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
-			clientID, trainerID, gymID, tmpl.Title, date, tmpl.Notes,
+			INSERT INTO workouts (user_id, trainer_id, gym_id, title, workout_date, notes, template_id)
+			VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+			clientID, trainerID, gymID, tmpl.Title, date, tmpl.Notes, templateID,
 		).Scan(&workoutID); err != nil {
 			return fmt.Errorf("insert workout for client %s: %w", clientID, err)
 		}

@@ -49,6 +49,22 @@
       style="font-family:'Anton',Impact,sans-serif;font-size:20px;letter-spacing:0.5px;text-transform:uppercase">
   </div>
 
+  <div style="margin-bottom:20px">
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:10px">ТИП</div>
+    <div style="display:flex;gap:6px" id="type-chips">
+      {{$curType := "Сила"}}{{if $t}}{{if $t.Type}}{{$curType = $t.Type}}{{end}}{{end}}
+      {{range $typ := iterate 3}}
+        {{$label := "Сила"}}{{if eq $typ 1}}{{$label = "Кардио"}}{{else if eq $typ 2}}{{$label = "Аксессуар"}}{{end}}
+        {{$active := eq $label $curType}}
+        <button type="button" data-type-chip="{{$label}}"
+          style="background:{{if $active}}#fafafa{{else}}transparent{{end}};color:{{if $active}}#000{{else}}#9a9a9a{{end}};border:1px solid {{if $active}}#fafafa{{else}}#2e2e2e{{end}};padding:6px 14px;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;white-space:nowrap">
+          {{$label}}
+        </button>
+      {{end}}
+    </div>
+    <input type="hidden" name="type" id="type-hidden" value="{{$curType}}">
+  </div>
+
   <div style="height:1px;background:#1f1f1f;margin-bottom:20px"></div>
 
   <div style="margin-bottom:20px">
@@ -110,5 +126,23 @@ document.body.addEventListener('htmx:afterSwap', function(e) {
     }
   }
 });
+
+// Type chip selector
+(function() {
+  var chips = document.querySelectorAll('[data-type-chip]');
+  var hidden = document.getElementById('type-hidden');
+  chips.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      var val = this.getAttribute('data-type-chip');
+      hidden.value = val;
+      chips.forEach(function(c) {
+        var active = c.getAttribute('data-type-chip') === val;
+        c.style.background = active ? '#fafafa' : 'transparent';
+        c.style.color = active ? '#000' : '#9a9a9a';
+        c.style.borderColor = active ? '#fafafa' : '#2e2e2e';
+      });
+    });
+  });
+})();
 </script>
 {{end}}
