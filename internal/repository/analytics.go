@@ -90,6 +90,26 @@ func (r *AnalyticsRepository) ExerciseNames(ctx context.Context, userID uuid.UUI
 	return names, nil
 }
 
+// TonnagePeriodTotals returns total tonnage for the current 90 days and the
+// preceding 90 days (days 91–180 back). Used to compute the ▲/▼ delta.
+func (r *AnalyticsRepository) TonnagePeriodTotals(ctx context.Context, userID uuid.UUID) (current, prev float64, err error) {
+	err = r.db.QueryRow(ctx, `
+		SELECT
+			COALESCE(SUM(CASE WHEN w.workout_date >= CURRENT_DATE - INTERVAL '90 days'
+			                  THEN s.weight * s.reps END), 0),
+			COALESCE(SUM(CASE WHEN w.workout_date >= CURRENT_DATE - INTERVAL '180 days'
+			                   AND w.workout_date < CURRENT_DATE - INTERVAL '90 days'
+			                  THEN s.weight * s.reps END), 0)
+		FROM workouts w
+		JOIN workout_exercises e ON e.workout_id = w.id
+		JOIN sets s ON s.workout_exercise_id = e.id
+		WHERE w.user_id = $1
+		  AND s.weight IS NOT NULL AND s.reps IS NOT NULL
+		  AND w.workout_date >= CURRENT_DATE - INTERVAL '180 days'
+	`, userID).Scan(&current, &prev)
+	return
+}
+
 func (r *AnalyticsRepository) ExerciseProgress(ctx context.Context, userID uuid.UUID, exerciseName string) ([]model.AnalyticsPoint, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT w.workout_date, MAX(s.weight)

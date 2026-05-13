@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"workout-tracker/internal/middleware"
@@ -39,6 +40,17 @@ func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
 	tonnage, _ := h.analytics.TonnageByDate(r.Context(), targetUserID)
 	frequency, _ := h.analytics.WorkoutFrequency(r.Context(), targetUserID)
 	exercises, _ := h.analytics.ExerciseNames(r.Context(), targetUserID)
+	cur90, prev90, _ := h.analytics.TonnagePeriodTotals(r.Context(), targetUserID)
+
+	var tonnageDelta string
+	if prev90 > 0 {
+		pct := (cur90 - prev90) / prev90 * 100
+		if pct >= 0 {
+			tonnageDelta = fmt.Sprintf("▲ +%.0f%%", pct)
+		} else {
+			tonnageDelta = fmt.Sprintf("▼ %.0f%%", pct)
+		}
+	}
 
 	tonnageLabels := make([]string, len(tonnage))
 	tonnageValues := make([]float64, len(tonnage))
@@ -68,6 +80,7 @@ func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
 		"FreqCount":     len(frequency),
 		"Exercises":     exercises,
 		"TargetUserID":  targetUserID.String(),
+		"TonnageDelta":  tonnageDelta,
 	}
 
 	if user.IsTrainer() {

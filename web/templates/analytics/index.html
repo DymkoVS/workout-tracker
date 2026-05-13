@@ -39,8 +39,11 @@
   <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
     <div class="eyebrow eyebrow-dim2" style="margin-bottom:12px">ТОННАЖ · 90 ДНЕЙ</div>
     {{if .TonnageCount}}
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px">
+    <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:16px">
       <div id="tonnageHero" class="font-display" style="font-size:64px;line-height:0.9;letter-spacing:0.5px;color:#D7FF1A">—</div>
+      {{if .TonnageDelta}}
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#D7FF1A;padding-bottom:8px">{{.TonnageDelta}}</div>
+      {{end}}
     </div>
     <canvas id="tonnageChart" style="max-height:160px"></canvas>
     {{else}}

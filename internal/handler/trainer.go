@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"workout-tracker/internal/middleware"
 	"workout-tracker/internal/repository"
@@ -19,16 +20,52 @@ func NewTrainerHandler(tc *repository.TrainerClientRepository, workouts *reposit
 	return &TrainerHandler{tc: tc, workouts: workouts, users: users}
 }
 
-// Clients показывает список клиентов тренера
+// Clients показывает список клиентов тренера с недельной статистикой.
 func (h *TrainerHandler) Clients(w http.ResponseWriter, r *http.Request) {
 	trainer := middleware.UserFromContext(r.Context())
-	clients, err := h.tc.GetClients(r.Context(), trainer.ID)
+	stats, err := h.tc.GetClientStats(r.Context(), trainer.ID)
 	if err != nil {
 		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
 		return
 	}
+
+	activeCount := 0
+	weekDoneTotal, weekPlanTotal, prevWeekDoneTotal := 0, 0, 0
+	for _, cs := range stats {
+		if cs.IsActive {
+			activeCount++
+		}
+		weekDoneTotal += cs.WeekDone
+		weekPlanTotal += cs.WeekPlan
+		prevWeekDoneTotal += cs.PrevWeekDone
+	}
+
+	weekPulsePct := ""
+	weekPulseRatio := ""
+	weekPulseDelta := ""
+	weekPulseDeltaNeg := false
+
+	if weekPlanTotal > 0 {
+		pct := float64(weekDoneTotal) / float64(weekPlanTotal) * 100
+		weekPulsePct = fmt.Sprintf("%.0f%%", pct)
+		weekPulseRatio = fmt.Sprintf("%d/%d трен.", weekDoneTotal, weekPlanTotal)
+		prevPct := float64(prevWeekDoneTotal) / float64(weekPlanTotal) * 100
+		delta := pct - prevPct
+		if delta > 0.5 {
+			weekPulseDelta = fmt.Sprintf("▲ +%.0f%%", delta)
+		} else if delta < -0.5 {
+			weekPulseDelta = fmt.Sprintf("▼ %.0f%%", delta)
+			weekPulseDeltaNeg = true
+		}
+	}
+
 	renderTemplate(w, r, "trainer/clients.html", map[string]any{
-		"Clients": clients,
+		"ClientStats":       stats,
+		"ActiveCount":       activeCount,
+		"WeekPulsePct":      weekPulsePct,
+		"WeekPulseRatio":    weekPulseRatio,
+		"WeekPulseDelta":    weekPulseDelta,
+		"WeekPulseDeltaNeg": weekPulseDeltaNeg,
 	})
 }
 

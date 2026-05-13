@@ -34,6 +34,21 @@ func (u *User) DisplayName() string {
 	return u.Login
 }
 
+// ClientStat — per-client week activity stats for the trainer's clients view.
+type ClientStat struct {
+	*User
+	WeekDone       int
+	PrevWeekDone   int
+	WeekPlan       int
+	TotalWorkouts  int
+	LastWorkout    *time.Time
+	LastWorkoutFmt string
+	Streak         int
+	Status         string // "on" | "off"
+	Initials       string
+	BarColor       string
+}
+
 type CreateUserInput struct {
 	Login    string
 	Email    string

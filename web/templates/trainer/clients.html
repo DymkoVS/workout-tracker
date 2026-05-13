@@ -10,37 +10,81 @@
     <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.4px;text-transform:uppercase">ПРОФИЛЬ</span>
   </a>
 
-  <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">{{len .Clients}} КЛИЕНТОВ</div>
+  <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">{{len .ClientStats}} ВСЕГО · {{.ActiveCount}} АКТИВНЫХ</div>
   <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px">КЛИЕНТЫ</div>
   <div style="width:56px;height:4px;background:#D7FF1A;margin-top:16px"></div>
 </div>
 
-{{if .Clients}}
-<div style="padding:24px 24px 0;display:flex;flex-direction:column;gap:10px">
-  {{range .Clients}}
-  <a href="/trainer/clients/{{.ID}}/workouts"
-    style="display:flex;align-items:center;gap:14px;background:#141414;border:1px solid {{if not .IsActive}}rgba(255,69,58,0.25){{else}}#2e2e2e{{end}};padding:16px 18px;text-decoration:none;color:#fafafa">
+{{if .ClientStats}}
 
-    {{/* Initials avatar */}}
+{{/* Week pulse card */}}
+{{if .WeekPulsePct}}
+<div style="padding:24px 24px 0">
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:16px 18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="eyebrow eyebrow-dim2">НЕДЕЛЯ · ВЫПОЛНЕНО</div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#D7FF1A">{{.WeekPulseRatio}}</div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <div class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.WeekPulsePct}}</div>
+      {{if .WeekPulseDelta}}
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;{{if .WeekPulseDeltaNeg}}color:#ff453a{{else}}color:#D7FF1A{{end}}">{{.WeekPulseDelta}}</div>
+      {{end}}
+    </div>
+    {{/* Сегментированный бар: один сегмент на клиента */}}
+    <div style="display:flex;height:6px;gap:2px">
+      {{range .ClientStats}}
+      <div style="flex:1;background:{{.BarColor}}"></div>
+      {{end}}
+    </div>
+  </div>
+</div>
+{{end}}
+
+{{/* Список клиентов */}}
+<div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
+  {{range .ClientStats}}
+  {{$cs := .}}
+  <a href="/trainer/clients/{{.ID}}/workouts"
+    style="display:flex;align-items:center;gap:14px;background:#141414;border:1px solid {{if eq .Status "off"}}rgba(255,69,58,0.25){{else}}#2e2e2e{{end}};padding:16px 18px;text-decoration:none;color:#fafafa">
+
+    {{/* Аватар с инициалами */}}
     <div style="width:44px;height:44px;background:#1b1b1b;border:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Anton',Impact,sans-serif;font-size:18px;color:#9a9a9a;letter-spacing:1px">
-      {{printf "%.1s" .Login | toUpper}}
+      {{.Initials}}
     </div>
 
     <div style="flex:1;min-width:0">
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px">
-        <div style="font-size:15px;font-weight:500">
+      {{/* Имя и статус */}}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+        <div style="font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
           {{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}
         </div>
         {{if not .IsActive}}
         <div style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;color:#ff453a;flex-shrink:0">● НЕАКТИВЕН</div>
+        {{else if eq .Status "off"}}
+        <div style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;color:#ff453a;flex-shrink:0">● ПРОПУСК</div>
         {{end}}
       </div>
-      <div style="font-size:11px;color:#9a9a9a">@{{.Login}}</div>
+      {{/* Мета */}}
+      <div style="font-size:11px;color:#9a9a9a;margin-bottom:6px">@{{.Login}}</div>
+      {{/* Статистика */}}
+      <div style="display:flex;gap:10px;align-items:center">
+        <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">{{.TotalWorkouts}} трен.</span>
+        <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">послед. {{.LastWorkoutFmt}}</span>
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;{{if gt .Streak 0}}color:#D7FF1A{{else}}color:#6a6a6a{{end}}">🔥{{.Streak}}</span>
+      </div>
     </div>
 
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
-      <path d="M5 12h14M12 5l7 7-7 7"/>
-    </svg>
+    {{/* Пиллы недели и соотношение */}}
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+      <div style="display:flex;gap:3px">
+        {{range $i := iterate $cs.WeekPlan}}
+        <div style="width:6px;height:14px;background:{{if lt $i $cs.WeekDone}}#D7FF1A{{else}}#2e2e2e{{end}}"></div>
+        {{end}}
+      </div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;color:#6a6a6a">{{.WeekDone}}/{{.WeekPlan}} нед.</div>
+    </div>
+
   </a>
   {{end}}
 </div>
