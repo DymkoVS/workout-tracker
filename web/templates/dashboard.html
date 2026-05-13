@@ -6,8 +6,8 @@
     <div class="eyebrow eyebrow-accent">{{.TodayRU}}</div>
     <div class="font-display" style="font-size:36px;line-height:1;letter-spacing:0.5px;margin-top:6px">ПОРА В ЗАЛ.</div>
   </div>
-  <a href="/profile" style="width:44px;height:44px;background:#141414;border:1px solid #262626;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="1.8" stroke-linecap="round">
+  <a href="/profile" style="width:44px;height:44px;background:#141414;border:1px solid #2e2e2e;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9a9a9a" stroke-width="1.8" stroke-linecap="round">
       <circle cx="12" cy="8" r="4"/>
       <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
     </svg>
@@ -22,7 +22,7 @@
     <div>
       <div style="display:flex;align-items:baseline;gap:4px">
         <span class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.WeekCount}}</span>
-        <span style="font-size:18px;color:#7a7a7a">трен.</span>
+        <span style="font-size:18px;color:#9a9a9a">трен.</span>
       </div>
       <div class="eyebrow" style="margin-top:6px;letter-spacing:1.5px">ТРЕНИРОВКИ</div>
     </div>
@@ -37,13 +37,13 @@
     <div style="text-align:right">
       <div style="display:flex;align-items:baseline;gap:4px;justify-content:flex-end">
         <span class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.Streak}}</span>
-        <span style="font-size:18px;color:#7a7a7a">дн</span>
+        <span style="font-size:18px;color:#9a9a9a">дн</span>
       </div>
       <div class="eyebrow" style="margin-top:6px;letter-spacing:1.5px">СТРИК</div>
     </div>
 
   </div>
-  <div style="height:1px;background:#262626;margin-top:20px"></div>
+  <div style="height:1px;background:#2e2e2e;margin-top:20px"></div>
 </div>
 
 {{/* Primary CTA */}}
@@ -66,10 +66,10 @@
 <div style="padding:24px 24px 0">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
     <div class="eyebrow">ПОСЛЕДНЯЯ</div>
-    <a href="/workouts" style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#7a7a7a;letter-spacing:1px;text-transform:uppercase">Все →</a>
+    <a href="/workouts" style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#9a9a9a;letter-spacing:1px;text-transform:uppercase">Все →</a>
   </div>
 
-  <a href="/workouts/{{.LastCard.ID}}" style="display:flex;text-decoration:none;background:#141414;border:1px solid #262626">
+  <a href="/workouts/{{.LastCard.ID}}" style="display:flex;text-decoration:none;background:#141414;border:1px solid #2e2e2e">
     <div style="width:4px;background:#D7FF1A;align-self:stretch;flex-shrink:0"></div>
     <div style="padding:16px 18px;flex:1;min-width:0">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -80,11 +80,11 @@
         {{if .LastCard.Title}}{{toUpper .LastCard.Title}}{{else}}ТРЕНИРОВКА{{end}}
       </div>
       {{if .LastCard.GymName}}
-      <div style="font-size:11px;color:#7a7a7a;margin-bottom:10px">{{.LastCard.GymName}}</div>
+      <div style="font-size:11px;color:#9a9a9a;margin-bottom:10px">{{.LastCard.GymName}}</div>
       {{end}}
       <div style="display:flex;gap:16px">
-        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#4a4a4a;letter-spacing:1px;text-transform:uppercase">{{.LastCard.ExerciseCount}} УПР.</span>
-        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#4a4a4a;letter-spacing:1px;text-transform:uppercase">{{.LastCard.SetCount}} ПОДХ.</span>
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#6a6a6a;letter-spacing:1px;text-transform:uppercase">{{.LastCard.ExerciseCount}} УПР.</span>
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#6a6a6a;letter-spacing:1px;text-transform:uppercase">{{.LastCard.SetCount}} ПОДХ.</span>
         <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#D7FF1A;letter-spacing:1px;text-transform:uppercase">{{formatTonnage .LastCard.Tonnage}}</span>
       </div>
     </div>
@@ -96,21 +96,21 @@
 {{if or .CurrentUser.IsTrainer .CurrentUser.IsAdmin}}
 <div style="padding:24px 24px 0">
   <div class="eyebrow" style="margin-bottom:12px">БЫСТРЫЙ ДОСТУП</div>
-  <div style="display:flex;flex-direction:column;gap:1px;background:#262626">
+  <div style="display:flex;flex-direction:column;gap:1px;background:#2e2e2e">
     {{if .CurrentUser.IsTrainer}}
     <a href="/trainer/clients" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:14px 16px;text-decoration:none">
       <span style="font-size:14px;font-weight:500">Клиенты</span>
-      <span style="color:#4a4a4a">›</span>
+      <span style="color:#6a6a6a">›</span>
     </a>
     <a href="/templates" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:14px 16px;text-decoration:none">
       <span style="font-size:14px;font-weight:500">Шаблоны</span>
-      <span style="color:#4a4a4a">›</span>
+      <span style="color:#6a6a6a">›</span>
     </a>
     {{end}}
     {{if .CurrentUser.IsAdmin}}
     <a href="/admin/users" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:14px 16px;text-decoration:none">
       <span style="font-size:14px;font-weight:500">Пользователи</span>
-      <span style="color:#4a4a4a">›</span>
+      <span style="color:#6a6a6a">›</span>
     </a>
     {{end}}
   </div>

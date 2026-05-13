@@ -7,7 +7,7 @@
 {{define "content"}}
 
 {{/* Header */}}
-<div style="padding:56px 24px 24px;border-bottom:1px solid #262626">
+<div style="padding:56px 24px 24px;border-bottom:1px solid #2e2e2e">
   <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">СТАТИСТИКА</div>
   <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px">ПРОГРЕСС</div>
 </div>
@@ -18,7 +18,7 @@
   <form method="GET" action="/analytics">
     <div style="position:relative">
       <select name="user_id" onchange="this.form.submit()"
-        style="width:100%;background:#141414;border:1px solid #262626;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:14px 16px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
+        style="width:100%;background:#141414;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:14px 16px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
         <option value="" style="background:#141414">— Мои тренировки —</option>
         {{range .Clients}}
         <option value="{{.ID}}" style="background:#141414" {{if eq .ID.String $.SelectedClientID}}selected{{end}}>
@@ -26,7 +26,7 @@
         </option>
         {{end}}
       </select>
-      <div style="position:absolute;right:16px;top:50%;transform:translateY(-50%);pointer-events:none;color:#7a7a7a">
+      <div style="position:absolute;right:16px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9a9a9a">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
     </div>
@@ -36,26 +36,26 @@
 
 {{/* Tonnage chart */}}
 <div style="padding:20px 24px 0">
-  <div style="background:#141414;border:1px solid #262626;padding:20px 18px">
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
     <div class="font-display" style="font-size:18px;letter-spacing:0.5px;margin-bottom:4px">ТОННАЖ</div>
     <div class="eyebrow eyebrow-dim2" style="margin-bottom:16px">последние 90 дней · кг</div>
     {{if .TonnageCount}}
     <canvas id="tonnageChart" style="max-height:180px"></canvas>
     {{else}}
-    <div style="padding:40px 0;text-align:center;color:#4a4a4a;font-size:13px">Нет данных о тоннаже</div>
+    <div style="padding:40px 0;text-align:center;color:#6a6a6a;font-size:13px">Нет данных о тоннаже</div>
     {{end}}
   </div>
 </div>
 
 {{/* Frequency chart */}}
 <div style="padding:16px 24px 0">
-  <div style="background:#141414;border:1px solid #262626;padding:20px 18px">
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
     <div class="font-display" style="font-size:18px;letter-spacing:0.5px;margin-bottom:4px">ЧАСТОТА</div>
     <div class="eyebrow eyebrow-dim2" style="margin-bottom:16px">тренировок за неделю · последние 8 нед.</div>
     {{if .FreqCount}}
     <canvas id="freqChart" style="max-height:160px"></canvas>
     {{else}}
-    <div style="padding:40px 0;text-align:center;color:#4a4a4a;font-size:13px">Нет данных о частоте</div>
+    <div style="padding:40px 0;text-align:center;color:#6a6a6a;font-size:13px">Нет данных о частоте</div>
     {{end}}
   </div>
 </div>
@@ -63,25 +63,25 @@
 {{/* Exercise progress */}}
 {{if .Exercises}}
 <div style="padding:16px 24px 0">
-  <div style="background:#141414;border:1px solid #262626;padding:20px 18px">
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
     <div class="font-display" style="font-size:18px;letter-spacing:0.5px;margin-bottom:4px">УПРАЖНЕНИЕ</div>
     <div class="eyebrow eyebrow-dim2" style="margin-bottom:16px">макс. вес за тренировку · кг</div>
     <div style="position:relative;margin-bottom:16px">
       <select id="exerciseSelect"
-        style="width:100%;background:#0a0a0a;border:1px solid #262626;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:12px 14px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
+        style="width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:12px 14px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
         <option value="" style="background:#0a0a0a">— Выберите упражнение —</option>
         {{range .Exercises}}
         <option value="{{.}}" style="background:#0a0a0a">{{.}}</option>
         {{end}}
       </select>
-      <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#7a7a7a">
+      <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9a9a9a">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
     </div>
     <div id="exerciseChartWrap" style="display:none">
       <canvas id="exerciseChart" style="max-height:180px"></canvas>
     </div>
-    <div id="exerciseNoData" style="display:none;padding:24px 0;text-align:center;color:#4a4a4a;font-size:13px">Нет данных для этого упражнения</div>
+    <div id="exerciseNoData" style="display:none;padding:24px 0;text-align:center;color:#6a6a6a;font-size:13px">Нет данных для этого упражнения</div>
   </div>
 </div>
 {{end}}
@@ -97,14 +97,14 @@ const freqLabels    = {{.FreqLabels}};
 const freqValues    = {{.FreqValues}};
 const targetUserID  = "{{.TargetUserID}}";
 
-Chart.defaults.color = '#7a7a7a';
-Chart.defaults.borderColor = '#262626';
+Chart.defaults.color = '#9a9a9a';
+Chart.defaults.borderColor = '#2e2e2e';
 Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
 Chart.defaults.font.size = 11;
 
 const baseScales = {
-  x: { grid: { color: '#1f1f1f' }, ticks: { color: '#4a4a4a' } },
-  y: { beginAtZero: true, grid: { color: '#1f1f1f' }, ticks: { color: '#4a4a4a' } }
+  x: { grid: { color: '#1f1f1f' }, ticks: { color: '#6a6a6a' } },
+  y: { beginAtZero: true, grid: { color: '#1f1f1f' }, ticks: { color: '#6a6a6a' } }
 };
 
 if (tonnageLabels.length > 0) {

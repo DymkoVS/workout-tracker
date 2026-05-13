@@ -4,23 +4,23 @@
 
 {{define "head_extra"}}
 <style>
-.dk-input{width:100%;background:#0a0a0a;border:1px solid #262626;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;display:block}
+.dk-input{width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;display:block}
 .dk-input:focus{border-color:#D7FF1A}
-.dk-input::placeholder{color:#4a4a4a}
+.dk-input::placeholder{color:#6a6a6a}
 </style>
 {{end}}
 
 {{define "content"}}
 {{$g := .Gym}}
 
-<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #262626">
-  <a href="/gyms" style="display:flex;align-items:center;gap:8px;color:#7a7a7a;text-decoration:none">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #2e2e2e">
+  <a href="/gyms" style="display:flex;align-items:center;gap:8px;color:#9a9a9a;text-decoration:none">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M19 12H5M12 5l-7 7 7 7"/>
     </svg>
     <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.4px;text-transform:uppercase">ЗАЛЫ</span>
   </a>
-  <div class="font-display" style="font-size:13px;letter-spacing:1.5px;color:#7a7a7a">
+  <div class="font-display" style="font-size:13px;letter-spacing:1.5px;color:#9a9a9a">
     {{if $g}}РЕДАКТИРОВАТЬ{{else}}НОВЫЙ ЗАЛ{{end}}
   </div>
 </div>

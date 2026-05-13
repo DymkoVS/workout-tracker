@@ -2,61 +2,135 @@
 
 {{define "content"}}
 
-<div style="padding:56px 24px 24px;border-bottom:1px solid #262626;display:flex;align-items:flex-end;justify-content:space-between">
-  <div>
-    <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">АДМИНИСТРАТОР</div>
-    <div class="font-display" style="font-size:40px;line-height:1;letter-spacing:0.5px">ПОЛЬЗОВАТЕЛИ</div>
-  </div>
-  <a href="/admin/users/new"
-    style="width:44px;height:44px;background:#D7FF1A;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:4px">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
-      <path d="M12 5v14M5 12h14"/>
+<div style="padding:56px 24px 0">
+  <a href="/profile" style="display:flex;align-items:center;gap:8px;color:#9a9a9a;text-decoration:none;margin-bottom:16px">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
     </svg>
+    <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.4px;text-transform:uppercase">ПРОФИЛЬ</span>
   </a>
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between">
+    <div>
+      <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">{{len .Users}} АККАУНТОВ</div>
+      <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px">ПОЛЬЗОВАТЕЛИ</div>
+    </div>
+    <a href="/admin/users/new"
+      style="width:44px;height:44px;background:#D7FF1A;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:4px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </a>
+  </div>
+</div>
+
+{{/* Counter cards */}}
+{{if .Users}}
+{{$trainers := 0}}{{$clients := 0}}{{$inactive := 0}}
+{{range .Users}}
+  {{if .IsTrainer}}{{$trainers = add $trainers 1}}{{else}}{{$clients = add $clients 1}}{{end}}
+  {{if not .IsActive}}{{$inactive = add $inactive 1}}{{end}}
+{{end}}
+<div style="padding:20px 24px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:14px 12px">
+    <div class="font-display" style="font-size:28px;line-height:1;letter-spacing:0.5px">{{$trainers}}</div>
+    <div style="font-family:'Space Grotesk',system-ui;font-size:9px;color:#9a9a9a;letter-spacing:1.4px;text-transform:uppercase;margin-top:4px">ТРЕНЕРЫ</div>
+  </div>
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:14px 12px">
+    <div class="font-display" style="font-size:28px;line-height:1;letter-spacing:0.5px;color:#D7FF1A">{{$clients}}</div>
+    <div style="font-family:'Space Grotesk',system-ui;font-size:9px;color:#9a9a9a;letter-spacing:1.4px;text-transform:uppercase;margin-top:4px">КЛИЕНТЫ</div>
+  </div>
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:14px 12px">
+    <div class="font-display" style="font-size:28px;line-height:1;letter-spacing:0.5px;color:#ff453a">{{$inactive}}</div>
+    <div style="font-family:'Space Grotesk',system-ui;font-size:9px;color:#9a9a9a;letter-spacing:1.4px;text-transform:uppercase;margin-top:4px">НЕАКТ.</div>
+  </div>
+</div>
+{{end}}
+
+{{/* Filter tabs */}}
+<div style="padding:16px 24px 0;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+  <button type="button" data-filter="all" style="background:#fafafa;color:#000;border:1px solid #fafafa;padding:6px 14px;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0">Все</button>
+  <button type="button" data-filter="trainer" style="background:transparent;color:#9a9a9a;border:1px solid #2e2e2e;padding:6px 14px;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0">Тренеры</button>
+  <button type="button" data-filter="client" style="background:transparent;color:#9a9a9a;border:1px solid #2e2e2e;padding:6px 14px;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0">Клиенты</button>
+  <button type="button" data-filter="inactive" style="background:transparent;color:#9a9a9a;border:1px solid #2e2e2e;padding:6px 14px;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0">Неактивные</button>
 </div>
 
 {{if .Users}}
-<div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
-  {{range .Users}}
-  <div style="background:#141414;border:1px solid #262626;display:flex;align-items:stretch">
-    <div style="width:4px;background:{{if .IsTrainer}}#D7FF1A{{else}}#262626{{end}};flex-shrink:0"></div>
-    <div style="padding:14px 16px;flex:1;min-width:0">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
-        <div style="min-width:0">
-          <div class="font-display" style="font-size:18px;line-height:1;letter-spacing:0.5px">
-            {{if .FullName}}{{toUpper .FullName}}{{else}}{{toUpper .Login}}{{end}}
-          </div>
-          {{if .FullName}}
-          <div style="font-size:12px;color:#4a4a4a;margin-top:4px">@{{.Login}}</div>
+<div style="padding:16px 24px 0">
+  <div style="background:#141414;border:1px solid #2e2e2e">
+    {{range $i, $u := .Users}}
+    <div class="user-row"
+      data-trainer="{{if .IsTrainer}}1{{else}}0{{end}}"
+      data-active="{{if .IsActive}}1{{else}}0{{end}}"
+      style="padding:14px 18px;display:flex;align-items:center;gap:12px;{{if gt $i 0}}border-top:1px solid #1f1f1f;{{end}}opacity:{{if not .IsActive}}0.5{{else}}1{{end}}">
+
+      {{/* Avatar */}}
+      <div style="width:36px;height:36px;background:#1b1b1b;border:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Anton',Impact,sans-serif;font-size:14px;color:#9a9a9a;letter-spacing:1px">
+        {{printf "%.1s" .Login | toUpper}}
+      </div>
+
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:14px;font-weight:500">{{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}</span>
+          {{if .IsAdmin}}
+          <span style="font-family:'Space Grotesk',system-ui;font-size:8px;padding:2px 6px;background:#D7FF1A;color:#000;letter-spacing:1.5px;font-weight:700">ADMIN</span>
           {{end}}
         </div>
-        <a href="/admin/users/{{.ID}}/edit"
-          style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#7a7a7a;flex-shrink:0;padding-top:2px">
-          ИЗМЕНИТЬ
-        </a>
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:#9a9a9a;margin-top:3px">
+          @{{.Login}} · <span style="color:{{if .IsTrainer}}#D7FF1A{{else}}#9a9a9a{{end}}">{{if .IsTrainer}}тренер{{else}}клиент{{end}}</span>{{if not .IsActive}} <span style="color:#ff453a">● деактивирован</span>{{end}}
+        </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
-        {{if .IsTrainer}}
-        <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#D7FF1A;color:#000;padding:2px 7px">ТРЕНЕР</span>
-        {{else}}
-        <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#1f1f1f;color:#7a7a7a;padding:2px 7px">КЛИЕНТ</span>
-        {{end}}
-        {{if .IsAdmin}}
-        <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#1f1f1f;color:#D7FF1A;padding:2px 7px">ADMIN</span>
-        {{end}}
-        {{if not .IsActive}}
-        <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#1f1f1f;color:#ff453a;padding:2px 7px">ДЕАКТИВИРОВАН</span>
-        {{end}}
-      </div>
+
+      <a href="/admin/users/{{.ID}}/edit" style="color:#9a9a9a;flex-shrink:0;padding:4px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20h4l10-10-4-4L4 16v4z"/>
+        </svg>
+      </a>
     </div>
+    {{end}}
   </div>
-  {{end}}
+</div>
+
+<div style="padding:16px 24px 0">
+  <a href="/admin/assign"
+    style="display:block;width:100%;background:transparent;color:#fafafa;border:1px solid #2e2e2e;font-family:'Space Grotesk',system-ui;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:16px;text-align:center;text-decoration:none">
+    Назначения тренер ↔ клиент →
+  </a>
 </div>
 {{else}}
 <div style="padding:80px 24px;text-align:center">
-  <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#4a4a4a;margin-bottom:12px">ПОЛЬЗОВАТЕЛЕЙ ПОКА НЕТ</div>
+  <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#6a6a6a;margin-bottom:12px">ПОЛЬЗОВАТЕЛЕЙ ПОКА НЕТ</div>
 </div>
 {{end}}
 
 <div style="height:40px"></div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+(function() {
+  var tabs = document.querySelectorAll('[data-filter]');
+  var rows = document.querySelectorAll('.user-row');
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var filter = this.getAttribute('data-filter');
+      tabs.forEach(function(t) {
+        var active = t.getAttribute('data-filter') === filter;
+        t.style.background = active ? '#fafafa' : 'transparent';
+        t.style.color = active ? '#000' : '#9a9a9a';
+        t.style.borderColor = active ? '#fafafa' : '#2e2e2e';
+      });
+      rows.forEach(function(row) {
+        var isTrainer = row.getAttribute('data-trainer') === '1';
+        var isActive = row.getAttribute('data-active') === '1';
+        var show = true;
+        if (filter === 'trainer') show = isTrainer;
+        else if (filter === 'client') show = !isTrainer;
+        else if (filter === 'inactive') show = !isActive;
+        row.style.display = show ? 'flex' : 'none';
+      });
+    });
+  });
+})();
+</script>
 {{end}}

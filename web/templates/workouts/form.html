@@ -6,30 +6,30 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
 .dk-input {
-  width:100%;background:#0a0a0a;border:1px solid #262626;color:#fafafa;
+  width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;
   font-family:'Space Grotesk',system-ui;font-size:15px;padding:12px 14px;
   outline:none;-webkit-appearance:none;appearance:none;border-radius:0;display:block;
 }
 .dk-input:focus { border-color:#D7FF1A; }
-.dk-input::placeholder { color:#4a4a4a; }
+.dk-input::placeholder { color:#6a6a6a; }
 .dk-num {
-  background:#0a0a0a;border:1px solid #262626;color:#fafafa;
+  background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;
   font-family:'JetBrains Mono',ui-monospace,monospace;font-size:16px;
   padding:10px 4px;text-align:center;outline:none;border-radius:0;width:100%;
   -moz-appearance:textfield;
 }
 .dk-num::-webkit-inner-spin-button,.dk-num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .dk-num:focus { border-color:#D7FF1A; }
-.dk-num::placeholder { color:#4a4a4a; }
+.dk-num::placeholder { color:#6a6a6a; }
 .dk-textarea {
-  width:100%;background:#0a0a0a;border:1px solid #262626;color:#fafafa;
+  width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;
   font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;
   outline:none;border-radius:0;resize:none;display:block;
 }
 .dk-textarea:focus { border-color:#D7FF1A; }
-.dk-textarea::placeholder { color:#4a4a4a; }
+.dk-textarea::placeholder { color:#6a6a6a; }
 .dk-select {
-  width:100%;background:#0a0a0a;border:1px solid #262626;color:#fafafa;
+  width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;
   font-family:'Space Grotesk',system-ui;font-size:15px;padding:12px 14px;
   outline:none;-webkit-appearance:none;appearance:none;border-radius:0;cursor:pointer;
 }
@@ -41,17 +41,17 @@
 }
 .wb-radio:checked + .wb-emoji { filter:none;transform:scale(1.25); }
 /* flatpickr dark */
-.flatpickr-calendar{background:#1b1b1b!important;border:1px solid #262626!important;border-radius:0!important;box-shadow:none!important}
+.flatpickr-calendar{background:#1b1b1b!important;border:1px solid #2e2e2e!important;border-radius:0!important;box-shadow:none!important}
 .flatpickr-months,.flatpickr-month{background:#141414!important;color:#fafafa!important;fill:#fafafa!important}
 .flatpickr-current-month,.flatpickr-current-month .cur-month,.flatpickr-current-month .numInputWrapper input{color:#fafafa!important}
-.flatpickr-weekday{background:#141414!important;color:#4a4a4a!important}
+.flatpickr-weekday{background:#141414!important;color:#6a6a6a!important}
 .flatpickr-days{background:#1b1b1b!important}
 .flatpickr-day{color:#fafafa!important;border-radius:0!important;border-color:transparent!important}
-.flatpickr-day:hover{background:#262626!important;color:#fafafa!important}
+.flatpickr-day:hover{background:#2e2e2e!important;color:#fafafa!important}
 .flatpickr-day.selected,.flatpickr-day.selected:hover{background:#D7FF1A!important;color:#000!important;border-color:#D7FF1A!important}
 .flatpickr-day.today{border-bottom-color:#D7FF1A!important}
-.flatpickr-day.prevMonthDay,.flatpickr-day.nextMonthDay{color:#4a4a4a!important}
-.flatpickr-prev-month svg,.flatpickr-next-month svg{fill:#7a7a7a!important}
+.flatpickr-day.prevMonthDay,.flatpickr-day.nextMonthDay{color:#6a6a6a!important}
+.flatpickr-prev-month svg,.flatpickr-next-month svg{fill:#9a9a9a!important}
 .flatpickr-prev-month:hover svg,.flatpickr-next-month:hover svg{fill:#D7FF1A!important}
 </style>
 {{end}}
@@ -60,14 +60,14 @@
 {{$w := .Workout}}
 
 {{/* Top bar */}}
-<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #262626">
-  <a href="{{if $w}}/workouts/{{$w.ID}}{{else}}/workouts{{end}}" style="display:flex;align-items:center;gap:8px;color:#7a7a7a;text-decoration:none">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #2e2e2e">
+  <a href="{{if $w}}/workouts/{{$w.ID}}{{else}}/workouts{{end}}" style="display:flex;align-items:center;gap:8px;color:#9a9a9a;text-decoration:none">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M19 12H5M12 5l-7 7 7 7"/>
     </svg>
     <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.4px;text-transform:uppercase">{{if $w}}ТРЕНИРОВКА{{else}}ЖУРНАЛ{{end}}</span>
   </a>
-  <div class="font-display" style="font-size:13px;letter-spacing:1.5px;color:#7a7a7a">
+  <div class="font-display" style="font-size:13px;letter-spacing:1.5px;color:#9a9a9a">
     {{if $w}}РЕДАКТИРОВАТЬ{{else}}НОВАЯ{{end}}
   </div>
 </div>
@@ -110,7 +110,7 @@
           value="{{if $w}}{{dateRU $w.WorkoutDate}}{{else}}{{.Today}}{{end}}"
           placeholder="ДД.ММ.ГГГГ" readonly
           class="dk-input" style="cursor:pointer;padding-right:36px">
-        <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#4a4a4a">
+        <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#6a6a6a">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="0" ry="0"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         </div>
       </div>
@@ -118,7 +118,7 @@
     <div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div class="eyebrow eyebrow-dim2">ЗАЛ</div>
-        <a href="/gyms" style="font-family:'Space Grotesk',system-ui;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#4a4a4a">+ управление</a>
+        <a href="/gyms" style="font-family:'Space Grotesk',system-ui;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#6a6a6a">+ управление</a>
       </div>
       <div style="position:relative">
         <select name="gym_id" class="dk-select">
@@ -127,7 +127,7 @@
           <option value="{{.ID}}" style="background:#0a0a0a" {{if and $w $w.GymID (eq $w.GymID.String .ID.String)}}selected{{end}}>{{.Name}}</option>
           {{end}}
         </select>
-        <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#4a4a4a">
+        <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#6a6a6a">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
         </div>
       </div>
@@ -170,7 +170,7 @@
       hx-get="/workouts/htmx/add-exercise?idx={{if $w}}{{len $w.Exercises}}{{else}}1{{end}}"
       hx-target="#exercises-list"
       hx-swap="beforeend"
-      style="margin-top:10px;width:100%;background:transparent;border:1px dashed #262626;color:#4a4a4a;font-family:'Space Grotesk',system-ui;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:14px;cursor:pointer">
+      style="margin-top:10px;width:100%;background:transparent;border:1px dashed #2e2e2e;color:#6a6a6a;font-family:'Space Grotesk',system-ui;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:14px;cursor:pointer">
       + ДОБАВИТЬ УПРАЖНЕНИЕ
     </button>
   </div>
