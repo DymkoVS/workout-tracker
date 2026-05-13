@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"workout-tracker/internal/middleware"
+	"workout-tracker/internal/model"
 )
 
 var tmplFuncs = template.FuncMap{
@@ -70,6 +73,60 @@ var tmplFuncs = template.FuncMap{
 			return v.Format("02.01.2006")
 		}
 		return ""
+	},
+	"toUpper": strings.ToUpper,
+	"printf":  fmt.Sprintf,
+	"formatTonnage": func(kg float64) string {
+		if kg == 0 {
+			return "0кг"
+		}
+		if kg >= 1000 {
+			t := kg / 1000
+			if t == float64(int(t)) {
+				return fmt.Sprintf("%dт", int(t))
+			}
+			return fmt.Sprintf("%.1fт", t)
+		}
+		return fmt.Sprintf("%.0fкг", kg)
+	},
+	"exerciseTonnage": func(e model.WorkoutExercise) float64 {
+		var t float64
+		for _, s := range e.Sets {
+			if s.Weight != nil && s.Reps != nil {
+				t += *s.Weight * float64(*s.Reps)
+			}
+		}
+		return t
+	},
+	"workoutTonnage": func(exercises []model.WorkoutExercise) float64 {
+		var t float64
+		for _, e := range exercises {
+			for _, s := range e.Sets {
+				if s.Weight != nil && s.Reps != nil {
+					t += *s.Weight * float64(*s.Reps)
+				}
+			}
+		}
+		return t
+	},
+	"totalSets": func(exercises []model.WorkoutExercise) int {
+		n := 0
+		for _, e := range exercises {
+			n += len(e.Sets)
+		}
+		return n
+	},
+	"topSetIdx": func(sets []model.Set) int {
+		best, bestVal := -1, 0.0
+		for i, s := range sets {
+			if s.Weight != nil && s.Reps != nil {
+				if v := *s.Weight * float64(*s.Reps); v > bestVal {
+					bestVal = v
+					best = i
+				}
+			}
+		}
+		return best
 	},
 }
 

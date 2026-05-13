@@ -1,48 +1,121 @@
 {{define "title"}}Главная{{end}}
 
 {{define "content"}}
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-gray-800">
-    Привет, {{.CurrentUser.DisplayName}}!
-  </h1>
-  <p class="text-gray-500 mt-1">
-    {{if .CurrentUser.IsTrainer}}Тренер{{else}}Клиент{{end}}
-    {{if .CurrentUser.IsAdmin}} · Администратор{{end}}
-  </p>
+<div style="padding:64px 24px 0;display:flex;align-items:flex-start;justify-content:space-between">
+  <div>
+    <div class="eyebrow eyebrow-accent">{{.TodayRU}}</div>
+    <div class="font-display" style="font-size:36px;line-height:1;letter-spacing:0.5px;margin-top:6px">ПОРА В ЗАЛ.</div>
+  </div>
+  <a href="/profile" style="width:44px;height:44px;background:#141414;border:1px solid #262626;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="1.8" stroke-linecap="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+    </svg>
+  </a>
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-  <a href="/workouts" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block">
-    <div class="text-3xl mb-2">🏋️</div>
-    <div class="font-semibold text-gray-800">Тренировки</div>
-    <div class="text-sm text-gray-500 mt-1">История и новая тренировка</div>
-  </a>
+{{/* Week stats */}}
+<div style="padding:24px 24px 0">
+  <div class="eyebrow" style="margin-bottom:14px">ЭТА НЕДЕЛЯ</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0">
 
-  {{if .CurrentUser.IsTrainer}}
-  <a href="/trainer/clients" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block">
-    <div class="text-3xl mb-2">👥</div>
-    <div class="font-semibold text-gray-800">Клиенты</div>
-    <div class="text-sm text-gray-500 mt-1">Список клиентов и планы</div>
-  </a>
-  <a href="/templates" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block">
-    <div class="text-3xl mb-2">📋</div>
-    <div class="font-semibold text-gray-800">Шаблоны</div>
-    <div class="text-sm text-gray-500 mt-1">Шаблоны тренировок</div>
-  </a>
-  {{end}}
+    <div>
+      <div style="display:flex;align-items:baseline;gap:4px">
+        <span class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.WeekCount}}</span>
+        <span style="font-size:18px;color:#7a7a7a">трен.</span>
+      </div>
+      <div class="eyebrow" style="margin-top:6px;letter-spacing:1.5px">ТРЕНИРОВКИ</div>
+    </div>
 
-  <a href="/analytics" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block">
-    <div class="text-3xl mb-2">📊</div>
-    <div class="font-semibold text-gray-800">Аналитика</div>
-    <div class="text-sm text-gray-500 mt-1">Прогресс и статистика</div>
-  </a>
+    <div style="text-align:center">
+      <div style="display:flex;align-items:baseline;gap:4px;justify-content:center">
+        <span class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px;color:#D7FF1A">{{.WeekTonnage}}</span>
+      </div>
+      <div class="eyebrow eyebrow-accent" style="margin-top:6px;letter-spacing:1.5px">ТОННАЖ</div>
+    </div>
 
-  {{if .CurrentUser.IsAdmin}}
-  <a href="/admin/users" class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition block border-2 border-dashed border-gray-200">
-    <div class="text-3xl mb-2">⚙️</div>
-    <div class="font-semibold text-gray-800">Пользователи</div>
-    <div class="text-sm text-gray-500 mt-1">Управление аккаунтами</div>
-  </a>
-  {{end}}
+    <div style="text-align:right">
+      <div style="display:flex;align-items:baseline;gap:4px;justify-content:flex-end">
+        <span class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.Streak}}</span>
+        <span style="font-size:18px;color:#7a7a7a">дн</span>
+      </div>
+      <div class="eyebrow" style="margin-top:6px;letter-spacing:1.5px">СТРИК</div>
+    </div>
+
+  </div>
+  <div style="height:1px;background:#262626;margin-top:20px"></div>
 </div>
+
+{{/* Primary CTA */}}
+<div style="padding:20px 24px 0">
+  <a href="/workouts/new" style="display:flex;align-items:center;justify-content:space-between;background:#D7FF1A;color:#000;padding:22px 24px;text-decoration:none">
+    <div>
+      <div style="font-family:'Space Grotesk',system-ui;font-size:10px;letter-spacing:1.8px;font-weight:700;opacity:0.7;text-transform:uppercase;margin-bottom:6px">СЛЕДУЮЩАЯ</div>
+      <div class="font-display" style="font-size:32px;line-height:1;letter-spacing:0.5px">НОВАЯ<br>ТРЕНИРОВКА</div>
+    </div>
+    <div style="width:52px;height:52px;border:2px solid #000;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </div>
+  </a>
+</div>
+
+{{/* Last workout */}}
+{{if .LastCard}}
+<div style="padding:24px 24px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div class="eyebrow">ПОСЛЕДНЯЯ</div>
+    <a href="/workouts" style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#7a7a7a;letter-spacing:1px;text-transform:uppercase">Все →</a>
+  </div>
+
+  <a href="/workouts/{{.LastCard.ID}}" style="display:flex;text-decoration:none;background:#141414;border:1px solid #262626">
+    <div style="width:4px;background:#D7FF1A;align-self:stretch;flex-shrink:0"></div>
+    <div style="padding:16px 18px;flex:1;min-width:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="eyebrow eyebrow-dim2">{{dateRU .LastCard.WorkoutDate}}</div>
+        {{if .LastCard.Wellbeing}}<span style="font-size:18px">{{wellbeingEmoji .LastCard.Wellbeing}}</span>{{end}}
+      </div>
+      <div class="font-display" style="font-size:26px;line-height:1;letter-spacing:0.5px;margin-bottom:6px">
+        {{if .LastCard.Title}}{{toUpper .LastCard.Title}}{{else}}ТРЕНИРОВКА{{end}}
+      </div>
+      {{if .LastCard.GymName}}
+      <div style="font-size:11px;color:#7a7a7a;margin-bottom:10px">{{.LastCard.GymName}}</div>
+      {{end}}
+      <div style="display:flex;gap:16px">
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#4a4a4a;letter-spacing:1px;text-transform:uppercase">{{.LastCard.ExerciseCount}} УПР.</span>
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#4a4a4a;letter-spacing:1px;text-transform:uppercase">{{.LastCard.SetCount}} ПОДХ.</span>
+        <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#D7FF1A;letter-spacing:1px;text-transform:uppercase">{{formatTonnage .LastCard.Tonnage}}</span>
+      </div>
+    </div>
+  </a>
+</div>
+{{end}}
+
+{{/* Quick links for trainer/admin */}}
+{{if or .CurrentUser.IsTrainer .CurrentUser.IsAdmin}}
+<div style="padding:24px 24px 0">
+  <div class="eyebrow" style="margin-bottom:12px">БЫСТРЫЙ ДОСТУП</div>
+  <div style="display:flex;flex-direction:column;gap:1px;background:#262626">
+    {{if .CurrentUser.IsTrainer}}
+    <a href="/trainer/clients" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:14px 16px;text-decoration:none">
+      <span style="font-size:14px;font-weight:500">Клиенты</span>
+      <span style="color:#4a4a4a">›</span>
+    </a>
+    <a href="/templates" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:14px 16px;text-decoration:none">
+      <span style="font-size:14px;font-weight:500">Шаблоны</span>
+      <span style="color:#4a4a4a">›</span>
+    </a>
+    {{end}}
+    {{if .CurrentUser.IsAdmin}}
+    <a href="/admin/users" style="display:flex;align-items:center;justify-content:space-between;background:#141414;padding:14px 16px;text-decoration:none">
+      <span style="font-size:14px;font-weight:500">Пользователи</span>
+      <span style="color:#4a4a4a">›</span>
+    </a>
+    {{end}}
+  </div>
+</div>
+{{end}}
+
+<div style="height:32px"></div>
 {{end}}

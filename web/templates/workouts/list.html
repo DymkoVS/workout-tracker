@@ -1,38 +1,54 @@
-{{define "title"}}Тренировки{{end}}
+{{define "title"}}Журнал{{end}}
 
 {{define "content"}}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold text-gray-800">Тренировки</h1>
-  <a href="/workouts/new"
-    class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition text-sm">
-    + Новая
+<div style="padding:64px 24px 0;display:flex;align-items:flex-start;justify-content:space-between">
+  <div>
+    <div class="eyebrow">{{.TotalCount}} ТРЕНИРОВОК</div>
+    <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px;margin-top:6px">ЖУРНАЛ</div>
+  </div>
+  <a href="/workouts/new" style="width:44px;height:44px;background:#D7FF1A;display:flex;align-items:center;justify-content:center;margin-top:8px;flex-shrink:0">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
   </a>
 </div>
 
-{{if not .Workouts}}
-<div class="bg-white rounded-2xl shadow-sm p-12 text-center text-gray-400">
-  <div class="text-5xl mb-3">🏋️</div>
-  <div class="font-medium text-gray-600 mb-1">Тренировок пока нет</div>
-  <a href="/workouts/new" class="text-blue-600 text-sm hover:underline">Добавить первую</a>
+{{if not .WorkoutGroups}}
+<div style="padding:80px 24px;text-align:center">
+  <div class="font-display" style="font-size:24px;letter-spacing:0.5px;color:#4a4a4a;margin-bottom:12px">ТРЕНИРОВОК ПОКА НЕТ</div>
+  <div style="color:#7a7a7a;font-size:14px;margin-bottom:24px">Начни вести дневник прямо сейчас</div>
+  <a href="/workouts/new" style="display:inline-block;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:16px;letter-spacing:2px;padding:14px 32px;text-decoration:none">+ ДОБАВИТЬ ПЕРВУЮ</a>
 </div>
 {{else}}
-<div class="space-y-3">
-  {{range .Workouts}}
-  <a href="/workouts/{{.ID}}" class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between hover:shadow-md transition block">
-    <div>
-      <div class="font-semibold text-gray-800">{{if .Title}}{{.Title}}{{else}}Тренировка{{end}}</div>
-      <div class="text-sm text-gray-500 mt-0.5">
-        {{.WorkoutDate.Format "02.01.2006"}}
-        {{if .GymName}} · {{.GymName}}{{end}}
-      </div>
-    </div>
-    <div class="flex items-center gap-3 text-right">
-      {{if .Wellbeing}}
-      <span class="text-lg">{{wellbeingEmoji .Wellbeing}}</span>
+<div style="padding:24px 24px 0">
+  {{range .WorkoutGroups}}
+  <div style="margin-bottom:28px">
+    <div class="eyebrow" style="margin-bottom:12px">{{.MonthLabel}}</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      {{range .Cards}}
+      <a href="/workouts/{{.ID}}" style="display:flex;text-decoration:none;background:#141414;border:1px solid #262626">
+        <div style="width:4px;background:#D7FF1A;align-self:stretch;flex-shrink:0"></div>
+        <div style="padding:14px 16px;flex:1;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="eyebrow eyebrow-dim2">{{dateRU .WorkoutDate}}</div>
+            {{if .Wellbeing}}<span style="font-size:16px">{{wellbeingEmoji .Wellbeing}}</span>{{end}}
+          </div>
+          <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;margin-bottom:4px">
+            {{if .Title}}{{toUpper .Title}}{{else}}ТРЕНИРОВКА{{end}}
+          </div>
+          {{if .GymName}}
+          <div style="font-size:11px;color:#7a7a7a;margin-bottom:8px">{{.GymName}}</div>
+          {{end}}
+          <div style="display:flex;gap:14px">
+            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#4a4a4a;letter-spacing:1px;text-transform:uppercase">{{.ExerciseCount}} УПР.</span>
+            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#4a4a4a;letter-spacing:1px;text-transform:uppercase">{{.SetCount}} ПОДХ.</span>
+            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#D7FF1A;letter-spacing:1px;text-transform:uppercase">{{formatTonnage .Tonnage}}</span>
+          </div>
+        </div>
+      </a>
       {{end}}
-      <span class="text-gray-300">›</span>
     </div>
-  </a>
+  </div>
   {{end}}
 </div>
 {{end}}

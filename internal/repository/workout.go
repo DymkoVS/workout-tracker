@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 	"workout-tracker/internal/model"
 
 	"github.com/google/uuid"
@@ -208,6 +209,115 @@ func (r *WorkoutRepository) Update(ctx context.Context, id, userID uuid.UUID, w 
 func (r *WorkoutRepository) Delete(ctx context.Context, id, userID uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM workouts WHERE id=$1 AND user_id=$2`, id, userID)
 	return err
+}
+
+// ListCards returns workouts with precomputed exercise/set counts and tonnage for list views.
+func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]model.WorkoutCardData, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
+		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		       COUNT(DISTINCT we.id) AS exercise_count,
+		       COUNT(s.id) AS set_count,
+		       COALESCE(SUM(s.weight * s.reps), 0) AS tonnage
+		FROM workouts w
+		LEFT JOIN gyms g ON g.id = w.gym_id
+		LEFT JOIN workout_exercises we ON we.workout_id = w.id
+		LEFT JOIN sets s ON s.workout_exercise_id = we.id
+		WHERE w.user_id = $1
+		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
+		ORDER BY w.workout_date DESC, w.created_at DESC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var cards []model.WorkoutCardData
+	for rows.Next() {
+		var c model.WorkoutCardData
+		if err := rows.Scan(
+			&c.ID, &c.UserID, &c.TrainerID, &c.GymID, &c.GymName,
+			&c.Title, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
+			&c.ExerciseCount, &c.SetCount, &c.Tonnage,
+		); err != nil {
+			return nil, err
+		}
+		cards = append(cards, c)
+	}
+	return cards, nil
+}
+
+// DashboardStats holds aggregated data for the home screen.
+type DashboardStats struct {
+	WeekCount   int
+	WeekTonnage float64 // kg
+	Streak      int     // consecutive calendar days
+	LastCard    *model.WorkoutCardData
+}
+
+// GetDashboardStats returns week stats, streak, and last workout card for a user.
+func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.UUID) (DashboardStats, error) {
+	var stats DashboardStats
+
+	if err := r.db.QueryRow(ctx, `
+		SELECT COUNT(DISTINCT w.id), COALESCE(SUM(s.weight * s.reps), 0)
+		FROM workouts w
+		LEFT JOIN workout_exercises we ON we.workout_id = w.id
+		LEFT JOIN sets s ON s.workout_exercise_id = we.id
+		WHERE w.user_id = $1
+		  AND date_trunc('week', w.workout_date) = date_trunc('week', CURRENT_DATE)`,
+		userID).Scan(&stats.WeekCount, &stats.WeekTonnage); err != nil {
+		return stats, err
+	}
+
+	dateRows, err := r.db.Query(ctx, `
+		SELECT DISTINCT workout_date::date
+		FROM workouts WHERE user_id = $1
+		ORDER BY 1 DESC LIMIT 60`, userID)
+	if err != nil {
+		return stats, err
+	}
+	var dates []time.Time
+	for dateRows.Next() {
+		var d time.Time
+		if err := dateRows.Scan(&d); err != nil {
+			dateRows.Close()
+			return stats, err
+		}
+		dates = append(dates, d)
+	}
+	dateRows.Close()
+
+	today := time.Now().Truncate(24 * time.Hour)
+	for i, d := range dates {
+		if d.Truncate(24 * time.Hour).Equal(today.AddDate(0, 0, -i)) {
+			stats.Streak++
+		} else {
+			break
+		}
+	}
+
+	var c model.WorkoutCardData
+	err = r.db.QueryRow(ctx, `
+		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
+		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		       COUNT(DISTINCT we.id) AS exercise_count,
+		       COUNT(s.id) AS set_count,
+		       COALESCE(SUM(s.weight * s.reps), 0) AS tonnage
+		FROM workouts w
+		LEFT JOIN gyms g ON g.id = w.gym_id
+		LEFT JOIN workout_exercises we ON we.workout_id = w.id
+		LEFT JOIN sets s ON s.workout_exercise_id = we.id
+		WHERE w.user_id = $1
+		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
+		ORDER BY w.workout_date DESC, w.created_at DESC
+		LIMIT 1`, userID).Scan(
+		&c.ID, &c.UserID, &c.TrainerID, &c.GymID, &c.GymName,
+		&c.Title, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
+		&c.ExerciseCount, &c.SetCount, &c.Tonnage,
+	)
+	if err == nil {
+		stats.LastCard = &c
+	}
+	return stats, nil
 }
 
 // GetByIDForTrainer возвращает тренировку если тренер назначен к клиенту или сам создал тренировку

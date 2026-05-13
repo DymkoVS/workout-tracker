@@ -33,6 +33,7 @@ func main() {
 
 	authHandler := handler.NewAuthHandler(userRepo, sessionStore)
 	adminHandler := handler.NewAdminHandler(userRepo, tcRepo)
+	dashboardHandler := handler.NewDashboardHandler(workoutRepo)
 	workoutHandler := handler.NewWorkoutHandler(workoutRepo, gymRepo, tcRepo, userRepo)
 	gymHandler := handler.NewGymHandler(gymRepo)
 	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo)
@@ -54,7 +55,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(authMiddleware.RequireAuth)
 
-		r.Get("/", handler.Dashboard)
+		r.Get("/", dashboardHandler.Index)
 
 		// Тренировки
 		r.Get("/workouts", workoutHandler.List)

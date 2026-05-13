@@ -47,6 +47,14 @@ type Set struct {
 	Notes              string
 }
 
+// WorkoutCardData — workout with precomputed display stats for list/card views
+type WorkoutCardData struct {
+	Workout
+	ExerciseCount int
+	SetCount      int
+	Tonnage       float64 // kg
+}
+
 // FormSet — данные одного подхода из HTML-формы (строки, до парсинга)
 type FormSet struct {
 	Weight      string

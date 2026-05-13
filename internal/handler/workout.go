@@ -29,15 +29,36 @@ func NewWorkoutHandler(
 	return &WorkoutHandler{workouts: workouts, gyms: gyms, tc: tc, users: users}
 }
 
+// WorkoutGroup groups workout cards under a month label for the history list.
+type WorkoutGroup struct {
+	MonthLabel string
+	Cards      []model.WorkoutCardData
+}
+
+var ruMonthsFull = [...]string{"", "ЯНВАРЬ", "ФЕВРАЛЬ", "МАРТ", "АПРЕЛЬ", "МАЙ", "ИЮНЬ", "ИЮЛЬ", "АВГУСТ", "СЕНТЯБРЬ", "ОКТЯБРЬ", "НОЯБРЬ", "ДЕКАБРЬ"}
+
+func groupByMonth(cards []model.WorkoutCardData) []WorkoutGroup {
+	var groups []WorkoutGroup
+	for _, c := range cards {
+		label := fmt.Sprintf("%s %d", ruMonthsFull[c.WorkoutDate.Month()], c.WorkoutDate.Year())
+		if len(groups) == 0 || groups[len(groups)-1].MonthLabel != label {
+			groups = append(groups, WorkoutGroup{MonthLabel: label})
+		}
+		groups[len(groups)-1].Cards = append(groups[len(groups)-1].Cards, c)
+	}
+	return groups
+}
+
 func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
-	list, err := h.workouts.List(r.Context(), user.ID)
+	cards, err := h.workouts.ListCards(r.Context(), user.ID)
 	if err != nil {
 		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
 		return
 	}
 	renderTemplate(w, r, "workouts/list.html", map[string]any{
-		"Workouts": list,
+		"WorkoutGroups": groupByMonth(cards),
+		"TotalCount":    len(cards),
 	})
 }
 
