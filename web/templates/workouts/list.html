@@ -13,6 +13,20 @@
   </a>
 </div>
 
+{{if .SparklineTonnages}}
+<div style="padding:20px 24px 0">
+  <div style="background:#141414;border:1px solid #2e2e2e;padding:16px 18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="eyebrow eyebrow-dim2">ТОННАЖ · 6 ПОСЛЕДНИХ</div>
+      {{if .TonnageDelta}}
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#D7FF1A">{{.TonnageDelta}}</div>
+      {{end}}
+    </div>
+    <div id="sparkline-wrap" style="height:60px;position:relative"></div>
+  </div>
+</div>
+{{end}}
+
 {{if not .WorkoutGroups}}
 <div style="padding:80px 24px;text-align:center">
   <div class="font-display" style="font-size:24px;letter-spacing:0.5px;color:#6a6a6a;margin-bottom:12px">ТРЕНИРОВОК ПОКА НЕТ</div>
@@ -51,5 +65,45 @@
   </div>
   {{end}}
 </div>
+{{end}}
+{{end}}
+
+{{define "scripts"}}
+{{if .SparklineTonnages}}
+<script>
+(function() {
+  var vals = [{{range $i, $v := .SparklineTonnages}}{{if $i}},{{end}}{{printf "%.4g" $v}}{{end}}];
+  var wrap = document.getElementById('sparkline-wrap');
+  if (!wrap || !vals.length) return;
+
+  var W = wrap.offsetWidth || 300;
+  var H = 60;
+  var pad = 6;
+
+  var min = vals[0], max = vals[0];
+  for (var i = 1; i < vals.length; i++) {
+    if (vals[i] < min) min = vals[i];
+    if (vals[i] > max) max = vals[i];
+  }
+  var range = max - min || 1;
+
+  var pts = vals.map(function(v, i) {
+    var x = pad + (vals.length < 2 ? (W - 2 * pad) / 2 : i / (vals.length - 1) * (W - 2 * pad));
+    var y = pad + (1 - (v - min) / range) * (H - 2 * pad);
+    return [x.toFixed(1), y.toFixed(1)];
+  });
+
+  var d = pts.map(function(p, i) { return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join(' ');
+  var circles = pts.map(function(p) {
+    return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3" fill="#D7FF1A"/>';
+  }).join('');
+
+  wrap.innerHTML =
+    '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" style="display:block">' +
+    '<path d="' + d + '" fill="none" stroke="#D7FF1A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+    circles +
+    '</svg>';
+})();
+</script>
 {{end}}
 {{end}}

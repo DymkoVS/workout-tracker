@@ -40,6 +40,7 @@ func (h *DashboardHandler) Index(w http.ResponseWriter, r *http.Request) {
 	todayRU := fmt.Sprintf("%d %s · %s", now.Day(), ruMonthsGen[now.Month()], ruWeekdaysShort[now.Weekday()])
 
 	stats, _ := h.workouts.GetDashboardStats(r.Context(), user.ID)
+	recentPRs, _ := h.workouts.GetRecentPRs(r.Context(), user.ID)
 
 	renderTemplate(w, r, "dashboard.html", map[string]any{
 		"CurrentUser": user,
@@ -48,5 +49,6 @@ func (h *DashboardHandler) Index(w http.ResponseWriter, r *http.Request) {
 		"WeekTonnage": fmtTonnage(stats.WeekTonnage),
 		"Streak":      stats.Streak,
 		"LastCard":    stats.LastCard,
+		"RecentPRs":   recentPRs,
 	})
 }

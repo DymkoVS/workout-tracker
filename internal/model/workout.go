@@ -55,6 +55,14 @@ type WorkoutCardData struct {
 	Tonnage       float64 // kg
 }
 
+// RecentPR — personal record set within the last 30 days.
+type RecentPR struct {
+	ExerciseName string
+	NewWeight    float64
+	Reps         int
+	Delta        float64 // how much heavier than the previous all-time max (0 = first time)
+}
+
 // FormSet — данные одного подхода из HTML-формы (строки, до парсинга)
 type FormSet struct {
 	Weight      string

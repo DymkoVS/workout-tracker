@@ -92,6 +92,32 @@
 </div>
 {{end}}
 
+{{/* Fresh PRs */}}
+{{if .RecentPRs}}
+<div style="padding:24px 24px 0">
+  <div class="eyebrow" style="margin-bottom:12px">СВЕЖИЕ РЕКОРДЫ</div>
+  <div style="background:#141414;border:1px solid #2e2e2e">
+    {{range $i, $pr := .RecentPRs}}
+    <div style="padding:14px 18px;{{if gt $i 0}}border-top:1px solid #1f1f1f;{{end}}display:flex;align-items:center;gap:12px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#D7FF1A" stroke="none">
+        <path d="M13 2L4.5 13.5H11L10 22L19.5 10H13L13 2Z"/>
+      </svg>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{$pr.ExerciseName}}</div>
+        {{if $pr.Reps}}<div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9a9a9a;margin-top:2px">{{$pr.Reps}} повт.</div>{{end}}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="font-display" style="font-size:28px;line-height:1;letter-spacing:0.5px">{{printf "%.4g" $pr.NewWeight}}кг</div>
+        {{if gt $pr.Delta 0.0}}
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:#D7FF1A;margin-top:2px">▲ +{{printf "%.4g" $pr.Delta}} кг</div>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}
+
 {{/* Quick links for trainer/admin */}}
 {{if or .CurrentUser.IsTrainer .CurrentUser.IsAdmin}}
 <div style="padding:24px 24px 0">

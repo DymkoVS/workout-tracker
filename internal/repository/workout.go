@@ -435,3 +435,53 @@ func parseOptInt(s string) *int {
 	}
 	return &v
 }
+
+// GetRecentPRs returns up to 3 personal-weight records set in the last 30 days,
+// ordered by improvement delta descending.
+func (r *WorkoutRepository) GetRecentPRs(ctx context.Context, userID uuid.UUID) ([]model.RecentPR, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH recent AS (
+			SELECT DISTINCT ON (we.name)
+				we.name,
+				s.weight          AS new_weight,
+				COALESCE(s.reps, 0) AS reps
+			FROM sets s
+			JOIN workout_exercises we ON we.id = s.workout_exercise_id
+			JOIN workouts w ON w.id = we.workout_id
+			WHERE w.user_id = $1
+			  AND s.weight IS NOT NULL AND s.weight > 0
+			  AND w.workout_date >= NOW() - INTERVAL '30 days'
+			ORDER BY we.name, s.weight DESC
+		),
+		historical AS (
+			SELECT we.name, MAX(s.weight) AS prev_max
+			FROM sets s
+			JOIN workout_exercises we ON we.id = s.workout_exercise_id
+			JOIN workouts w ON w.id = we.workout_id
+			WHERE w.user_id = $1
+			  AND s.weight IS NOT NULL
+			  AND w.workout_date < NOW() - INTERVAL '30 days'
+			GROUP BY we.name
+		)
+		SELECT r.name, r.new_weight, r.reps,
+		       r.new_weight - COALESCE(h.prev_max, 0) AS delta
+		FROM recent r
+		LEFT JOIN historical h ON h.name = r.name
+		WHERE r.new_weight > COALESCE(h.prev_max, 0)
+		ORDER BY delta DESC
+		LIMIT 3
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var prs []model.RecentPR
+	for rows.Next() {
+		var pr model.RecentPR
+		if err := rows.Scan(&pr.ExerciseName, &pr.NewWeight, &pr.Reps, &pr.Delta); err != nil {
+			return nil, err
+		}
+		prs = append(prs, pr)
+	}
+	return prs, nil
+}

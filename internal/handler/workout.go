@@ -56,9 +56,47 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
 		return
 	}
+
+	// Sparkline: up to 6 most-recent workouts in chronological order (oldest→newest).
+	// cards[0] is newest (DESC order from DB), so iterate end-1 down to 0.
+	n := len(cards)
+	end := n
+	if end > 6 {
+		end = 6
+	}
+	sparkline := make([]float64, end)
+	for i := 0; i < end; i++ {
+		sparkline[i] = cards[end-1-i].Tonnage
+	}
+
+	// Tonnage delta: last 30 days vs. prior 30 days (no extra DB query).
+	var tonnageDelta string
+	now := time.Now()
+	cut30 := now.AddDate(0, 0, -30)
+	cut60 := now.AddDate(0, 0, -60)
+	var last30, prev30 float64
+	for _, c := range cards {
+		switch {
+		case c.WorkoutDate.After(cut30):
+			last30 += c.Tonnage
+		case c.WorkoutDate.After(cut60):
+			prev30 += c.Tonnage
+		}
+	}
+	if prev30 > 0 {
+		pct := (last30 - prev30) / prev30 * 100
+		if pct >= 0 {
+			tonnageDelta = fmt.Sprintf("▲ +%.0f%%", pct)
+		} else {
+			tonnageDelta = fmt.Sprintf("▼ %.0f%%", pct)
+		}
+	}
+
 	renderTemplate(w, r, "workouts/list.html", map[string]any{
-		"WorkoutGroups": groupByMonth(cards),
-		"TotalCount":    len(cards),
+		"WorkoutGroups":    groupByMonth(cards),
+		"TotalCount":       len(cards),
+		"SparklineTonnages": sparkline,
+		"TonnageDelta":     tonnageDelta,
 	})
 }
 
