@@ -106,6 +106,45 @@
 </div>
 {{end}}
 
+{{/* Change password */}}
+<div style="padding:24px 24px 0">
+  <div class="eyebrow" style="margin-bottom:12px">БЕЗОПАСНОСТЬ</div>
+  <div style="background:#141414;border:1px solid {{if .PasswordError}}#ff453a{{else if eq (index . "pwd") "ok"}}#D7FF1A{{else}}#2e2e2e{{end}}">
+
+    {{if .PasswordError}}
+    <div style="padding:12px 18px;border-bottom:1px solid #2e2e2e;font-family:'Space Grotesk',system-ui;font-size:13px;color:#ff453a">
+      {{.PasswordError}}
+    </div>
+    {{end}}
+
+    {{if eq (index . "pwd") "ok"}}
+    <div style="padding:12px 18px;border-bottom:1px solid #2e2e2e;font-family:'Space Grotesk',system-ui;font-size:13px;color:#D7FF1A">
+      Пароль успешно изменён
+    </div>
+    {{end}}
+
+    <form method="POST" action="/profile/password" id="pwd-form">
+      <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="var b=document.getElementById('pwd-body');b.style.display=b.style.display==='none'?'block':'none'">
+        <span style="font-size:15px;font-weight:500;color:#fafafa">Сменить пароль</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div id="pwd-body" style="display:{{if or .PasswordError .PasswordSection}}block{{else}}none{{end}};padding:0 18px 18px">
+        <input type="password" name="current_password" placeholder="Текущий пароль"
+          style="width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:10px;box-sizing:border-box">
+        <input type="password" name="new_password" placeholder="Новый пароль (мин. 6 символов)"
+          style="width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:10px;box-sizing:border-box">
+        <input type="password" name="confirm_password" placeholder="Повторите новый пароль"
+          style="width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:14px;box-sizing:border-box">
+        <button type="submit"
+          style="width:100%;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:16px;letter-spacing:2px;padding:14px;border:none;cursor:pointer">
+          СОХРАНИТЬ
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
 {{/* Logout */}}
 <div style="padding:24px 24px 0">
   <form method="POST" action="/logout">

@@ -40,7 +40,7 @@ func main() {
 	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo)
 	templateHandler := handler.NewTemplateHandler(templateRepo, tcRepo, gymRepo)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo)
-	profileHandler := handler.NewProfileHandler(workoutRepo, gymRepo, tcRepo, templateRepo)
+	profileHandler := handler.NewProfileHandler(workoutRepo, gymRepo, tcRepo, templateRepo, userRepo)
 	importHandler := handler.NewImportHandler(workoutRepo, gymRepo)
 	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo)
 
@@ -125,6 +125,7 @@ func main() {
 
 		// Профиль
 		r.Get("/profile", profileHandler.Show)
+		r.Post("/profile/password", profileHandler.ChangePassword)
 
 		// Аналитика
 		r.Get("/analytics", analyticsHandler.Index)
