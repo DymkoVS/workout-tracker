@@ -38,7 +38,7 @@
 {{/* Title block */}}
 <div style="padding:20px 24px 0">
   <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">
-    {{dateRU $w.WorkoutDate}}{{if $w.GymName}} · {{$w.GymName}}{{end}}
+    {{dateRU $w.WorkoutDate}}{{if $w.GymName}} · {{$w.GymName}}{{end}}{{if $w.WorkoutType}} · <span style="color:#D7FF1A">{{toUpper $w.WorkoutType}}</span>{{end}}
   </div>
   <div class="font-display" style="font-size:56px;line-height:0.95;letter-spacing:0.5px">
     {{if $w.Title}}{{toUpper $w.Title}}{{else}}ТРЕНИРОВКА{{end}}

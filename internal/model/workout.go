@@ -19,6 +19,7 @@ type Workout struct {
 	GymID       *uuid.UUID
 	GymName     string
 	Title       string
+	WorkoutType string
 	WorkoutDate time.Time
 	Notes       string
 	Wellbeing   *int

@@ -66,6 +66,7 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 	filterTo := q.Get("to")
 	filterGymID := q.Get("gym_id")
 	filterExercise := q.Get("exercise")
+	filterType := q.Get("type")
 
 	if filterFrom != "" {
 		if t, err := time.Parse("2006-01-02", filterFrom); err == nil {
@@ -83,6 +84,7 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	filter.ExerciseName = filterExercise
+	filter.WorkoutType = filterType
 
 	cards, err := h.workouts.ListCardsFiltered(r.Context(), user.ID, filter)
 	if err != nil {
@@ -136,6 +138,7 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 		"FilterTo":          filterTo,
 		"FilterGymID":       filterGymID,
 		"FilterExercise":    filterExercise,
+		"FilterType":        filterType,
 		"FilterActive":      filter.IsActive(),
 	})
 }
@@ -182,6 +185,7 @@ func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	wo := model.Workout{
 		Title:       r.FormValue("title"),
+		WorkoutType: r.FormValue("workout_type"),
 		Notes:       r.FormValue("notes"),
 		WorkoutDate: parseDate(r.FormValue("workout_date")),
 		GymID:       parseUUIDPtr(r.FormValue("gym_id")),
@@ -296,6 +300,7 @@ func (h *WorkoutHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	wo := model.Workout{
 		Title:       r.FormValue("title"),
+		WorkoutType: r.FormValue("workout_type"),
 		Notes:       r.FormValue("notes"),
 		WorkoutDate: parseDate(r.FormValue("workout_date")),
 		GymID:       parseUUIDPtr(r.FormValue("gym_id")),

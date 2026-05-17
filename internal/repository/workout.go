@@ -18,10 +18,11 @@ type WorkoutFilter struct {
 	DateTo       *time.Time
 	GymID        *uuid.UUID
 	ExerciseName string
+	WorkoutType  string
 }
 
 func (f WorkoutFilter) IsActive() bool {
-	return f.DateFrom != nil || f.DateTo != nil || f.GymID != nil || f.ExerciseName != ""
+	return f.DateFrom != nil || f.DateTo != nil || f.GymID != nil || f.ExerciseName != "" || f.WorkoutType != ""
 }
 
 type WorkoutRepository struct {
@@ -36,7 +37,7 @@ func NewWorkoutRepository(db *pgxpool.Pool) *WorkoutRepository {
 func (r *WorkoutRepository) List(ctx context.Context, userID uuid.UUID) ([]model.Workout, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
-		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
+		       w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
 		FROM workouts w
 		LEFT JOIN gyms g ON g.id = w.gym_id
 		WHERE w.user_id = $1
@@ -60,7 +61,7 @@ func (r *WorkoutRepository) List(ctx context.Context, userID uuid.UUID) ([]model
 func (r *WorkoutRepository) GetByID(ctx context.Context, id, userID uuid.UUID) (*model.Workout, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
-		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
+		       w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
 		FROM workouts w
 		LEFT JOIN gyms g ON g.id = w.gym_id
 		WHERE w.id = $1 AND w.user_id = $2`, id, userID)
@@ -138,9 +139,9 @@ func (r *WorkoutRepository) Create(ctx context.Context, userID uuid.UUID, w mode
 
 	var workoutID uuid.UUID
 	err = tx.QueryRow(ctx, `
-		INSERT INTO workouts (user_id, trainer_id, gym_id, title, workout_date, notes, wellbeing)
-		VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-		userID, w.TrainerID, w.GymID, w.Title, w.WorkoutDate, w.Notes, w.Wellbeing,
+		INSERT INTO workouts (user_id, trainer_id, gym_id, title, workout_type, workout_date, notes, wellbeing)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+		userID, w.TrainerID, w.GymID, w.Title, w.WorkoutType, w.WorkoutDate, w.Notes, w.Wellbeing,
 	).Scan(&workoutID)
 	if err != nil {
 		return nil, fmt.Errorf("insert workout: %w", err)
@@ -182,9 +183,9 @@ func (r *WorkoutRepository) Update(ctx context.Context, id, userID uuid.UUID, w 
 	defer tx.Rollback(ctx)
 
 	res, err := tx.Exec(ctx, `
-		UPDATE workouts SET gym_id=$1, title=$2, workout_date=$3, notes=$4, wellbeing=$5, updated_at=NOW()
-		WHERE id=$6 AND user_id=$7`,
-		w.GymID, w.Title, w.WorkoutDate, w.Notes, w.Wellbeing, id, userID)
+		UPDATE workouts SET gym_id=$1, title=$2, workout_type=$3, workout_date=$4, notes=$5, wellbeing=$6, updated_at=NOW()
+		WHERE id=$7 AND user_id=$8`,
+		w.GymID, w.Title, w.WorkoutType, w.WorkoutDate, w.Notes, w.Wellbeing, id, userID)
 	if err != nil {
 		return err
 	}
@@ -227,7 +228,7 @@ func (r *WorkoutRepository) Delete(ctx context.Context, id, userID uuid.UUID) er
 func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]model.WorkoutCardData, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
-		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		       w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
 		       w.started_at, w.ended_at,
 		       COUNT(DISTINCT we.id) AS exercise_count,
 		       COUNT(s.id) AS set_count,
@@ -237,7 +238,7 @@ func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]
 		LEFT JOIN workout_exercises we ON we.workout_id = w.id
 		LEFT JOIN sets s ON s.workout_exercise_id = we.id
 		WHERE w.user_id = $1
-		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
+		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
 		ORDER BY w.workout_date DESC, w.created_at DESC`, userID)
 	if err != nil {
 		return nil, err
@@ -248,7 +249,7 @@ func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]
 		var c model.WorkoutCardData
 		if err := rows.Scan(
 			&c.ID, &c.UserID, &c.TrainerID, &c.GymID, &c.GymName,
-			&c.Title, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
+			&c.Title, &c.WorkoutType, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
 			&c.StartedAt, &c.EndedAt,
 			&c.ExerciseCount, &c.SetCount, &c.Tonnage,
 		); err != nil {
@@ -280,8 +281,13 @@ func (r *WorkoutRepository) ListCardsFiltered(ctx context.Context, userID uuid.U
 		where = append(where, fmt.Sprintf("EXISTS (SELECT 1 FROM workout_exercises we2 WHERE we2.workout_id = w.id AND lower(we2.name) LIKE $%d)", len(args)))
 	}
 
+	if f.WorkoutType != "" {
+		args = append(args, f.WorkoutType)
+		where = append(where, fmt.Sprintf("w.workout_type = $%d", len(args)))
+	}
+
 	query := `SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
-		w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
 		w.started_at, w.ended_at,
 		COUNT(DISTINCT we.id) AS exercise_count,
 		COUNT(s.id) AS set_count,
@@ -291,7 +297,7 @@ func (r *WorkoutRepository) ListCardsFiltered(ctx context.Context, userID uuid.U
 	LEFT JOIN workout_exercises we ON we.workout_id = w.id
 	LEFT JOIN sets s ON s.workout_exercise_id = we.id
 	WHERE ` + strings.Join(where, " AND ") + `
-	GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
+	GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
 	ORDER BY w.workout_date DESC, w.created_at DESC`
 
 	rows, err := r.db.Query(ctx, query, args...)
@@ -304,7 +310,7 @@ func (r *WorkoutRepository) ListCardsFiltered(ctx context.Context, userID uuid.U
 		var c model.WorkoutCardData
 		if err := rows.Scan(
 			&c.ID, &c.UserID, &c.TrainerID, &c.GymID, &c.GymName,
-			&c.Title, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
+			&c.Title, &c.WorkoutType, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
 			&c.StartedAt, &c.EndedAt,
 			&c.ExerciseCount, &c.SetCount, &c.Tonnage,
 		); err != nil {
@@ -368,7 +374,7 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 	var c model.WorkoutCardData
 	err = r.db.QueryRow(ctx, `
 		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
-		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		       w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
 		       w.started_at, w.ended_at,
 		       COUNT(DISTINCT we.id) AS exercise_count,
 		       COUNT(s.id) AS set_count,
@@ -378,11 +384,11 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 		LEFT JOIN workout_exercises we ON we.workout_id = w.id
 		LEFT JOIN sets s ON s.workout_exercise_id = we.id
 		WHERE w.user_id = $1
-		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
+		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
 		ORDER BY w.workout_date DESC, w.created_at DESC
 		LIMIT 1`, userID).Scan(
 		&c.ID, &c.UserID, &c.TrainerID, &c.GymID, &c.GymName,
-		&c.Title, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
+		&c.Title, &c.WorkoutType, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
 		&c.StartedAt, &c.EndedAt,
 		&c.ExerciseCount, &c.SetCount, &c.Tonnage,
 	)
@@ -396,7 +402,7 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 func (r *WorkoutRepository) GetByIDForTrainer(ctx context.Context, id, trainerID uuid.UUID) (*model.Workout, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
-		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
+		       w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at
 		FROM workouts w
 		LEFT JOIN gyms g ON g.id = w.gym_id
 		WHERE w.id = $1 AND (
@@ -426,9 +432,9 @@ func (r *WorkoutRepository) UpdateByTrainer(ctx context.Context, id, trainerID u
 	defer tx.Rollback(ctx)
 
 	res, err := tx.Exec(ctx, `
-		UPDATE workouts SET gym_id=$1, title=$2, workout_date=$3, notes=$4, wellbeing=$5, updated_at=NOW()
-		WHERE id=$6 AND trainer_id=$7`,
-		w.GymID, w.Title, w.WorkoutDate, w.Notes, w.Wellbeing, id, trainerID)
+		UPDATE workouts SET gym_id=$1, title=$2, workout_type=$3, workout_date=$4, notes=$5, wellbeing=$6, updated_at=NOW()
+		WHERE id=$7 AND trainer_id=$8`,
+		w.GymID, w.Title, w.WorkoutType, w.WorkoutDate, w.Notes, w.Wellbeing, id, trainerID)
 	if err != nil {
 		return err
 	}
@@ -484,7 +490,7 @@ func (r *WorkoutRepository) FinishSession(ctx context.Context, workoutID, userID
 func (r *WorkoutRepository) GetActiveSession(ctx context.Context, id, userID uuid.UUID) (*model.Workout, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
-		       w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		       w.title, w.workout_type, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
 		       w.started_at, w.ended_at
 		FROM workouts w
 		LEFT JOIN gyms g ON g.id = w.gym_id
@@ -497,7 +503,7 @@ func (r *WorkoutRepository) GetActiveSession(ctx context.Context, id, userID uui
 		var wo model.Workout
 		err := row.Scan(
 			&wo.ID, &wo.UserID, &wo.TrainerID, &wo.GymID, &wo.GymName,
-			&wo.Title, &wo.WorkoutDate, &wo.Notes, &wo.Wellbeing,
+			&wo.Title, &wo.WorkoutType, &wo.WorkoutDate, &wo.Notes, &wo.Wellbeing,
 			&wo.CreatedAt, &wo.UpdatedAt,
 			&wo.StartedAt, &wo.EndedAt,
 		)
@@ -609,7 +615,7 @@ func scanWorkout(row interface{ Scan(...any) error }) (model.Workout, error) {
 	var w model.Workout
 	err := row.Scan(
 		&w.ID, &w.UserID, &w.TrainerID, &w.GymID, &w.GymName,
-		&w.Title, &w.WorkoutDate, &w.Notes, &w.Wellbeing,
+		&w.Title, &w.WorkoutType, &w.WorkoutDate, &w.Notes, &w.Wellbeing,
 		&w.CreatedAt, &w.UpdatedAt,
 	)
 	return w, err

@@ -35,7 +35,17 @@ var tmplFuncs = template.FuncMap{
 		}
 		return ""
 	},
-	"add": func(a, b int) int { return a + b },
+	"add":  func(a, b int) int { return a + b },
+	"list": func(values ...string) []string { return values },
+	"not": func(v any) bool {
+		if v == nil {
+			return true
+		}
+		if b, ok := v.(bool); ok {
+			return !b
+		}
+		return false
+	},
 	"iterate": func(n int) []int {
 		s := make([]int, n)
 		for i := range s {

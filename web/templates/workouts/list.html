@@ -67,10 +67,19 @@
             {{end}}
           </select>
         </div>
-        <div style="margin-bottom:14px">
+        <div style="margin-bottom:10px">
           <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">УПРАЖНЕНИЕ</div>
           <input type="text" name="exercise" value="{{.FilterExercise}}" placeholder="Например: Жим штанги"
-            style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;placeholder-color:#6a6a6a">
+            style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
+        </div>
+        <div style="margin-bottom:14px">
+          <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ТИП</div>
+          <select name="type" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
+            <option value="">Все типы</option>
+            <option value="Сила" {{if eq .FilterType "Сила"}}selected{{end}}>Сила</option>
+            <option value="Кардио" {{if eq .FilterType "Кардио"}}selected{{end}}>Кардио</option>
+            <option value="Аксессуар" {{if eq .FilterType "Аксессуар"}}selected{{end}}>Аксессуар</option>
+          </select>
         </div>
         <div style="display:flex;gap:10px">
           <button type="submit" style="flex:1;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;border:none;cursor:pointer">ПРИМЕНИТЬ</button>
@@ -106,8 +115,10 @@
           <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;margin-bottom:4px">
             {{if .Title}}{{toUpper .Title}}{{else}}ТРЕНИРОВКА{{end}}
           </div>
-          {{if .GymName}}
-          <div style="font-size:11px;color:#9a9a9a;margin-bottom:8px">{{.GymName}}</div>
+          {{if or .GymName .WorkoutType}}
+          <div style="font-size:11px;color:#9a9a9a;margin-bottom:8px">
+            {{if .WorkoutType}}<span style="color:#D7FF1A;margin-right:6px">{{toUpper .WorkoutType}}</span>{{end}}{{.GymName}}
+          </div>
           {{end}}
           <div style="display:flex;gap:14px">
             <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#6a6a6a;letter-spacing:1px;text-transform:uppercase">{{.ExerciseCount}} УПР.</span>
