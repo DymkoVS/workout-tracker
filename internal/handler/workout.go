@@ -52,14 +52,38 @@ func groupByMonth(cards []model.WorkoutCardData) []WorkoutGroup {
 
 func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
-	cards, err := h.workouts.ListCards(r.Context(), user.ID)
+
+	q := r.URL.Query()
+	filter := repository.WorkoutFilter{}
+	filterFrom := q.Get("from")
+	filterTo := q.Get("to")
+	filterGymID := q.Get("gym_id")
+	filterExercise := q.Get("exercise")
+
+	if filterFrom != "" {
+		if t, err := time.Parse("2006-01-02", filterFrom); err == nil {
+			filter.DateFrom = &t
+		}
+	}
+	if filterTo != "" {
+		if t, err := time.Parse("2006-01-02", filterTo); err == nil {
+			filter.DateTo = &t
+		}
+	}
+	if filterGymID != "" {
+		if id, err := uuid.Parse(filterGymID); err == nil {
+			filter.GymID = &id
+		}
+	}
+	filter.ExerciseName = filterExercise
+
+	cards, err := h.workouts.ListCardsFiltered(r.Context(), user.ID, filter)
 	if err != nil {
 		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
 		return
 	}
 
 	// Sparkline: up to 6 most-recent workouts in chronological order (oldest→newest).
-	// cards[0] is newest (DESC order from DB), so iterate end-1 down to 0.
 	n := len(cards)
 	end := n
 	if end > 6 {
@@ -93,11 +117,19 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	gyms, _ := h.gyms.List(r.Context())
+
 	renderTemplate(w, r, "workouts/list.html", map[string]any{
-		"WorkoutGroups":    groupByMonth(cards),
-		"TotalCount":       len(cards),
+		"WorkoutGroups":     groupByMonth(cards),
+		"TotalCount":        len(cards),
 		"SparklineTonnages": sparkline,
-		"TonnageDelta":     tonnageDelta,
+		"TonnageDelta":      tonnageDelta,
+		"Gyms":              gyms,
+		"FilterFrom":        filterFrom,
+		"FilterTo":          filterTo,
+		"FilterGymID":       filterGymID,
+		"FilterExercise":    filterExercise,
+		"FilterActive":      filter.IsActive(),
 	})
 }
 

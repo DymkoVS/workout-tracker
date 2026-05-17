@@ -27,6 +27,54 @@
 </div>
 {{end}}
 
+{{/* Filter panel */}}
+<div style="padding:16px 24px 0">
+  <form method="GET" action="/workouts" id="filter-form">
+    <div style="background:#141414;border:1px solid {{if .FilterActive}}#D7FF1A{{else}}#2e2e2e{{end}};padding:14px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;cursor:pointer" onclick="document.getElementById('filter-body').style.display=document.getElementById('filter-body').style.display==='none'?'block':'none'">
+        <div class="eyebrow" style="{{if .FilterActive}}color:#D7FF1A{{else}}color:#6a6a6a{{end}}">
+          ФИЛЬТРЫ{{if .FilterActive}} · АКТИВНЫ{{end}}
+        </div>
+        <svg id="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{if .FilterActive}}#D7FF1A{{else}}#6a6a6a{{end}}" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div id="filter-body" style="display:{{if .FilterActive}}block{{else}}none{{end}}">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ОТ</div>
+            <input type="date" name="from" value="{{.FilterFrom}}"
+              style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
+          </div>
+          <div>
+            <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ДО</div>
+            <input type="date" name="to" value="{{.FilterTo}}"
+              style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
+          </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ЗАЛ</div>
+          <select name="gym_id" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
+            <option value="">Все залы</option>
+            {{range .Gyms}}
+            <option value="{{.ID}}" {{if eq (printf "%s" .ID) $.FilterGymID}}selected{{end}}>{{.Name}}</option>
+            {{end}}
+          </select>
+        </div>
+        <div style="margin-bottom:14px">
+          <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">УПРАЖНЕНИЕ</div>
+          <input type="text" name="exercise" value="{{.FilterExercise}}" placeholder="Например: Жим штанги"
+            style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;placeholder-color:#6a6a6a">
+        </div>
+        <div style="display:flex;gap:10px">
+          <button type="submit" style="flex:1;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;border:none;cursor:pointer">ПРИМЕНИТЬ</button>
+          {{if .FilterActive}}
+          <a href="/workouts" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#9a9a9a;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;text-decoration:none;display:flex;align-items:center;justify-content:center">СБРОСИТЬ</a>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
 {{if not .WorkoutGroups}}
 <div style="padding:80px 24px;text-align:center">
   <div class="font-display" style="font-size:24px;letter-spacing:0.5px;color:#6a6a6a;margin-bottom:12px">ТРЕНИРОВОК ПОКА НЕТ</div>

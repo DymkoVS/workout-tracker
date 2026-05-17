@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 	"workout-tracker/internal/model"
 
@@ -11,6 +12,17 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+type WorkoutFilter struct {
+	DateFrom     *time.Time
+	DateTo       *time.Time
+	GymID        *uuid.UUID
+	ExerciseName string
+}
+
+func (f WorkoutFilter) IsActive() bool {
+	return f.DateFrom != nil || f.DateTo != nil || f.GymID != nil || f.ExerciseName != ""
+}
 
 type WorkoutRepository struct {
 	db *pgxpool.Pool
@@ -227,6 +239,62 @@ func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]
 		WHERE w.user_id = $1
 		GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
 		ORDER BY w.workout_date DESC, w.created_at DESC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var cards []model.WorkoutCardData
+	for rows.Next() {
+		var c model.WorkoutCardData
+		if err := rows.Scan(
+			&c.ID, &c.UserID, &c.TrainerID, &c.GymID, &c.GymName,
+			&c.Title, &c.WorkoutDate, &c.Notes, &c.Wellbeing, &c.CreatedAt, &c.UpdatedAt,
+			&c.StartedAt, &c.EndedAt,
+			&c.ExerciseCount, &c.SetCount, &c.Tonnage,
+		); err != nil {
+			return nil, err
+		}
+		cards = append(cards, c)
+	}
+	return cards, nil
+}
+
+func (r *WorkoutRepository) ListCardsFiltered(ctx context.Context, userID uuid.UUID, f WorkoutFilter) ([]model.WorkoutCardData, error) {
+	args := []any{userID}
+	where := []string{"w.user_id = $1"}
+
+	if f.DateFrom != nil {
+		args = append(args, *f.DateFrom)
+		where = append(where, fmt.Sprintf("w.workout_date >= $%d", len(args)))
+	}
+	if f.DateTo != nil {
+		args = append(args, *f.DateTo)
+		where = append(where, fmt.Sprintf("w.workout_date <= $%d", len(args)))
+	}
+	if f.GymID != nil {
+		args = append(args, *f.GymID)
+		where = append(where, fmt.Sprintf("w.gym_id = $%d", len(args)))
+	}
+	if f.ExerciseName != "" {
+		args = append(args, "%"+strings.ToLower(f.ExerciseName)+"%")
+		where = append(where, fmt.Sprintf("EXISTS (SELECT 1 FROM workout_exercises we2 WHERE we2.workout_id = w.id AND lower(we2.name) LIKE $%d)", len(args)))
+	}
+
+	query := `SELECT w.id, w.user_id, w.trainer_id, w.gym_id, COALESCE(g.name,'') as gym_name,
+		w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at,
+		w.started_at, w.ended_at,
+		COUNT(DISTINCT we.id) AS exercise_count,
+		COUNT(s.id) AS set_count,
+		COALESCE(SUM(s.weight * s.reps), 0) AS tonnage
+	FROM workouts w
+	LEFT JOIN gyms g ON g.id = w.gym_id
+	LEFT JOIN workout_exercises we ON we.workout_id = w.id
+	LEFT JOIN sets s ON s.workout_exercise_id = we.id
+	WHERE ` + strings.Join(where, " AND ") + `
+	GROUP BY w.id, g.name, w.user_id, w.trainer_id, w.gym_id, w.title, w.workout_date, w.notes, w.wellbeing, w.created_at, w.updated_at, w.started_at, w.ended_at
+	ORDER BY w.workout_date DESC, w.created_at DESC`
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
