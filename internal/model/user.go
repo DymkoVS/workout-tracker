@@ -57,7 +57,7 @@ type ClientDetailData struct {
 	WeekPlan       int
 	Streak         int
 	AvgTonnageFmt  string
-	Compliance     []bool   // 16 slots: 4 weeks × 4 planned (oldest→newest)
+	Compliance     []bool // 16 slots: 4 weeks × 4 planned (oldest→newest)
 	CompliancePct  string
 	RecentWorkouts []ClientRecentWorkout
 	Initials       string
