@@ -41,6 +41,7 @@ func main() {
 	templateHandler := handler.NewTemplateHandler(templateRepo, tcRepo, gymRepo)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo)
 	profileHandler := handler.NewProfileHandler(workoutRepo, gymRepo, tcRepo, templateRepo)
+	importHandler := handler.NewImportHandler(workoutRepo, gymRepo)
 	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo)
 
 	r := chi.NewRouter()
@@ -88,6 +89,11 @@ func main() {
 		r.Post("/workouts/{id}/media", workoutHandler.UploadMedia)
 		r.Post("/workouts/{id}/media/{mediaID}/delete", workoutHandler.DeleteMedia)
 		r.Get("/media/{workoutID}/{filename}", workoutHandler.ServeMedia)
+
+		// Импорт тренировок
+		r.Get("/workouts/import", importHandler.Form)
+		r.Post("/workouts/import", importHandler.Preview)
+		r.Post("/workouts/import/confirm", importHandler.Confirm)
 
 		// HTMX-партиалы для формы
 		r.Get("/workouts/htmx/add-exercise", workoutHandler.AddExerciseRow)

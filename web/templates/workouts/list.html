@@ -6,11 +6,19 @@
     <div class="eyebrow">{{.TotalCount}} ТРЕНИРОВОК</div>
     <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px;margin-top:6px">ЖУРНАЛ</div>
   </div>
-  <a href="/workouts/new" style="width:44px;height:44px;background:#D7FF1A;display:flex;align-items:center;justify-content:center;margin-top:8px;flex-shrink:0">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
-      <path d="M12 5v14M5 12h14"/>
-    </svg>
-  </a>
+  <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+    <a href="/workouts/import" style="height:44px;padding:0 14px;border:1px solid #2e2e2e;display:flex;align-items:center;gap:6px;color:#9a9a9a;text-decoration:none;font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.2px;text-transform:uppercase">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      ИМПОРТ
+    </a>
+    <a href="/workouts/new" style="width:44px;height:44px;background:#D7FF1A;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </a>
+  </div>
 </div>
 
 {{if .SparklineTonnages}}
