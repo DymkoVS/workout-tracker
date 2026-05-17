@@ -2,7 +2,10 @@ package handler
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -15,10 +18,12 @@ import (
 )
 
 type WorkoutHandler struct {
-	workouts *repository.WorkoutRepository
-	gyms     *repository.GymRepository
-	tc       *repository.TrainerClientRepository
-	users    *repository.UserRepository
+	workouts  *repository.WorkoutRepository
+	gyms      *repository.GymRepository
+	tc        *repository.TrainerClientRepository
+	users     *repository.UserRepository
+	media     *repository.MediaRepository
+	uploadDir string
 }
 
 func NewWorkoutHandler(
@@ -26,8 +31,10 @@ func NewWorkoutHandler(
 	gyms *repository.GymRepository,
 	tc *repository.TrainerClientRepository,
 	users *repository.UserRepository,
+	media *repository.MediaRepository,
+	uploadDir string,
 ) *WorkoutHandler {
-	return &WorkoutHandler{workouts: workouts, gyms: gyms, tc: tc, users: users}
+	return &WorkoutHandler{workouts: workouts, gyms: gyms, tc: tc, users: users, media: media, uploadDir: uploadDir}
 }
 
 // WorkoutGroup groups workout cards under a month label for the history list.
@@ -222,7 +229,9 @@ func (h *WorkoutHandler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := map[string]any{"Workout": workout}
+	media, _ := h.media.ListForWorkout(r.Context(), id)
+
+	data := map[string]any{"Workout": workout, "Media": media}
 	if workout.UserID != user.ID && user.IsTrainer() {
 		data["BackURL"] = fmt.Sprintf("/trainer/clients/%s/workouts", workout.UserID)
 		data["CanEdit"] = workout.TrainerID != nil && *workout.TrainerID == user.ID
@@ -494,4 +503,142 @@ func parseUUIDPtr(s string) *uuid.UUID {
 		return nil
 	}
 	return &id
+}
+
+var allowedMIME = map[string]string{
+	"image/jpeg": ".jpg",
+	"image/png":  ".png",
+	"image/webp": ".webp",
+	"video/mp4":  ".mp4",
+}
+
+const maxUploadSize = 10 << 20 // 10 MB
+
+func (h *WorkoutHandler) UploadMedia(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	workoutID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	// verify ownership
+	workout, err := h.workouts.GetByID(r.Context(), workoutID, user.ID)
+	if err != nil || workout == nil {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+		http.Error(w, "Файл слишком большой (максимум 10 МБ)", http.StatusBadRequest)
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Файл не найден", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// detect MIME from first 512 bytes
+	buf := make([]byte, 512)
+	n, _ := file.Read(buf)
+	mimeType := http.DetectContentType(buf[:n])
+	// strip params (e.g. "image/jpeg; charset=...")
+	if idx := strings.Index(mimeType, ";"); idx != -1 {
+		mimeType = strings.TrimSpace(mimeType[:idx])
+	}
+	ext, ok := allowedMIME[mimeType]
+	if !ok {
+		http.Error(w, "Тип файла не поддерживается. Разрешены: JPG, PNG, WEBP, MP4", http.StatusBadRequest)
+		return
+	}
+
+	// reset reader
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		http.Error(w, "Ошибка чтения файла", http.StatusInternalServerError)
+		return
+	}
+
+	filename := uuid.New().String() + ext
+	dir := filepath.Join(h.uploadDir, workoutID.String())
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+
+	dst, err := os.Create(filepath.Join(dir, filename))
+	if err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	size, err := io.Copy(dst, file)
+	if err != nil {
+		http.Error(w, "Ошибка сохранения файла", http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := h.media.Create(r.Context(), workoutID, filename, header.Filename, mimeType, int(size)); err != nil {
+		os.Remove(filepath.Join(dir, filename))
+		http.Error(w, "Ошибка базы данных", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/workouts/"+workoutID.String(), http.StatusSeeOther)
+}
+
+func (h *WorkoutHandler) DeleteMedia(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	workoutID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	mediaID, err := uuid.Parse(chi.URLParam(r, "mediaID"))
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	// verify ownership
+	workout, err := h.workouts.GetByID(r.Context(), workoutID, user.ID)
+	if err != nil || workout == nil {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+
+	m, err := h.media.GetByID(r.Context(), mediaID, workoutID)
+	if err != nil {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+
+	os.Remove(filepath.Join(h.uploadDir, workoutID.String(), m.Filename))
+	h.media.Delete(r.Context(), mediaID)
+
+	http.Redirect(w, r, "/workouts/"+workoutID.String(), http.StatusSeeOther)
+}
+
+func (h *WorkoutHandler) ServeMedia(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	workoutID, err := uuid.Parse(chi.URLParam(r, "workoutID"))
+	if err != nil {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+	filename := chi.URLParam(r, "filename")
+
+	// verify ownership
+	workout, err := h.workouts.GetByID(r.Context(), workoutID, user.ID)
+	if err != nil || workout == nil {
+		// trainers can also view their clients' media
+		if _, terr := h.workouts.GetByIDForTrainer(r.Context(), workoutID, user.ID); terr != nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			return
+		}
+	}
+
+	http.ServeFile(w, r, filepath.Join(h.uploadDir, workoutID.String(), filepath.Base(filename)))
 }

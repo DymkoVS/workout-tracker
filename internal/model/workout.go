@@ -39,15 +39,15 @@ type WorkoutExercise struct {
 }
 
 type Set struct {
-	ID                 uuid.UUID
-	WorkoutExerciseID  uuid.UUID
-	SetNum             int
-	Weight             *float64
-	Reps               *int
-	RPE                *float64
-	RestSeconds        *int
-	Notes              string
-	Done               bool
+	ID                uuid.UUID
+	WorkoutExerciseID uuid.UUID
+	SetNum            int
+	Weight            *float64
+	Reps              *int
+	RPE               *float64
+	RestSeconds       *int
+	Notes             string
+	Done              bool
 }
 
 // WorkoutCardData — workout with precomputed display stats for list/card views
@@ -73,6 +73,20 @@ type FormSet struct {
 	RPE         string
 	RestSeconds string
 	Notes       string
+}
+
+type WorkoutMedia struct {
+	ID           uuid.UUID
+	WorkoutID    uuid.UUID
+	Filename     string
+	OriginalName string
+	MimeType     string
+	SizeBytes    int
+	CreatedAt    time.Time
+}
+
+func (m WorkoutMedia) IsVideo() bool {
+	return len(m.MimeType) >= 5 && m.MimeType[:5] == "video"
 }
 
 // FormExercise — данные одного упражнения из HTML-формы

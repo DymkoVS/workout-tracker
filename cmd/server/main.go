@@ -30,11 +30,12 @@ func main() {
 	tcRepo := repository.NewTrainerClientRepository(pool)
 	templateRepo := repository.NewTemplateRepository(pool)
 	analyticsRepo := repository.NewAnalyticsRepository(pool)
+	mediaRepo := repository.NewMediaRepository(pool)
 
 	authHandler := handler.NewAuthHandler(userRepo, sessionStore)
 	adminHandler := handler.NewAdminHandler(userRepo, tcRepo)
 	dashboardHandler := handler.NewDashboardHandler(workoutRepo)
-	workoutHandler := handler.NewWorkoutHandler(workoutRepo, gymRepo, tcRepo, userRepo)
+	workoutHandler := handler.NewWorkoutHandler(workoutRepo, gymRepo, tcRepo, userRepo, mediaRepo, cfg.UploadDir)
 	gymHandler := handler.NewGymHandler(gymRepo)
 	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo)
 	templateHandler := handler.NewTemplateHandler(templateRepo, tcRepo, gymRepo)
@@ -84,6 +85,9 @@ func main() {
 		r.Post("/workouts/{id}/delete", workoutHandler.Delete)
 		r.Post("/workouts/{id}/finish", workoutHandler.FinishSession)
 		r.Post("/workouts/sets/{setID}/done", workoutHandler.ToggleSetDone)
+		r.Post("/workouts/{id}/media", workoutHandler.UploadMedia)
+		r.Post("/workouts/{id}/media/{mediaID}/delete", workoutHandler.DeleteMedia)
+		r.Get("/media/{workoutID}/{filename}", workoutHandler.ServeMedia)
 
 		// HTMX-партиалы для формы
 		r.Get("/workouts/htmx/add-exercise", workoutHandler.AddExerciseRow)
