@@ -341,10 +341,7 @@ func (h *WorkoutHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		deleteErr = h.workouts.DeleteByTrainer(r.Context(), id, user.ID)
 	}
 
-	if ref := r.Header.Get("Referer"); ref != "" && deleteErr == nil {
-		http.Redirect(w, r, ref, http.StatusSeeOther)
-		return
-	}
+	_ = deleteErr
 	http.Redirect(w, r, "/workouts", http.StatusSeeOther)
 }
 
