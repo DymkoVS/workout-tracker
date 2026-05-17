@@ -14,10 +14,11 @@ import (
 type AnalyticsHandler struct {
 	analytics *repository.AnalyticsRepository
 	tc        *repository.TrainerClientRepository
+	gyms      *repository.GymRepository
 }
 
-func NewAnalyticsHandler(analytics *repository.AnalyticsRepository, tc *repository.TrainerClientRepository) *AnalyticsHandler {
-	return &AnalyticsHandler{analytics: analytics, tc: tc}
+func NewAnalyticsHandler(analytics *repository.AnalyticsRepository, tc *repository.TrainerClientRepository, gyms *repository.GymRepository) *AnalyticsHandler {
+	return &AnalyticsHandler{analytics: analytics, tc: tc, gyms: gyms}
 }
 
 func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
@@ -26,8 +27,10 @@ func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
 	targetUserID := user.ID
 	selectedClientID := ""
 
+	q := r.URL.Query()
+
 	if user.IsTrainer() {
-		if rawID := r.URL.Query().Get("user_id"); rawID != "" {
+		if rawID := q.Get("user_id"); rawID != "" {
 			if uid, err := uuid.Parse(rawID); err == nil {
 				if ok, _ := h.tc.IsAssigned(r.Context(), user.ID, uid); ok {
 					targetUserID = uid
@@ -37,10 +40,18 @@ func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tonnage, _ := h.analytics.TonnageByDate(r.Context(), targetUserID)
-	frequency, _ := h.analytics.WorkoutFrequency(r.Context(), targetUserID)
-	exercises, _ := h.analytics.ExerciseNames(r.Context(), targetUserID)
-	cur90, prev90, _ := h.analytics.TonnagePeriodTotals(r.Context(), targetUserID)
+	filter := repository.AnalyticsFilter{WorkoutType: q.Get("type")}
+	filterGymID := q.Get("gym_id")
+	if filterGymID != "" {
+		if gid, err := uuid.Parse(filterGymID); err == nil {
+			filter.GymID = &gid
+		}
+	}
+
+	tonnage, _ := h.analytics.TonnageByDate(r.Context(), targetUserID, filter)
+	frequency, _ := h.analytics.WorkoutFrequency(r.Context(), targetUserID, filter)
+	exercises, _ := h.analytics.ExerciseNames(r.Context(), targetUserID, filter)
+	cur90, prev90, _ := h.analytics.TonnagePeriodTotals(r.Context(), targetUserID, filter)
 
 	var tonnageDelta string
 	if prev90 > 0 {
@@ -71,6 +82,8 @@ func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
 	flJSON, _ := json.Marshal(freqLabels)
 	fvJSON, _ := json.Marshal(freqValues)
 
+	gymList, _ := h.gyms.List(r.Context())
+
 	data := map[string]any{
 		"TonnageLabels": template.JS(string(tlJSON)),
 		"TonnageValues": template.JS(string(tvJSON)),
@@ -81,6 +94,10 @@ func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
 		"Exercises":     exercises,
 		"TargetUserID":  targetUserID.String(),
 		"TonnageDelta":  tonnageDelta,
+		"Gyms":          gymList,
+		"FilterGymID":   filterGymID,
+		"FilterType":    q.Get("type"),
+		"FilterActive":  filterGymID != "" || q.Get("type") != "",
 	}
 
 	if user.IsTrainer() {
@@ -106,7 +123,8 @@ func (h *AnalyticsHandler) ExerciseData(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	exerciseName := r.URL.Query().Get("name")
+	q := r.URL.Query()
+	exerciseName := q.Get("name")
 	w.Header().Set("Content-Type", "application/json")
 
 	if exerciseName == "" {
@@ -114,7 +132,12 @@ func (h *AnalyticsHandler) ExerciseData(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	points, _ := h.analytics.ExerciseProgress(r.Context(), targetUserID, exerciseName)
+	filter := repository.AnalyticsFilter{WorkoutType: q.Get("type")}
+	if gid, err := uuid.Parse(q.Get("gym_id")); err == nil {
+		filter.GymID = &gid
+	}
+
+	points, _ := h.analytics.ExerciseProgress(r.Context(), targetUserID, exerciseName, filter)
 
 	labels := make([]string, len(points))
 	values := make([]float64, len(points))

@@ -12,10 +12,61 @@
   <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px">ПРОГРЕСС</div>
 </div>
 
+{{/* Filters */}}
+{{if or .Gyms .FilterActive}}
+<div style="padding:16px 24px 0">
+  <form method="GET" action="/analytics" id="analytics-filter">
+    {{if .Clients}}
+    <input type="hidden" name="user_id" value="{{.SelectedClientID}}">
+    {{end}}
+    <div style="background:#141414;border:1px solid {{if .FilterActive}}#D7FF1A{{else}}#2e2e2e{{end}};padding:14px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer"
+           onclick="var b=document.getElementById('af-body');b.style.display=b.style.display==='none'?'block':'none'">
+        <div class="eyebrow" style="color:{{if .FilterActive}}#D7FF1A{{else}}#6a6a6a{{end}}">
+          ФИЛЬТРЫ{{if .FilterActive}} · АКТИВНЫ{{end}}
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{if .FilterActive}}#D7FF1A{{else}}#6a6a6a{{end}}" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div id="af-body" style="display:{{if .FilterActive}}block{{else}}none{{end}}">
+        {{if .Gyms}}
+        <div style="margin-bottom:10px">
+          <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ЗАЛ</div>
+          <select name="gym_id" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
+            <option value="">Все залы</option>
+            {{range .Gyms}}
+            <option value="{{.ID}}" {{if eq (printf "%s" .ID) $.FilterGymID}}selected{{end}}>{{.Name}}</option>
+            {{end}}
+          </select>
+        </div>
+        {{end}}
+        <div style="margin-bottom:14px">
+          <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ТИП</div>
+          <select name="type" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
+            <option value="">Все типы</option>
+            <option value="Сила" {{if eq .FilterType "Сила"}}selected{{end}}>Сила</option>
+            <option value="Кардио" {{if eq .FilterType "Кардио"}}selected{{end}}>Кардио</option>
+            <option value="Аксессуар" {{if eq .FilterType "Аксессуар"}}selected{{end}}>Аксессуар</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button type="submit" style="flex:1;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;border:none;cursor:pointer">ПРИМЕНИТЬ</button>
+          {{if .FilterActive}}
+          <a href="/analytics{{if .SelectedClientID}}?user_id={{.SelectedClientID}}{{end}}"
+             style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#9a9a9a;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;text-decoration:none;display:flex;align-items:center;justify-content:center">СБРОСИТЬ</a>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{{end}}
+
 {{/* Client selector (trainer only) */}}
 {{if .Clients}}
 <div style="padding:20px 24px 0">
   <form method="GET" action="/analytics">
+    {{if .FilterGymID}}<input type="hidden" name="gym_id" value="{{.FilterGymID}}">{{end}}
+    {{if .FilterType}}<input type="hidden" name="type" value="{{.FilterType}}">{{end}}
     <div style="position:relative">
       <select name="user_id" onchange="this.form.submit()"
         style="width:100%;background:#141414;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:14px 16px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
@@ -104,6 +155,8 @@ const tonnageValues = {{.TonnageValues}};
 const freqLabels    = {{.FreqLabels}};
 const freqValues    = {{.FreqValues}};
 const targetUserID  = "{{.TargetUserID}}";
+const filterGymID   = "{{.FilterGymID}}";
+const filterType    = "{{.FilterType}}";
 
 Chart.defaults.color = '#9a9a9a';
 Chart.defaults.borderColor = '#2e2e2e';
@@ -194,6 +247,8 @@ document.getElementById('exerciseSelect')?.addEventListener('change', function()
 
   const params = new URLSearchParams({ name });
   if (targetUserID) params.set('user_id', targetUserID);
+  if (filterGymID) params.set('gym_id', filterGymID);
+  if (filterType) params.set('type', filterType);
 
   fetch('/analytics/exercise-data?' + params.toString())
     .then(function(r) { return r.json(); })

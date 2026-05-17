@@ -39,7 +39,7 @@ func main() {
 	gymHandler := handler.NewGymHandler(gymRepo)
 	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo)
 	templateHandler := handler.NewTemplateHandler(templateRepo, tcRepo, gymRepo)
-	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo)
+	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo, gymRepo)
 	profileHandler := handler.NewProfileHandler(workoutRepo, gymRepo, tcRepo, templateRepo, userRepo)
 	importHandler := handler.NewImportHandler(workoutRepo, gymRepo)
 	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo)
@@ -62,6 +62,9 @@ func main() {
 	r.Handle("/icons/*", http.StripPrefix("/icons", http.FileServer(http.Dir("web/static/icons"))))
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/static/icons/favicon-32.png")
+	})
+	r.Get("/offline", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/static/offline.html")
 	})
 
 	// Публичные маршруты
