@@ -1,10 +1,6 @@
-# CLAUDE.md — Workout Tracker
+# AGENTS.md
 
-Go web app for tracking workouts. Multi-user, trainer–client roles, mobile-first, Russian UI.
-
-**Server infrastructure:** see `~/Developer/SERVER.md`
-- Deployed on EU VPS (89.127.216.143) via Docker Compose
-- Domain: dymko.ru, served by Caddy on port 443
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Stack
 
