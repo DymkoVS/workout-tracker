@@ -1,16 +1,16 @@
 {{define "title"}}Вход{{end}}
 
 {{define "content"}}
-<div style="min-height:100vh;background:#0a0a0a;padding:120px 28px 32px;display:flex;flex-direction:column">
+<div style="min-height:100vh;background:#F5F4F0;padding:120px 28px 32px;display:flex;flex-direction:column">
 
   {{/* Wordmark */}}
   <div style="flex:1">
     <div class="eyebrow eyebrow-accent">v 1.0 · MOBILE</div>
-    <div class="font-display" style="font-size:96px;line-height:0.88;letter-spacing:1px;margin-top:16px">
+    <div class="font-display" style="font-size:96px;line-height:0.88;letter-spacing:1px;margin-top:16px;color:#111110">
       WORK<br>OUT.
     </div>
     <div style="width:56px;height:6px;background:#D7FF1A;margin-top:24px"></div>
-    <div style="margin-top:24px;color:#9a9a9a;font-size:14px;line-height:1.45;max-width:280px">
+    <div style="margin-top:24px;color:#6B6560;font-size:14px;line-height:1.45;max-width:280px">
       Личный журнал тренировок.<br>
       Подходы, RPE, тоннаж, прогресс.
     </div>
@@ -20,7 +20,7 @@
   <div style="display:flex;flex-direction:column;gap:12px">
 
     {{if .Error}}
-    <div style="padding:12px 14px;background:rgba(255,69,58,0.12);color:#ff453a;font-size:12px;letter-spacing:1.2px;text-transform:uppercase">
+    <div style="padding:12px 14px;background:rgba(217,48,37,0.08);color:#D93025;font-size:12px;letter-spacing:1.2px;text-transform:uppercase">
       {{if eq .Error "invalid"}}НЕВЕРНЫЙ ЛОГИН ИЛИ ПАРОЛЬ{{end}}
       {{if eq .Error "inactive"}}АККАУНТ ДЕАКТИВИРОВАН{{end}}
     </div>
@@ -31,13 +31,13 @@
       <label style="display:block">
         <div class="eyebrow" style="margin-bottom:6px">ЛОГИН</div>
         <input type="text" name="login" required autofocus
-          style="width:100%;background:transparent;color:#fafafa;border:none;border-bottom:1px solid #2e2e2e;padding:10px 0 12px;font-size:20px;font-family:'JetBrains Mono',ui-monospace,monospace;outline:none;letter-spacing:1px">
+          style="width:100%;background:transparent;color:#111110;border:none;border-bottom:1px solid #E0DDD8;padding:10px 0 12px;font-size:20px;font-family:'JetBrains Mono',ui-monospace,monospace;outline:none;letter-spacing:1px">
       </label>
 
       <label style="display:block">
         <div class="eyebrow" style="margin-bottom:6px">ПАРОЛЬ</div>
         <input type="password" name="password" required
-          style="width:100%;background:transparent;color:#fafafa;border:none;border-bottom:1px solid #2e2e2e;padding:10px 0 12px;font-size:20px;font-family:'JetBrains Mono',ui-monospace,monospace;outline:none;letter-spacing:1px">
+          style="width:100%;background:transparent;color:#111110;border:none;border-bottom:1px solid #E0DDD8;padding:10px 0 12px;font-size:20px;font-family:'JetBrains Mono',ui-monospace,monospace;outline:none;letter-spacing:1px">
       </label>
 
       <button type="submit"
@@ -47,7 +47,7 @@
 
     </form>
 
-    <div style="color:#6a6a6a;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;text-align:center;margin-top:6px">
+    <div style="color:#9E9893;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;text-align:center;margin-top:6px">
       admin / admin123
     </div>
 

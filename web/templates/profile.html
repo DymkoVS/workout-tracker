@@ -5,7 +5,7 @@
 {{$s := .Stats}}
 
 {{/* Header */}}
-<div style="padding:56px 24px 24px;border-bottom:1px solid #2e2e2e">
+<div style="padding:56px 24px 24px;border-bottom:1px solid #E0DDD8">
   <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">
     {{if and $u.IsTrainer $u.IsAdmin}}ТРЕНЕР · АДМИНИСТРАТОР
     {{else if $u.IsTrainer}}ТРЕНЕР
@@ -16,7 +16,7 @@
     {{if $u.FullName}}{{toUpper $u.FullName}}{{else}}{{toUpper $u.Login}}{{end}}
   </div>
   {{if $u.FullName}}
-  <div style="font-size:13px;color:#9a9a9a;margin-top:6px">@{{$u.Login}}</div>
+  <div style="font-size:13px;color:#6B6560;margin-top:6px">@{{$u.Login}}</div>
   {{end}}
   <div style="width:56px;height:4px;background:#D7FF1A;margin-top:14px"></div>
 </div>
@@ -24,27 +24,27 @@
 {{/* All-time stats 2×2 */}}
 <div style="padding:24px 24px 0">
   <div class="eyebrow" style="margin-bottom:12px">ВСЕ ВРЕМЯ</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#2e2e2e">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#E0DDD8">
 
-    <div style="background:#0a0a0a;padding:20px 18px">
+    <div style="background:#F5F4F0;padding:20px 18px">
       <div class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.TotalCount}}</div>
       <div class="eyebrow eyebrow-dim2" style="margin-top:6px;letter-spacing:1.5px">ТРЕНИРОВОК</div>
     </div>
 
-    <div style="background:#0a0a0a;padding:20px 18px">
-      <div class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px;color:#D7FF1A">{{formatTonnage .TotalTonnage}}</div>
+    <div style="background:#F5F4F0;padding:20px 18px">
+      <div class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px;color:#7A9200">{{formatTonnage .TotalTonnage}}</div>
       <div class="eyebrow eyebrow-accent" style="margin-top:6px;letter-spacing:1.5px">ТОННАЖ</div>
     </div>
 
-    <div style="background:#0a0a0a;padding:20px 18px;border-top:1px solid #2e2e2e">
+    <div style="background:#F5F4F0;padding:20px 18px;border-top:1px solid #E0DDD8">
       <div style="display:flex;align-items:baseline;gap:4px">
         <span class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{$s.Streak}}</span>
-        <span style="font-size:14px;color:#9a9a9a">дн</span>
+        <span style="font-size:14px;color:#6B6560">дн</span>
       </div>
       <div class="eyebrow eyebrow-dim2" style="margin-top:6px;letter-spacing:1.5px">СТРИК</div>
     </div>
 
-    <div style="background:#0a0a0a;padding:20px 18px;border-top:1px solid #2e2e2e">
+    <div style="background:#F5F4F0;padding:20px 18px;border-top:1px solid #E0DDD8">
       <div class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">{{.GymCount}}</div>
       <div class="eyebrow eyebrow-dim2" style="margin-top:6px;letter-spacing:1.5px">ЗАЛОВ</div>
     </div>
@@ -56,29 +56,29 @@
 {{if $u.IsTrainer}}
 <div style="padding:24px 24px 0">
   <div class="eyebrow" style="margin-bottom:12px">ТРЕНЕРСКОЕ</div>
-  <div style="background:#141414;border:1px solid #2e2e2e">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8">
 
     <a href="/trainer/clients" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none">
-      <span style="font-size:15px;font-weight:500;color:#fafafa">Клиенты</span>
+      <span style="font-size:15px;font-weight:500;color:#111110">Клиенты</span>
       <div style="display:flex;align-items:center;gap:10px">
-        {{if .ClientCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">{{.ClientCount}}</span>{{end}}
-        <span style="color:#6a6a6a;font-size:16px">›</span>
+        {{if .ClientCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9E9893">{{.ClientCount}}</span>{{end}}
+        <span style="color:#9E9893;font-size:16px">›</span>
       </div>
     </a>
 
-    <a href="/templates" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #1f1f1f">
-      <span style="font-size:15px;font-weight:500;color:#fafafa">Шаблоны тренировок</span>
+    <a href="/templates" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #E9E8E4">
+      <span style="font-size:15px;font-weight:500;color:#111110">Шаблоны тренировок</span>
       <div style="display:flex;align-items:center;gap:10px">
-        {{if .TemplateCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">{{.TemplateCount}}</span>{{end}}
-        <span style="color:#6a6a6a;font-size:16px">›</span>
+        {{if .TemplateCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9E9893">{{.TemplateCount}}</span>{{end}}
+        <span style="color:#9E9893;font-size:16px">›</span>
       </div>
     </a>
 
-    <a href="/gyms" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #1f1f1f">
-      <span style="font-size:15px;font-weight:500;color:#fafafa">Залы</span>
+    <a href="/gyms" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #E9E8E4">
+      <span style="font-size:15px;font-weight:500;color:#111110">Залы</span>
       <div style="display:flex;align-items:center;gap:10px">
-        {{if .GymCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6a6a6a">{{.GymCount}}</span>{{end}}
-        <span style="color:#6a6a6a;font-size:16px">›</span>
+        {{if .GymCount}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9E9893">{{.GymCount}}</span>{{end}}
+        <span style="color:#9E9893;font-size:16px">›</span>
       </div>
     </a>
 
@@ -90,16 +90,16 @@
 {{if $u.IsAdmin}}
 <div style="padding:24px 24px 0">
   <div class="eyebrow" style="margin-bottom:12px">АДМИНИСТРАЦИЯ</div>
-  <div style="background:#141414;border:1px solid #2e2e2e">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8">
 
     <a href="/admin/users" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none">
-      <span style="font-size:15px;font-weight:500;color:#fafafa">Пользователи</span>
-      <span style="color:#6a6a6a;font-size:16px">›</span>
+      <span style="font-size:15px;font-weight:500;color:#111110">Пользователи</span>
+      <span style="color:#9E9893;font-size:16px">›</span>
     </a>
 
-    <a href="/admin/assign" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #1f1f1f">
-      <span style="font-size:15px;font-weight:500;color:#fafafa">Назначения тренер–клиент</span>
-      <span style="color:#6a6a6a;font-size:16px">›</span>
+    <a href="/admin/assign" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;text-decoration:none;border-top:1px solid #E9E8E4">
+      <span style="font-size:15px;font-weight:500;color:#111110">Назначения тренер–клиент</span>
+      <span style="color:#9E9893;font-size:16px">›</span>
     </a>
 
   </div>
@@ -109,32 +109,32 @@
 {{/* Change password */}}
 <div style="padding:24px 24px 0">
   <div class="eyebrow" style="margin-bottom:12px">БЕЗОПАСНОСТЬ</div>
-  <div style="background:#141414;border:1px solid {{if .PasswordError}}#ff453a{{else if eq (index . "pwd") "ok"}}#D7FF1A{{else}}#2e2e2e{{end}}">
+  <div style="background:#FFFFFF;border:1px solid {{if .PasswordError}}#ff453a{{else if eq (index . "pwd") "ok"}}#D7FF1A{{else}}#E0DDD8{{end}}">
 
     {{if .PasswordError}}
-    <div style="padding:12px 18px;border-bottom:1px solid #2e2e2e;font-family:'Space Grotesk',system-ui;font-size:13px;color:#ff453a">
+    <div style="padding:12px 18px;border-bottom:1px solid #E0DDD8;font-family:'Space Grotesk',system-ui;font-size:13px;color:#ff453a">
       {{.PasswordError}}
     </div>
     {{end}}
 
     {{if eq (index . "pwd") "ok"}}
-    <div style="padding:12px 18px;border-bottom:1px solid #2e2e2e;font-family:'Space Grotesk',system-ui;font-size:13px;color:#D7FF1A">
+    <div style="padding:12px 18px;border-bottom:1px solid #E0DDD8;font-family:'Space Grotesk',system-ui;font-size:13px;color:#7A9200">
       Пароль успешно изменён
     </div>
     {{end}}
 
     <form method="POST" action="/profile/password" id="pwd-form">
       <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="var b=document.getElementById('pwd-body');b.style.display=b.style.display==='none'?'block':'none'">
-        <span style="font-size:15px;font-weight:500;color:#fafafa">Сменить пароль</span>
+        <span style="font-size:15px;font-weight:500;color:#111110">Сменить пароль</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div id="pwd-body" style="display:{{if or .PasswordError .PasswordSection}}block{{else}}none{{end}};padding:0 18px 18px">
         <input type="password" name="current_password" placeholder="Текущий пароль"
-          style="width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:10px;box-sizing:border-box">
+          style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:10px;box-sizing:border-box">
         <input type="password" name="new_password" placeholder="Новый пароль (мин. 6 символов)"
-          style="width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:10px;box-sizing:border-box">
+          style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:10px;box-sizing:border-box">
         <input type="password" name="confirm_password" placeholder="Повторите новый пароль"
-          style="width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:14px;box-sizing:border-box">
+          style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;margin-bottom:14px;box-sizing:border-box">
         <button type="submit"
           style="width:100%;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:16px;letter-spacing:2px;padding:14px;border:none;cursor:pointer">
           СОХРАНИТЬ
@@ -149,7 +149,7 @@
 <div style="padding:24px 24px 0">
   <form method="POST" action="/logout">
     <button type="submit"
-      style="width:100%;background:transparent;border:1px solid #2e2e2e;color:#ff453a;font-family:'Space Grotesk',system-ui;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:16px;cursor:pointer">
+      style="width:100%;background:transparent;border:1px solid #E0DDD8;color:#ff453a;font-family:'Space Grotesk',system-ui;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:16px;cursor:pointer">
       ВЫЙТИ ИЗ АККАУНТА
     </button>
   </form>

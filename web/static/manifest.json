@@ -4,8 +4,8 @@
   "description": "Журнал тренировок с аналитикой",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#F5F4F0",
+  "theme_color": "#F5F4F0",
   "orientation": "portrait",
   "lang": "ru",
   "icons": [

@@ -8,10 +8,10 @@
 
   {{/* PWA */}}
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#0a0a0a">
+  <meta name="theme-color" content="#F5F4F0">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Тренировки">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -25,17 +25,18 @@
       theme: {
         extend: {
           colors: {
-            bg:       '#0a0a0a',
-            surface:  '#141414',
-            surface2: '#1b1b1b',
-            hair:     '#2e2e2e',
-            hair2:    '#1f1f1f',
-            dim:      '#9a9a9a',
-            dim2:     '#6a6a6a',
-            accent:   '#D7FF1A',
-            accentDk: '#a8c800',
-            danger:   '#ff453a',
-            warn:     '#ff9f0a',
+            bg:         '#F5F4F0',
+            surface:    '#FFFFFF',
+            surface2:   '#EEEDE9',
+            hair:       '#E0DDD8',
+            hair2:      '#E9E8E4',
+            dim:        '#6B6560',
+            dim2:       '#9E9893',
+            accent:     '#D7FF1A',
+            accentDk:   '#B8D800',
+            accentText: '#7A9200',
+            danger:     '#D93025',
+            warn:       '#D97706',
           },
           fontFamily: {
             display: ['"Anton"', 'Impact', 'sans-serif'],
@@ -48,20 +49,20 @@
   </script>
   <style>
     :root {
-      --bg: #0a0a0a; --surface: #141414; --surface-2: #1b1b1b;
-      --hair: #2e2e2e; --hair-2: #1f1f1f;
-      --text: #fafafa; --dim: #9a9a9a; --dim-2: #6a6a6a;
-      --accent: #D7FF1A; --accent-dk: #a8c800;
-      --danger: #ff453a; --warn: #ff9f0a;
+      --bg: #F5F4F0; --surface: #FFFFFF; --surface-2: #EEEDE9;
+      --hair: #E0DDD8; --hair-2: #E9E8E4;
+      --text: #111110; --dim: #6B6560; --dim-2: #9E9893;
+      --accent: #D7FF1A; --accent-dk: #B8D800; --accent-text: #7A9200;
+      --danger: #D93025; --warn: #D97706;
     }
     * { box-sizing: border-box; }
-    body { background: #0a0a0a; color: #fafafa; }
+    body { background: #F5F4F0; color: #111110; }
     .eyebrow {
       font-family: 'Space Grotesk', system-ui;
       font-size: 10px; letter-spacing: 1.8px;
       text-transform: uppercase; color: var(--dim); font-weight: 600;
     }
-    .eyebrow-accent { color: var(--accent); }
+    .eyebrow-accent { color: var(--accent-text); }
     .eyebrow-dim2   { color: var(--dim-2); }
     .font-display   { font-family: 'Anton', Impact, sans-serif; }
     .font-mono-wt   { font-family: 'JetBrains Mono', ui-monospace, monospace; }
@@ -69,18 +70,18 @@
     input, button, select, textarea { font-family: inherit; }
     /* iOS Safari placeholder fix */
     input::placeholder, textarea::placeholder {
-      color: #6a6a6a; opacity: 1; -webkit-text-fill-color: #6a6a6a;
+      color: #9E9893; opacity: 1; -webkit-text-fill-color: #9E9893;
     }
     /* Wellbeing emoji contrast on real devices */
-    .wellbeing-emoji { font-size: 24px; line-height: 1; filter: saturate(1.3) contrast(1.1); }
+    .wellbeing-emoji { font-size: 24px; line-height: 1; filter: saturate(1.2) contrast(1.0); }
     /* Tab bar label contrast */
-    .tab-inactive { color: #8a8a8a; }
-    .tab-active   { color: #ffffff; }
+    .tab-inactive { color: #9E9893; }
+    .tab-active   { color: #111110; }
   </style>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   {{block "head_extra" .}}{{end}}
 </head>
-<body class="font-sans min-h-screen" style="background:#0a0a0a;color:#fafafa">
+<body class="font-sans min-h-screen" style="background:#F5F4F0;color:#111110">
 
 <main class="{{if .CurrentUser}}pb-28{{end}}">
   {{block "content" .}}{{end}}
@@ -89,10 +90,10 @@
 {{block "tabbar" .}}
 {{if .CurrentUser}}
 {{$p := .CurrentPath}}
-<nav style="position:fixed;bottom:0;left:0;right:0;background:#0a0a0a;border-top:1px solid #2e2e2e;display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:max(16px,env(safe-area-inset-bottom,16px))">
+<nav style="position:fixed;bottom:0;left:0;right:0;background:#F5F4F0;border-top:1px solid #E0DDD8;display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:max(16px,env(safe-area-inset-bottom,16px))">
 
   {{/* Главная */}}
-  <a href="/" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/"}}#fafafa{{else}}#8a8a8a{{end}}">
+  <a href="/" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/"}}#111110{{else}}#9E9893{{end}}">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-7H10v7H5a1 1 0 01-1-1z"/>
     </svg>
@@ -100,7 +101,7 @@
   </a>
 
   {{/* Журнал */}}
-  <a href="/workouts" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/workouts"}}#fafafa{{else}}#8a8a8a{{end}}">
+  <a href="/workouts" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/workouts"}}#111110{{else}}#9E9893{{end}}">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
       <path d="M3 6h18M3 12h18M3 18h18"/>
     </svg>
@@ -108,8 +109,8 @@
   </a>
 
   {{/* + Новая (FAB) */}}
-  <a href="/workouts/new" style="display:flex;flex-direction:column;align-items:center;padding:10px 0 6px;gap:6px;color:#D7FF1A">
-    <div style="width:50px;height:50px;background:#D7FF1A;color:#000;display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 0 0 6px #0a0a0a">
+  <a href="/workouts/new" style="display:flex;flex-direction:column;align-items:center;padding:10px 0 6px;gap:6px;color:#7A9200">
+    <div style="width:50px;height:50px;background:#D7FF1A;color:#000;display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 0 0 6px #F5F4F0">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
         <path d="M12 5v14M5 12h14"/>
       </svg>
@@ -118,7 +119,7 @@
   </a>
 
   {{/* Прогресс */}}
-  <a href="/analytics" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/analytics"}}#fafafa{{else}}#8a8a8a{{end}}">
+  <a href="/analytics" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/analytics"}}#111110{{else}}#9E9893{{end}}">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
       <path d="M4 20V8M10 20V4M16 20v-8M22 20H2"/>
     </svg>
@@ -126,7 +127,7 @@
   </a>
 
   {{/* Профиль */}}
-  <a href="/profile" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/profile"}}#fafafa{{else}}#8a8a8a{{end}}">
+  <a href="/profile" style="display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;gap:6px;color:{{if eq $p "/profile"}}#111110{{else}}#9E9893{{end}}">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
       <circle cx="12" cy="8" r="4" fill="none"/>
       <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>

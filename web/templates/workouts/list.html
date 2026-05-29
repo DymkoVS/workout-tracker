@@ -7,7 +7,7 @@
     <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px;margin-top:6px">ЖУРНАЛ</div>
   </div>
   <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
-    <a href="/workouts/import" style="height:44px;padding:0 14px;border:1px solid #2e2e2e;display:flex;align-items:center;gap:6px;color:#9a9a9a;text-decoration:none;font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.2px;text-transform:uppercase">
+    <a href="/workouts/import" style="height:44px;padding:0 14px;border:1px solid #E0DDD8;display:flex;align-items:center;gap:6px;color:#6B6560;text-decoration:none;font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.2px;text-transform:uppercase">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
@@ -23,11 +23,11 @@
 
 {{if .SparklineTonnages}}
 <div style="padding:20px 24px 0">
-  <div style="background:#141414;border:1px solid #2e2e2e;padding:16px 18px">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8;padding:16px 18px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div class="eyebrow eyebrow-dim2">ТОННАЖ · 6 ПОСЛЕДНИХ</div>
       {{if .TonnageDelta}}
-      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#D7FF1A">{{.TonnageDelta}}</div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#7A9200">{{.TonnageDelta}}</div>
       {{end}}
     </div>
     <div id="sparkline-wrap" style="height:60px;position:relative"></div>
@@ -38,29 +38,29 @@
 {{/* Filter panel */}}
 <div style="padding:16px 24px 0">
   <form method="GET" action="/workouts" id="filter-form">
-    <div style="background:#141414;border:1px solid {{if .FilterActive}}#D7FF1A{{else}}#2e2e2e{{end}};padding:14px 16px">
+    <div style="background:#FFFFFF;border:1px solid {{if .FilterActive}}#7A9200{{else}}#E0DDD8{{end}};padding:14px 16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;cursor:pointer" onclick="document.getElementById('filter-body').style.display=document.getElementById('filter-body').style.display==='none'?'block':'none'">
-        <div class="eyebrow" style="{{if .FilterActive}}color:#D7FF1A{{else}}color:#6a6a6a{{end}}">
+        <div class="eyebrow" style="{{if .FilterActive}}color:#7A9200{{else}}color:#9E9893{{end}}">
           ФИЛЬТРЫ{{if .FilterActive}} · АКТИВНЫ{{end}}
         </div>
-        <svg id="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{if .FilterActive}}#D7FF1A{{else}}#6a6a6a{{end}}" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        <svg id="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{if .FilterActive}}#7A9200{{else}}#9E9893{{end}}" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div id="filter-body" style="display:{{if .FilterActive}}block{{else}}none{{end}}">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
             <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ОТ</div>
             <input type="date" name="from" value="{{.FilterFrom}}"
-              style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
+              style="width:100%;box-sizing:border-box;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
           </div>
           <div>
             <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ДО</div>
             <input type="date" name="to" value="{{.FilterTo}}"
-              style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
+              style="width:100%;box-sizing:border-box;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
           </div>
         </div>
         <div style="margin-bottom:10px">
           <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ЗАЛ</div>
-          <select name="gym_id" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
+          <select name="gym_id" style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
             <option value="">Все залы</option>
             {{range .Gyms}}
             <option value="{{.ID}}" {{if eq (printf "%s" .ID) $.FilterGymID}}selected{{end}}>{{.Name}}</option>
@@ -70,11 +70,11 @@
         <div style="margin-bottom:10px">
           <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">УПРАЖНЕНИЕ</div>
           <input type="text" name="exercise" value="{{.FilterExercise}}" placeholder="Например: Жим штанги"
-            style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
+            style="width:100%;box-sizing:border-box;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none">
         </div>
         <div style="margin-bottom:14px">
           <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ТИП</div>
-          <select name="type" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
+          <select name="type" style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
             <option value="">Все типы</option>
             <option value="Сила" {{if eq .FilterType "Сила"}}selected{{end}}>Сила</option>
             <option value="Кардио" {{if eq .FilterType "Кардио"}}selected{{end}}>Кардио</option>
@@ -84,7 +84,7 @@
         <div style="display:flex;gap:10px">
           <button type="submit" style="flex:1;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;border:none;cursor:pointer">ПРИМЕНИТЬ</button>
           {{if .FilterActive}}
-          <a href="/workouts" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#9a9a9a;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;text-decoration:none;display:flex;align-items:center;justify-content:center">СБРОСИТЬ</a>
+          <a href="/workouts" style="flex:1;background:#EEEDE9;border:1px solid #E0DDD8;color:#6B6560;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;text-decoration:none;display:flex;align-items:center;justify-content:center">СБРОСИТЬ</a>
           {{end}}
         </div>
       </div>
@@ -94,8 +94,8 @@
 
 {{if not .WorkoutGroups}}
 <div style="padding:80px 24px;text-align:center">
-  <div class="font-display" style="font-size:24px;letter-spacing:0.5px;color:#6a6a6a;margin-bottom:12px">ТРЕНИРОВОК ПОКА НЕТ</div>
-  <div style="color:#9a9a9a;font-size:14px;margin-bottom:24px">Начни вести дневник прямо сейчас</div>
+  <div class="font-display" style="font-size:24px;letter-spacing:0.5px;color:#9E9893;margin-bottom:12px">ТРЕНИРОВОК ПОКА НЕТ</div>
+  <div style="color:#6B6560;font-size:14px;margin-bottom:24px">Начни вести дневник прямо сейчас</div>
   <a href="/workouts/new" style="display:inline-block;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:16px;letter-spacing:2px;padding:14px 32px;text-decoration:none">+ ДОБАВИТЬ ПЕРВУЮ</a>
 </div>
 {{else}}
@@ -103,28 +103,27 @@
   {{range .WorkoutGroups}}
   <div style="margin-bottom:28px">
     <div class="eyebrow" style="margin-bottom:12px">{{.MonthLabel}}</div>
-    <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;flex-direction:column;gap:8px">
       {{range .Cards}}
-      <a href="/workouts/{{.ID}}" style="display:flex;text-decoration:none;background:#141414;border:1px solid #2e2e2e">
-        <div style="width:4px;background:#D7FF1A;align-self:stretch;flex-shrink:0"></div>
+      <a href="/workouts/{{.ID}}" style="display:flex;text-decoration:none;background:#FFFFFF;border:1px solid #E0DDD8">
         <div style="padding:14px 16px;flex:1;min-width:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="eyebrow eyebrow-dim2">{{dateRU .WorkoutDate}}</div>
             {{if .Wellbeing}}<span style="font-size:16px">{{wellbeingEmoji .Wellbeing}}</span>{{end}}
           </div>
           <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;margin-bottom:4px">
-            {{if .Title}}{{toUpper .Title}}{{else}}ТРЕНИРОВКА{{end}}
+            {{if .Title}}{{.Title}}{{else}}Тренировка{{end}}
           </div>
           {{if or .GymName .WorkoutType}}
-          <div style="font-size:11px;color:#9a9a9a;margin-bottom:8px">
-            {{if .WorkoutType}}<span style="color:#D7FF1A;margin-right:6px">{{toUpper .WorkoutType}}</span>{{end}}{{.GymName}}
+          <div style="font-size:11px;color:#6B6560;margin-bottom:8px">
+            {{if .WorkoutType}}<span style="color:#7A9200;margin-right:6px;font-weight:600">{{.WorkoutType}}</span>{{end}}{{.GymName}}
           </div>
           {{end}}
           <div style="display:flex;gap:14px">
-            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#6a6a6a;letter-spacing:1px;text-transform:uppercase">{{.ExerciseCount}} УПР.</span>
-            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#6a6a6a;letter-spacing:1px;text-transform:uppercase">{{.SetCount}} ПОДХ.</span>
-            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#D7FF1A;letter-spacing:1px;text-transform:uppercase">{{formatTonnage .Tonnage}}</span>
-            {{$d := workoutDuration .StartedAt .EndedAt}}{{if $d}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9a9a9a;letter-spacing:0.5px">{{$d}}</span>{{end}}
+            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#9E9893;letter-spacing:1px;text-transform:uppercase">{{.ExerciseCount}} УПР.</span>
+            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#9E9893;letter-spacing:1px;text-transform:uppercase">{{.SetCount}} ПОДХ.</span>
+            <span style="font-family:'Space Grotesk',system-ui;font-size:11px;color:#7A9200;letter-spacing:1px;text-transform:uppercase;font-weight:600">{{formatTonnage .Tonnage}}</span>
+            {{$d := workoutDuration .StartedAt .EndedAt}}{{if $d}}<span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9E9893;letter-spacing:0.5px">{{$d}}</span>{{end}}
           </div>
         </div>
       </a>
@@ -163,12 +162,12 @@
 
   var d = pts.map(function(p, i) { return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join(' ');
   var circles = pts.map(function(p) {
-    return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3" fill="#D7FF1A"/>';
+    return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3" fill="#7A9200"/>';
   }).join('');
 
   wrap.innerHTML =
     '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" style="display:block">' +
-    '<path d="' + d + '" fill="none" stroke="#D7FF1A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<path d="' + d + '" fill="none" stroke="#B8D800" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
     circles +
     '</svg>';
 })();

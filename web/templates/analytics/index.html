@@ -7,7 +7,7 @@
 {{define "content"}}
 
 {{/* Header */}}
-<div style="padding:56px 24px 24px;border-bottom:1px solid #2e2e2e">
+<div style="padding:56px 24px 24px;border-bottom:1px solid #E0DDD8">
   <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">ПОСЛЕДНИЕ 90 ДНЕЙ</div>
   <div class="font-display" style="font-size:48px;line-height:1;letter-spacing:0.5px">ПРОГРЕСС</div>
 </div>
@@ -19,19 +19,19 @@
     {{if .Clients}}
     <input type="hidden" name="user_id" value="{{.SelectedClientID}}">
     {{end}}
-    <div style="background:#141414;border:1px solid {{if .FilterActive}}#D7FF1A{{else}}#2e2e2e{{end}};padding:14px 16px">
+    <div style="background:#FFFFFF;border:1px solid {{if .FilterActive}}#7A9200{{else}}#E0DDD8{{end}};padding:14px 16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer"
            onclick="var b=document.getElementById('af-body');b.style.display=b.style.display==='none'?'block':'none'">
-        <div class="eyebrow" style="color:{{if .FilterActive}}#D7FF1A{{else}}#6a6a6a{{end}}">
+        <div class="eyebrow" style="color:{{if .FilterActive}}#7A9200{{else}}#9E9893{{end}}">
           ФИЛЬТРЫ{{if .FilterActive}} · АКТИВНЫ{{end}}
         </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{if .FilterActive}}#D7FF1A{{else}}#6a6a6a{{end}}" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{if .FilterActive}}#7A9200{{else}}#9E9893{{end}}" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div id="af-body" style="display:{{if .FilterActive}}block{{else}}none{{end}}">
         {{if .Gyms}}
         <div style="margin-bottom:10px">
           <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ЗАЛ</div>
-          <select name="gym_id" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
+          <select name="gym_id" style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
             <option value="">Все залы</option>
             {{range .Gyms}}
             <option value="{{.ID}}" {{if eq (printf "%s" .ID) $.FilterGymID}}selected{{end}}>{{.Name}}</option>
@@ -41,7 +41,7 @@
         {{end}}
         <div style="margin-bottom:14px">
           <div class="eyebrow eyebrow-dim2" style="margin-bottom:6px">ТИП</div>
-          <select name="type" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#e0e0e0;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
+          <select name="type" style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;padding:8px 10px;font-family:'Space Grotesk',system-ui;font-size:13px;outline:none;appearance:none">
             <option value="">Все типы</option>
             <option value="Сила" {{if eq .FilterType "Сила"}}selected{{end}}>Сила</option>
             <option value="Кардио" {{if eq .FilterType "Кардио"}}selected{{end}}>Кардио</option>
@@ -52,7 +52,7 @@
           <button type="submit" style="flex:1;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;border:none;cursor:pointer">ПРИМЕНИТЬ</button>
           {{if .FilterActive}}
           <a href="/analytics{{if .SelectedClientID}}?user_id={{.SelectedClientID}}{{end}}"
-             style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#9a9a9a;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;text-decoration:none;display:flex;align-items:center;justify-content:center">СБРОСИТЬ</a>
+             style="flex:1;background:#EEEDE9;border:1px solid #E0DDD8;color:#6B6560;font-family:'Anton',Impact,sans-serif;font-size:13px;letter-spacing:1.5px;padding:10px;text-decoration:none;display:flex;align-items:center;justify-content:center">СБРОСИТЬ</a>
           {{end}}
         </div>
       </div>
@@ -69,15 +69,15 @@
     {{if .FilterType}}<input type="hidden" name="type" value="{{.FilterType}}">{{end}}
     <div style="position:relative">
       <select name="user_id" onchange="this.form.submit()"
-        style="width:100%;background:#141414;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:14px 16px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
-        <option value="" style="background:#141414">— Мои тренировки —</option>
+        style="width:100%;background:#FFFFFF;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:14px 16px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
+        <option value="">— Мои тренировки —</option>
         {{range .Clients}}
-        <option value="{{.ID}}" style="background:#141414" {{if eq .ID.String $.SelectedClientID}}selected{{end}}>
+        <option value="{{.ID}}" {{if eq .ID.String $.SelectedClientID}}selected{{end}}>
           {{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}
         </option>
         {{end}}
       </select>
-      <div style="position:absolute;right:16px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9a9a9a">
+      <div style="position:absolute;right:16px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9E9893">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
     </div>
@@ -87,34 +87,34 @@
 
 {{/* Tonnage hero card */}}
 <div style="padding:20px 24px 0">
-  <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8;padding:20px 18px">
     <div class="eyebrow eyebrow-dim2" style="margin-bottom:12px">ТОННАЖ · 90 ДНЕЙ</div>
     {{if .TonnageCount}}
     <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:16px">
-      <div id="tonnageHero" class="font-display" style="font-size:64px;line-height:0.9;letter-spacing:0.5px;color:#D7FF1A">—</div>
+      <div id="tonnageHero" class="font-display" style="font-size:64px;line-height:0.9;letter-spacing:0.5px;color:#7A9200">—</div>
       {{if .TonnageDelta}}
-      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#D7FF1A;padding-bottom:8px">{{.TonnageDelta}}</div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#7A9200;padding-bottom:8px">{{.TonnageDelta}}</div>
       {{end}}
     </div>
     <canvas id="tonnageChart" style="max-height:160px"></canvas>
     {{else}}
-    <div style="padding:40px 0;text-align:center;color:#6a6a6a;font-size:13px">Нет данных о тоннаже</div>
+    <div style="padding:40px 0;text-align:center;color:#9E9893;font-size:13px">Нет данных о тоннаже</div>
     {{end}}
   </div>
 </div>
 
 {{/* Frequency hero card */}}
 <div style="padding:16px 24px 0">
-  <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8;padding:20px 18px">
     <div class="eyebrow eyebrow-dim2" style="margin-bottom:12px">ЧАСТОТА · 8 НЕДЕЛЬ</div>
     {{if .FreqCount}}
     <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:16px">
       <div id="freqHero" class="font-display" style="font-size:44px;line-height:0.9;letter-spacing:0.5px">—</div>
-      <div style="font-family:'Space Grotesk',system-ui;font-size:14px;color:#9a9a9a">/нед</div>
+      <div style="font-family:'Space Grotesk',system-ui;font-size:14px;color:#6B6560">/нед</div>
     </div>
     <canvas id="freqChart" style="max-height:140px"></canvas>
     {{else}}
-    <div style="padding:40px 0;text-align:center;color:#6a6a6a;font-size:13px">Нет данных о частоте</div>
+    <div style="padding:40px 0;text-align:center;color:#9E9893;font-size:13px">Нет данных о частоте</div>
     {{end}}
   </div>
 </div>
@@ -122,25 +122,25 @@
 {{/* Exercise progress */}}
 {{if .Exercises}}
 <div style="padding:16px 24px 0">
-  <div style="background:#141414;border:1px solid #2e2e2e;padding:20px 18px">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8;padding:20px 18px">
     <div class="font-display" style="font-size:18px;letter-spacing:0.5px;margin-bottom:4px">УПРАЖНЕНИЕ</div>
     <div class="eyebrow eyebrow-dim2" style="margin-bottom:16px">макс. вес за тренировку · кг</div>
     <div style="position:relative;margin-bottom:16px">
       <select id="exerciseSelect"
-        style="width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:12px 14px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
-        <option value="" style="background:#0a0a0a">— Выберите упражнение —</option>
+        style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:13px;letter-spacing:0.5px;padding:12px 14px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
+        <option value="">— Выберите упражнение —</option>
         {{range .Exercises}}
-        <option value="{{.}}" style="background:#0a0a0a">{{.}}</option>
+        <option value="{{.}}">{{.}}</option>
         {{end}}
       </select>
-      <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9a9a9a">
+      <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9E9893">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
     </div>
     <div id="exerciseChartWrap" style="display:none">
       <canvas id="exerciseChart" style="max-height:180px"></canvas>
     </div>
-    <div id="exerciseNoData" style="display:none;padding:24px 0;text-align:center;color:#6a6a6a;font-size:13px">Нет данных для этого упражнения</div>
+    <div id="exerciseNoData" style="display:none;padding:24px 0;text-align:center;color:#9E9893;font-size:13px">Нет данных для этого упражнения</div>
   </div>
 </div>
 {{end}}
@@ -158,14 +158,14 @@ const targetUserID  = "{{.TargetUserID}}";
 const filterGymID   = "{{.FilterGymID}}";
 const filterType    = "{{.FilterType}}";
 
-Chart.defaults.color = '#9a9a9a';
-Chart.defaults.borderColor = '#2e2e2e';
+Chart.defaults.color = '#6B6560';
+Chart.defaults.borderColor = '#E9E8E4';
 Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
 Chart.defaults.font.size = 11;
 
 const baseScales = {
-  x: { grid: { color: '#1f1f1f' }, ticks: { color: '#6a6a6a' } },
-  y: { beginAtZero: true, grid: { color: '#1f1f1f' }, ticks: { color: '#6a6a6a' } }
+  x: { grid: { color: '#E9E8E4' }, ticks: { color: '#9E9893' } },
+  y: { beginAtZero: true, grid: { color: '#E9E8E4' }, ticks: { color: '#9E9893' } }
 };
 
 // Tonnage hero number
@@ -186,12 +186,12 @@ if (tonnageLabels.length > 0) {
       labels: tonnageLabels,
       datasets: [{
         data: tonnageValues,
-        borderColor: '#D7FF1A',
-        backgroundColor: 'rgba(215,255,26,0.06)',
+        borderColor: '#B8D800',
+        backgroundColor: 'rgba(184,216,0,0.08)',
         tension: 0.3,
         fill: true,
         pointRadius: 3,
-        pointBackgroundColor: '#D7FF1A',
+        pointBackgroundColor: '#7A9200',
         borderWidth: 2
       }]
     },
@@ -215,8 +215,8 @@ if (freqLabels.length > 0) {
       labels: freqLabels,
       datasets: [{
         data: freqValues,
-        backgroundColor: 'rgba(215,255,26,0.5)',
-        borderColor: '#D7FF1A',
+        backgroundColor: 'rgba(184,216,0,0.4)',
+        borderColor: '#B8D800',
         borderWidth: 1,
         borderRadius: 0
       }]
@@ -226,7 +226,7 @@ if (freqLabels.length > 0) {
       plugins: { legend: { display: false } },
       scales: {
         x: baseScales.x,
-        y: { beginAtZero: true, grid: { color: '#1f1f1f' }, ticks: { color: '#6a6a6a', stepSize: 1 } }
+        y: { beginAtZero: true, grid: { color: '#E9E8E4' }, ticks: { color: '#9E9893', stepSize: 1 } }
       }
     }
   });
@@ -269,12 +269,12 @@ document.getElementById('exerciseSelect')?.addEventListener('change', function()
           labels: data.labels,
           datasets: [{
             data: data.values,
-            borderColor: '#D7FF1A',
-            backgroundColor: 'rgba(215,255,26,0.06)',
+            borderColor: '#B8D800',
+            backgroundColor: 'rgba(184,216,0,0.08)',
             tension: 0.3,
             fill: true,
             pointRadius: 4,
-            pointBackgroundColor: '#D7FF1A',
+            pointBackgroundColor: '#7A9200',
             borderWidth: 2
           }]
         },

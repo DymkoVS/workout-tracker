@@ -2,7 +2,7 @@
 
 {{define "content"}}
 
-<div style="padding:56px 24px 24px;border-bottom:1px solid #2e2e2e;display:flex;align-items:flex-end;justify-content:space-between">
+<div style="padding:56px 24px 24px;border-bottom:1px solid #E0DDD8;display:flex;align-items:flex-end;justify-content:space-between">
   <div>
     <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">НАСТРОЙКИ</div>
     <div class="font-display" style="font-size:40px;line-height:1;letter-spacing:0.5px">ЗАЛЫ</div>
@@ -18,10 +18,10 @@
 {{if .Gyms}}
 <div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
   {{range .Gyms}}
-  <div style="background:#141414;border:1px solid #2e2e2e;display:flex;align-items:center;justify-content:space-between;padding:16px 18px">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8;display:flex;align-items:center;justify-content:space-between;padding:16px 18px">
     <div class="font-display" style="font-size:18px;letter-spacing:0.5px">{{toUpper .Name}}</div>
     <a href="/gyms/{{.ID}}/edit"
-      style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#9a9a9a">
+      style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#6B6560">
       ИЗМЕНИТЬ
     </a>
   </div>
@@ -29,7 +29,7 @@
 </div>
 {{else}}
 <div style="padding:80px 24px;text-align:center">
-  <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#6a6a6a;margin-bottom:16px">ЗАЛОВ ЕЩЁ НЕТ</div>
+  <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#9E9893;margin-bottom:16px">ЗАЛОВ ЕЩЁ НЕТ</div>
   <a href="/gyms/new"
     style="display:inline-block;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:14px;letter-spacing:2px;padding:14px 28px;text-decoration:none">
     + ДОБАВИТЬ ЗАЛ

@@ -4,16 +4,16 @@
 
 {{define "head_extra"}}
 <style>
-.dk-input{width:100%;background:#0a0a0a;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;display:block}
-.dk-input:focus{border-color:#D7FF1A}
+.dk-input{width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;display:block}
+.dk-input:focus{border-color:#7A9200}
 </style>
 {{end}}
 
 {{define "content"}}
 {{$t := .Template}}
 
-<div style="display:flex;align-items:center;padding:56px 20px 16px;border-bottom:1px solid #2e2e2e">
-  <a href="/templates/{{$t.ID}}" style="display:flex;align-items:center;gap:8px;color:#9a9a9a;text-decoration:none">
+<div style="display:flex;align-items:center;padding:56px 20px 16px;border-bottom:1px solid #E0DDD8">
+  <a href="/templates/{{$t.ID}}" style="display:flex;align-items:center;gap:8px;color:#6B6560;text-decoration:none">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M19 12H5M12 5l-7 7 7 7"/>
     </svg>
@@ -27,7 +27,7 @@
     {{if $t.Title}}{{toUpper $t.Title}}{{else}}ШАБЛОН{{end}}
   </div>
   {{if $t.Exercises}}
-  <div style="font-size:12px;color:#9a9a9a;margin-top:6px">{{len $t.Exercises}} упражнений</div>
+  <div style="font-size:12px;color:#6B6560;margin-top:6px">{{len $t.Exercises}} упражнений</div>
   {{end}}
 </div>
 
@@ -38,7 +38,7 @@
 <form id="apply-form" method="POST" action="/templates/{{$t.ID}}/apply" style="padding:20px 24px 0;padding-bottom:120px">
 
   {{/* Date + Gym card */}}
-  <div style="background:#141414;border:1px solid #2e2e2e;padding:18px 20px;margin-bottom:16px">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8;padding:18px 20px;margin-bottom:16px">
 
     {{/* 7-day picker */}}
     <div style="margin-bottom:18px">
@@ -54,12 +54,12 @@
       <div style="display:flex;flex-wrap:wrap;gap:8px" id="gym-chips">
         <input type="hidden" name="gym_id" id="gym_id_input" value="">
         <button type="button" data-gym-id="" id="gym-none"
-          style="background:#1b1b1b;border:1px solid #D7FF1A;color:#fafafa;font-size:11px;font-weight:500;padding:10px 14px;cursor:pointer;letter-spacing:0.4px;text-align:left;white-space:nowrap">
-          <span style="color:#D7FF1A;margin-right:6px">●</span>— нет —
+          style="background:#EEEDE9;border:1px solid #D7FF1A;color:#111110;font-size:11px;font-weight:500;padding:10px 14px;cursor:pointer;letter-spacing:0.4px;text-align:left;white-space:nowrap">
+          <span style="color:#7A9200;margin-right:6px">●</span>— нет —
         </button>
         {{range .Gyms}}
         <button type="button" data-gym-id="{{.ID}}"
-          style="background:transparent;border:1px solid #2e2e2e;color:#fafafa;font-size:11px;font-weight:500;padding:10px 14px;cursor:pointer;letter-spacing:0.4px;white-space:nowrap">
+          style="background:transparent;border:1px solid #E0DDD8;color:#111110;font-size:11px;font-weight:500;padding:10px 14px;cursor:pointer;letter-spacing:0.4px;white-space:nowrap">
           {{.Name}}
         </button>
         {{end}}
@@ -75,13 +75,13 @@
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
       <div class="eyebrow">КЛИЕНТЫ · <span id="sel-count">0</span>/{{len .Clients}}</div>
       <button type="button" id="select-all-btn"
-        style="background:none;border:none;color:#D7FF1A;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;padding:0">
+        style="background:none;border:none;color:#7A9200;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;padding:0">
         Выбрать всех
       </button>
     </div>
-    <div style="background:#141414;border:1px solid #2e2e2e">
+    <div style="background:#FFFFFF;border:1px solid #E0DDD8">
       {{range $i, $c := .Clients}}
-      <label style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;{{if gt $i 0}}border-top:1px solid #1f1f1f;{{end}}">
+      <label style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;{{if gt $i 0}}border-top:1px solid #E9E8E4;{{end}}">
         <div style="position:relative;width:22px;height:22px;flex-shrink:0">
           <input type="checkbox" name="client_ids" value="{{.ID}}"
             style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;z-index:1;margin:0">
@@ -89,14 +89,14 @@
         </div>
         <div style="flex:1">
           <div style="font-size:14px;font-weight:500">{{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}</div>
-          {{if .FullName}}<div style="font-size:10px;color:#9a9a9a;margin-top:2px;letter-spacing:0.4px">@{{.Login}}</div>{{end}}
+          {{if .FullName}}<div style="font-size:10px;color:#6B6560;margin-top:2px;letter-spacing:0.4px">@{{.Login}}</div>{{end}}
         </div>
       </label>
       {{end}}
     </div>
   </div>
   {{else}}
-  <div style="margin-bottom:16px;padding:20px;background:#141414;border:1px solid #2e2e2e;text-align:center;color:#6a6a6a;font-size:13px">
+  <div style="margin-bottom:16px;padding:20px;background:#FFFFFF;border:1px solid #E0DDD8;text-align:center;color:#9E9893;font-size:13px">
     Нет назначенных клиентов
   </div>
   {{end}}
@@ -104,7 +104,7 @@
 </form>
 
 {{/* Sticky CTA */}}
-<div style="position:fixed;left:0;right:0;bottom:0;padding:14px 20px 28px;background:#0a0a0a;border-top:1px solid #2e2e2e;z-index:8">
+<div style="position:fixed;left:0;right:0;bottom:0;padding:14px 20px 28px;background:#F5F4F0;border-top:1px solid #E0DDD8;z-index:8">
   <button type="button" id="submit-btn"
     style="width:100%;background:#D7FF1A;color:#000;border:none;font-family:'Anton',Impact,sans-serif;font-size:20px;letter-spacing:2px;padding:18px;cursor:pointer;opacity:0.35">
     СОЗДАТЬ ТРЕНИРОВКИ →
@@ -135,7 +135,7 @@
     var cell = document.createElement('div');
     cell.setAttribute('data-idx', String(i));
     cell.setAttribute('data-val', fmt(d));
-    cell.style.cssText = 'flex:1;padding:10px 4px;text-align:center;border:1px solid #2e2e2e;cursor:pointer;user-select:none';
+    cell.style.cssText = 'flex:1;padding:10px 4px;text-align:center;border:1px solid #E0DDD8;cursor:pointer;user-select:none';
     var numEl = document.createElement('div');
     numEl.style.cssText = 'font-family:"Anton",Impact,sans-serif;font-size:22px;line-height:1;letter-spacing:0.5px';
     numEl.textContent = d.getDate();
@@ -158,7 +158,7 @@
       } else {
         cell.style.background = 'transparent';
         cell.style.color = '#fafafa';
-        cell.style.borderColor = '#2e2e2e';
+        cell.style.borderColor = '#E0DDD8';
       }
     });
   }
@@ -187,12 +187,12 @@
       chips.forEach(function(b) {
         var bId = b.getAttribute('data-gym-id');
         var isSelected = bId === id;
-        b.style.background = isSelected ? '#1b1b1b' : 'transparent';
-        b.style.borderColor = isSelected ? '#D7FF1A' : '#2e2e2e';
+        b.style.background = isSelected ? '#EEEDE9' : 'transparent';
+        b.style.borderColor = isSelected ? '#D7FF1A' : '#E0DDD8';
         // manage dot indicator
         var text = b.textContent.replace(/^●\s*/, '').trim();
         if (isSelected) {
-          b.innerHTML = '<span style="color:#D7FF1A;margin-right:6px">●</span>' + text;
+          b.innerHTML = '<span style="color:#7A9200;margin-right:6px">●</span>' + text;
         } else {
           b.textContent = text;
         }

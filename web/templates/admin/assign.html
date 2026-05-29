@@ -4,15 +4,15 @@
 
 {{define "head_extra"}}
 <style>
-.dk-select{width:100%;background:#1b1b1b;border:1px solid #2e2e2e;color:#fafafa;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;cursor:pointer}
-.dk-select:focus{border-color:#D7FF1A}
+.dk-select{width:100%;background:#EEEDE9;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;cursor:pointer}
+.dk-select:focus{border-color:#7A9200}
 </style>
 {{end}}
 
 {{define "content"}}
 
-<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #2e2e2e">
-  <a href="/admin/users" style="display:flex;align-items:center;gap:8px;color:#9a9a9a;text-decoration:none">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #E0DDD8">
+  <a href="/admin/users" style="display:flex;align-items:center;gap:8px;color:#6B6560;text-decoration:none">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M19 12H5M12 5l-7 7 7 7"/>
     </svg>
@@ -28,35 +28,35 @@
 
 {{/* Quick assign */}}
 <div style="padding:24px 24px 0">
-  <div style="background:#141414;border:1px solid #2e2e2e;padding:18px 20px">
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8;padding:18px 20px">
     <div class="eyebrow eyebrow-accent" style="margin-bottom:14px">+ НОВАЯ СВЯЗКА</div>
     <form method="POST" action="/admin/assign" style="display:flex;flex-direction:column;gap:12px">
       <div>
-        <div style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#9a9a9a;margin-bottom:6px">ТРЕНЕР</div>
+        <div style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#6B6560;margin-bottom:6px">ТРЕНЕР</div>
         <div style="position:relative">
           <select name="trainer_id" required class="dk-select">
-            <option value="" style="background:#1b1b1b">— выберите тренера —</option>
+            <option value="" style="background:#EEEDE9">— выберите тренера —</option>
             {{range .Rows}}
-            <option value="{{.Trainer.ID}}" style="background:#1b1b1b">
+            <option value="{{.Trainer.ID}}" style="background:#EEEDE9">
               {{if .Trainer.FullName}}{{.Trainer.FullName}}{{else}}{{.Trainer.Login}}{{end}}
             </option>
             {{end}}
           </select>
-          <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9a9a9a">▾</div>
+          <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#6B6560">▾</div>
         </div>
       </div>
       <div>
-        <div style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#9a9a9a;margin-bottom:6px">КЛИЕНТ</div>
+        <div style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#6B6560;margin-bottom:6px">КЛИЕНТ</div>
         <div style="position:relative">
           <select name="client_id" required class="dk-select">
-            <option value="" style="background:#1b1b1b">— выберите клиента —</option>
+            <option value="" style="background:#EEEDE9">— выберите клиента —</option>
             {{range .Clients}}
-            <option value="{{.ID}}" style="background:#1b1b1b">
+            <option value="{{.ID}}" style="background:#EEEDE9">
               {{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}
             </option>
             {{end}}
           </select>
-          <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9a9a9a">▾</div>
+          <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#6B6560">▾</div>
         </div>
       </div>
       <button type="submit"
@@ -74,8 +74,8 @@
   <div style="display:flex;flex-direction:column;gap:12px">
     {{range .Rows}}
     {{$trainerID := .Trainer.ID}}
-    <div style="background:#141414;border:1px solid #2e2e2e">
-      <div style="padding:14px 18px;border-bottom:1px solid #1f1f1f;display:flex;justify-content:space-between;align-items:center">
+    <div style="background:#FFFFFF;border:1px solid #E0DDD8">
+      <div style="padding:14px 18px;border-bottom:1px solid #E9E8E4;display:flex;justify-content:space-between;align-items:center">
         <div>
           <div class="eyebrow eyebrow-dim2" style="margin-bottom:4px">ТРЕНЕР</div>
           <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px">
@@ -83,14 +83,14 @@
           </div>
         </div>
         <div style="text-align:right">
-          <div class="font-display" style="font-size:28px;line-height:1;color:#D7FF1A;letter-spacing:0.5px">{{len .Clients}}</div>
-          <div style="font-family:'Space Grotesk',system-ui;font-size:9px;color:#9a9a9a;letter-spacing:1.4px;text-transform:uppercase;margin-top:4px">КЛИЕНТОВ</div>
+          <div class="font-display" style="font-size:28px;line-height:1;color:#7A9200;letter-spacing:0.5px">{{len .Clients}}</div>
+          <div style="font-family:'Space Grotesk',system-ui;font-size:9px;color:#6B6560;letter-spacing:1.4px;text-transform:uppercase;margin-top:4px">КЛИЕНТОВ</div>
         </div>
       </div>
       {{if .Clients}}
       <div>
         {{range $i, $c := .Clients}}
-        <div style="padding:12px 18px;display:flex;align-items:center;justify-content:space-between;{{if gt $i 0}}border-top:1px solid #1f1f1f;{{end}}">
+        <div style="padding:12px 18px;display:flex;align-items:center;justify-content:space-between;{{if gt $i 0}}border-top:1px solid #E9E8E4;{{end}}">
           <div style="display:flex;align-items:center;gap:12px">
             <div style="width:6px;height:6px;background:#D7FF1A;flex-shrink:0"></div>
             <span style="font-size:14px">{{if .FullName}}{{.FullName}}{{else}}{{.Login}}{{end}}</span>
@@ -105,14 +105,14 @@
         {{end}}
       </div>
       {{else}}
-      <div style="padding:14px 18px;font-size:13px;color:#6a6a6a">Клиентов нет</div>
+      <div style="padding:14px 18px;font-size:13px;color:#9E9893">Клиентов нет</div>
       {{end}}
     </div>
     {{end}}
   </div>
 </div>
 {{else}}
-<div style="padding:40px 24px;text-align:center;color:#6a6a6a;font-size:13px">Тренеров нет</div>
+<div style="padding:40px 24px;text-align:center;color:#9E9893;font-size:13px">Тренеров нет</div>
 {{end}}
 
 <div style="height:40px"></div>

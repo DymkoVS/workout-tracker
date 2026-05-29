@@ -6,8 +6,8 @@
 {{$w := .Workout}}
 
 {{/* Top bar */}}
-<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #2e2e2e">
-  <a href="{{if .BackURL}}{{.BackURL}}{{else}}/workouts{{end}}" style="display:flex;align-items:center;gap:8px;color:#9a9a9a;text-decoration:none">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #E0DDD8">
+  <a href="{{if .BackURL}}{{.BackURL}}{{else}}/workouts{{end}}" style="display:flex;align-items:center;gap:8px;color:#6B6560;text-decoration:none">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M19 12H5M12 5l-7 7 7 7"/>
     </svg>
@@ -15,14 +15,14 @@
   </a>
   {{if .CanEdit}}
   <div style="display:flex;gap:12px;align-items:center">
-    <a href="/workouts/{{$w.ID}}/edit" style="color:#9a9a9a">
+    <a href="/workouts/{{$w.ID}}/edit" style="color:#6B6560">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
       </svg>
     </a>
     <form method="POST" action="/workouts/{{$w.ID}}/delete" style="display:inline" onsubmit="return confirm('Удалить тренировку?')">
-      <button type="submit" style="background:none;border:none;padding:0;cursor:pointer;color:#9a9a9a">
+      <button type="submit" style="background:none;border:none;padding:0;cursor:pointer;color:#D93025">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="3 6 5 6 21 6"/>
           <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
@@ -38,10 +38,10 @@
 {{/* Title block */}}
 <div style="padding:20px 24px 0">
   <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">
-    {{dateRU $w.WorkoutDate}}{{if $w.GymName}} · {{$w.GymName}}{{end}}{{if $w.WorkoutType}} · <span style="color:#D7FF1A">{{toUpper $w.WorkoutType}}</span>{{end}}
+    {{dateRU $w.WorkoutDate}}{{if $w.GymName}} · {{$w.GymName}}{{end}}{{if $w.WorkoutType}} · <span style="color:#7A9200;font-weight:600">{{$w.WorkoutType}}</span>{{end}}
   </div>
   <div class="font-display" style="font-size:56px;line-height:0.95;letter-spacing:0.5px">
-    {{if $w.Title}}{{toUpper $w.Title}}{{else}}ТРЕНИРОВКА{{end}}
+    {{if $w.Title}}{{$w.Title}}{{else}}Тренировка{{end}}
   </div>
   <div style="width:56px;height:4px;background:#D7FF1A;margin-top:12px"></div>
 </div>
@@ -57,14 +57,14 @@
     <div class="eyebrow eyebrow-dim2" style="margin-top:4px;letter-spacing:1.4px">ПОДХ.</div>
   </div>
   <div>
-    <div class="font-display" style="font-size:30px;line-height:0.9;letter-spacing:0.5px;color:#D7FF1A">{{formatTonnage (workoutTonnage $w.Exercises)}}</div>
+    <div class="font-display" style="font-size:30px;line-height:0.9;letter-spacing:0.5px;color:#7A9200">{{formatTonnage (workoutTonnage $w.Exercises)}}</div>
     <div class="eyebrow eyebrow-accent" style="margin-top:4px;letter-spacing:1.4px">ТОННАЖ</div>
   </div>
   <div>
     {{if $w.Wellbeing}}
     <div style="font-size:28px;line-height:0.9">{{wellbeingEmoji $w.Wellbeing}}</div>
     {{else}}
-    <div class="font-display" style="font-size:30px;line-height:0.9;color:#6a6a6a">—</div>
+    <div class="font-display" style="font-size:30px;line-height:0.9;color:#9E9893">—</div>
     {{end}}
     <div class="eyebrow eyebrow-dim2" style="margin-top:4px;letter-spacing:1.4px">СОСТОЯНИЕ</div>
   </div>
@@ -74,10 +74,10 @@
 {{$dur := workoutDuration $w.StartedAt $w.EndedAt}}
 {{if $dur}}
 <div style="padding:14px 24px 0;display:flex;align-items:center;gap:6px">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9a9a9a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9E9893" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
   </svg>
-  <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;color:#D7FF1A;letter-spacing:0.5px">{{$dur}}</span>
+  <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;color:#7A9200;letter-spacing:0.5px">{{$dur}}</span>
   <span class="eyebrow eyebrow-dim2" style="margin-left:2px">ДЛИТЕЛЬНОСТЬ</span>
 </div>
 {{end}}
@@ -95,18 +95,18 @@
 {{/* Exercises */}}
 <div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
 {{range $i, $ex := $w.Exercises}}
-<div style="background:#141414;border:1px solid #2e2e2e">
+<div style="background:#FFFFFF;border:1px solid #E0DDD8">
 
   {{/* Exercise header */}}
   <div style="padding:16px 18px 10px;display:flex;justify-content:space-between;align-items:flex-start">
     <div>
       <div class="eyebrow eyebrow-dim2" style="margin-bottom:4px">УПР. {{printf "%02d" (add $i 1)}}</div>
-      <div class="font-display" style="font-size:20px;line-height:1;letter-spacing:0.5px">{{toUpper $ex.Name}}</div>
+      <div class="font-display" style="font-size:20px;line-height:1;letter-spacing:0.5px">{{$ex.Name}}</div>
     </div>
     {{if $ex.Sets}}
     <div style="text-align:right">
       <div class="eyebrow eyebrow-dim2" style="margin-bottom:4px">ОБЪЁМ</div>
-      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;color:#D7FF1A">{{formatTonnage (exerciseTonnage $ex)}}</div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;color:#7A9200;font-weight:600">{{formatTonnage (exerciseTonnage $ex)}}</div>
     </div>
     {{end}}
   </div>
@@ -122,17 +122,17 @@
     </div>
     {{$top := topSetIdx $ex.Sets}}
     {{range $j, $s := $ex.Sets}}
-    <div style="display:grid;grid-template-columns:32px 1fr 1fr 1fr;padding:8px 10px;border-left:2px solid {{if eq $j $top}}#D7FF1A{{else}}transparent{{end}};background:{{if eq $j $top}}rgba(215,255,26,0.06){{else}}transparent{{end}}">
-      <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:#6a6a6a">{{$s.SetNum}}</span>
+    <div style="display:grid;grid-template-columns:32px 1fr 1fr 1fr;padding:8px 10px;border-left:2px solid {{if eq $j $top}}#B8D800{{else}}transparent{{end}};background:{{if eq $j $top}}rgba(184,216,0,0.08){{else}}transparent{{end}}">
+      <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:#9E9893">{{$s.SetNum}}</span>
       <div style="text-align:center;display:flex;align-items:baseline;justify-content:center;gap:2px">
         <span class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px">{{if $s.Weight}}{{printf "%.4g" (derefF $s.Weight)}}{{else}}—{{end}}</span>
-        {{if $s.Weight}}<span style="font-size:11px;color:#9a9a9a">кг</span>{{end}}
+        {{if $s.Weight}}<span style="font-size:11px;color:#6B6560">кг</span>{{end}}
       </div>
       <div style="text-align:center">
         <span class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px">{{if $s.Reps}}{{derefI $s.Reps}}{{else}}—{{end}}</span>
       </div>
       <div style="text-align:right">
-        <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;color:{{if eq $j $top}}#D7FF1A{{else}}#9a9a9a{{end}}">{{if $s.RPE}}{{printf "%.3g" (derefF $s.RPE)}}{{else}}—{{end}}</span>
+        <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;color:{{if eq $j $top}}#7A9200{{else}}#9E9893{{end}}">{{if $s.RPE}}{{printf "%.3g" (derefF $s.RPE)}}{{else}}—{{end}}</span>
       </div>
     </div>
     {{end}}
@@ -140,7 +140,7 @@
   {{end}}
 
   {{if $ex.Notes}}
-  <div style="padding:0 18px 14px;font-size:13px;color:#9a9a9a;font-style:italic">{{$ex.Notes}}</div>
+  <div style="padding:0 18px 14px;font-size:13px;color:#6B6560;font-style:italic">{{$ex.Notes}}</div>
   {{end}}
 
 </div>
@@ -149,18 +149,18 @@
 
 {{/* Workout note */}}
 {{if $w.Notes}}
-<div style="margin:16px 24px 0;background:#1b1b1b;padding:16px 18px;border-left:3px solid #D7FF1A">
+<div style="margin:16px 24px 0;background:#FFFFFF;padding:16px 18px;border-left:3px solid #D7FF1A">
   <div class="eyebrow eyebrow-accent" style="margin-bottom:8px">ЗАМЕТКА</div>
-  <p style="font-size:14px;line-height:1.5;color:#fafafa;margin:0">{{$w.Notes}}</p>
+  <p style="font-size:14px;line-height:1.5;color:#111110;margin:0">{{$w.Notes}}</p>
 </div>
 {{end}}
 
 {{/* Media section */}}
 <div style="margin:24px 24px 0">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-    <div class="eyebrow" style="color:#6a6a6a">ФОТО / ВИДЕО</div>
+    <div class="eyebrow">ФОТО / ВИДЕО</div>
     {{if .CanEdit}}
-    <label style="cursor:pointer;display:flex;align-items:center;gap:6px;color:#9a9a9a">
+    <label style="cursor:pointer;display:flex;align-items:center;gap:6px;color:#6B6560">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.2px;text-transform:uppercase">Добавить</span>
       <form id="media-upload-form" method="POST" action="/workouts/{{$w.ID}}/media" enctype="multipart/form-data" style="display:none">
@@ -173,18 +173,18 @@
   {{if .Media}}
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
     {{range .Media}}
-    <div style="position:relative;aspect-ratio:1;background:#141414;border:1px solid #2e2e2e;overflow:hidden">
+    <div style="position:relative;aspect-ratio:1;background:#EEEDE9;border:1px solid #E0DDD8;overflow:hidden">
       {{if .IsVideo}}
       <video src="/media/{{.WorkoutID}}/{{.Filename}}" style="width:100%;height:100%;object-fit:cover" preload="metadata"></video>
       <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="#D7FF1A" stroke="none"><polygon points="5,3 19,12 5,21"/></svg>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#7A9200" stroke="none"><polygon points="5,3 19,12 5,21"/></svg>
       </div>
       {{else}}
       <img src="/media/{{.WorkoutID}}/{{.Filename}}" alt="{{.OriginalName}}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
       {{end}}
       {{if $.CanEdit}}
       <form method="POST" action="/workouts/{{.WorkoutID}}/media/{{.ID}}/delete" style="position:absolute;top:4px;right:4px" onsubmit="return confirm('Удалить файл?')">
-        <button type="submit" style="width:24px;height:24px;background:rgba(0,0,0,0.7);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+        <button type="submit" style="width:24px;height:24px;background:rgba(0,0,0,0.5);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </form>
@@ -193,7 +193,7 @@
     {{end}}
   </div>
   {{else}}
-  <div style="border:1px dashed #2e2e2e;padding:24px;text-align:center;color:#6a6a6a;font-family:'Space Grotesk',system-ui;font-size:13px">
+  <div style="border:1px dashed #E0DDD8;padding:24px;text-align:center;color:#9E9893;font-family:'Space Grotesk',system-ui;font-size:13px">
     Нет фото или видео
   </div>
   {{end}}
