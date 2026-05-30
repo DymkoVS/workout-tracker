@@ -88,7 +88,7 @@
       hx-swap="innerHTML"
       style="flex-shrink:0;background:#FFFFFF;border:1px solid #E0DDD8;padding:10px 14px;text-align:left;cursor:pointer;transition:border-color 0.15s">
       <div style="font-family:'Anton',Impact,sans-serif;font-size:14px;letter-spacing:0.5px;color:#111110;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis">{{toUpper .Title}}</div>
-      <div style="font-family:'JetBrains Mono',ui-monospace;font-size:10px;color:#9E9893;margin-top:3px">{{dateRU .WorkoutDate}}</div>
+      <div style="font-family:'JetBrains Mono',ui-monospace;font-size:10px;color:#9E9893;margin-top:3px">{{dateRU .WorkoutDate}}{{if .GymName}} · {{.GymName}}{{end}}</div>
     </button>
     {{end}}
   </div>

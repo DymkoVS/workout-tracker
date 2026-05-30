@@ -700,15 +700,17 @@ type RecentWorkout struct {
 	Title       string
 	WorkoutDate time.Time
 	WorkoutType string
+	GymName     string
 }
 
 // GetRecentUnique returns the last workout for each distinct title, sorted by date desc, capped at limit.
 func (r *WorkoutRepository) GetRecentUnique(ctx context.Context, userID uuid.UUID, limit int) ([]RecentWorkout, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT DISTINCT ON (title) id, title, workout_date, workout_type
-		FROM workouts
-		WHERE user_id = $1
-		ORDER BY title, workout_date DESC`, userID)
+		SELECT DISTINCT ON (w.title) w.id, w.title, w.workout_date, w.workout_type, COALESCE(g.name, '')
+		FROM workouts w
+		LEFT JOIN gyms g ON g.id = w.gym_id
+		WHERE w.user_id = $1
+		ORDER BY w.title, w.workout_date DESC`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -717,7 +719,7 @@ func (r *WorkoutRepository) GetRecentUnique(ctx context.Context, userID uuid.UUI
 	var all []RecentWorkout
 	for rows.Next() {
 		var rw RecentWorkout
-		if err := rows.Scan(&rw.ID, &rw.Title, &rw.WorkoutDate, &rw.WorkoutType); err != nil {
+		if err := rows.Scan(&rw.ID, &rw.Title, &rw.WorkoutDate, &rw.WorkoutType, &rw.GymName); err != nil {
 			return nil, err
 		}
 		all = append(all, rw)
