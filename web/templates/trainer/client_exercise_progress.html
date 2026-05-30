@@ -36,7 +36,14 @@
       {{end}}
     </div>
 
-    <div style="padding:10px 16px">
+    <div style="padding:6px 16px 0">
+      <div style="display:grid;grid-template-columns:20px 1fr 14px 1fr 60px;gap:4px;padding:0 0 4px">
+        <span></span>
+        <span class="eyebrow eyebrow-dim2" style="text-align:center">КГ</span>
+        <span></span>
+        <span class="eyebrow eyebrow-dim2" style="text-align:center">ПОВТ</span>
+        <span class="eyebrow eyebrow-dim2" style="text-align:right">RPE</span>
+      </div>
       {{range .Sets}}
       <div style="display:grid;grid-template-columns:20px 1fr 14px 1fr 60px;gap:4px;align-items:center;padding:5px 0;border-bottom:1px solid #F5F4F0">
         <span style="font-family:'JetBrains Mono',ui-monospace;font-size:11px;color:#9E9893;text-align:right">{{.SetNum}}</span>
