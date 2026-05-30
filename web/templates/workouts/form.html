@@ -244,6 +244,20 @@ flatpickr("#workout_date", {
   disableMobile: false
 });
 
+var _exSuggestTimer = null;
+function exSuggestDebounce(input) {
+  clearTimeout(_exSuggestTimer);
+  var q = input.value.trim();
+  var box = input.nextElementSibling;
+  if (!box) return;
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  _exSuggestTimer = setTimeout(function() {
+    fetch('/workouts/htmx/exercise-suggest?q=' + encodeURIComponent(q), {credentials: 'same-origin'})
+      .then(function(r) { return r.text(); })
+      .then(function(html) { if (input.nextElementSibling) input.nextElementSibling.innerHTML = html; });
+  }, 250);
+}
+
 function exSuggestPick(btn) {
   var block = btn.closest('.exercise-block');
   var input = block.querySelector('input[name*="[name]"]');
