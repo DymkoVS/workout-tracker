@@ -138,6 +138,7 @@ func main() {
 		r.Get("/exercises/new", exerciseHandler.NewForm)
 		r.Post("/exercises", exerciseHandler.Create)
 		r.Get("/exercises/{id}/edit", exerciseHandler.EditForm)
+		r.Get("/exercises/{id}/progress", exerciseHandler.Progress)
 		r.Post("/exercises/{id}", exerciseHandler.Update)
 		r.Post("/exercises/{id}/delete", exerciseHandler.Delete)
 

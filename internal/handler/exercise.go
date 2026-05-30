@@ -133,6 +133,29 @@ func (h *ExerciseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/exercises", http.StatusSeeOther)
 }
 
+func (h *ExerciseHandler) Progress(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	ex, err := h.exercises.GetByID(r.Context(), id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	sessions, err := h.exercises.GetProgress(r.Context(), ex.Name, user.ID, 20)
+	if err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+	renderTemplate(w, r, "exercises/progress.html", map[string]any{
+		"Exercise": ex,
+		"Sessions": sessions,
+	})
+}
+
 func (h *ExerciseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if !h.requireTrainerOrAdmin(w, r) {
 		return

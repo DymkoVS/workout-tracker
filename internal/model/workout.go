@@ -98,6 +98,15 @@ func (m WorkoutMedia) IsVideo() bool {
 	return len(m.MimeType) >= 5 && m.MimeType[:5] == "video"
 }
 
+type ProgressSession struct {
+	WorkoutID    uuid.UUID
+	WorkoutDate  time.Time
+	WorkoutTitle string
+	Sets         []Set
+	MaxWeight    float64
+	TotalVolume  float64
+}
+
 // FormExercise — данные одного упражнения из HTML-формы
 type FormExercise struct {
 	Name  string

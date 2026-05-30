@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 	"workout-tracker/internal/model"
 
 	"github.com/google/uuid"
@@ -71,6 +72,66 @@ func (r *ExerciseRepository) Update(ctx context.Context, id uuid.UUID, name, mus
 func (r *ExerciseRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM exercises WHERE id=$1`, id)
 	return err
+}
+
+func (r *ExerciseRepository) GetProgress(ctx context.Context, exerciseName string, userID uuid.UUID, limit int) ([]model.ProgressSession, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH recent_workouts AS (
+			SELECT DISTINCT w.id, w.workout_date, w.title
+			FROM workouts w
+			JOIN workout_exercises we ON we.workout_id = w.id
+			WHERE w.user_id = $1 AND lower(we.name) = lower($2)
+			ORDER BY w.workout_date DESC
+			LIMIT $3
+		)
+		SELECT rw.id, rw.workout_date, rw.title,
+		       s.set_num, s.weight, s.reps, s.rpe
+		FROM recent_workouts rw
+		JOIN workout_exercises we ON we.workout_id = rw.id AND lower(we.name) = lower($2)
+		JOIN sets s ON s.workout_exercise_id = we.id
+		ORDER BY rw.workout_date DESC, s.set_num ASC`,
+		userID, exerciseName, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	sessionMap := make(map[uuid.UUID]*model.ProgressSession)
+	var order []uuid.UUID
+
+	for rows.Next() {
+		var wid uuid.UUID
+		var wdate time.Time
+		var wtitle string
+		var s model.Set
+		if err := rows.Scan(&wid, &wdate, &wtitle, &s.SetNum, &s.Weight, &s.Reps, &s.RPE); err != nil {
+			return nil, err
+		}
+		if _, ok := sessionMap[wid]; !ok {
+			sessionMap[wid] = &model.ProgressSession{
+				WorkoutID:    wid,
+				WorkoutDate:  wdate,
+				WorkoutTitle: wtitle,
+			}
+			order = append(order, wid)
+		}
+		sess := sessionMap[wid]
+		sess.Sets = append(sess.Sets, s)
+		if s.Weight != nil {
+			if *s.Weight > sess.MaxWeight {
+				sess.MaxWeight = *s.Weight
+			}
+			if s.Reps != nil {
+				sess.TotalVolume += *s.Weight * float64(*s.Reps)
+			}
+		}
+	}
+
+	out := make([]model.ProgressSession, 0, len(order))
+	for _, id := range order {
+		out = append(out, *sessionMap[id])
+	}
+	return out, nil
 }
 
 // Search returns exercises whose name starts with q (case-insensitive), up to limit.
