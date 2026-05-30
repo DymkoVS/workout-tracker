@@ -146,21 +146,24 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *WorkoutHandler) NewForm(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
 	gyms, _ := h.gyms.List(r.Context())
-	recent, _ := h.workouts.GetRecentUnique(r.Context(), user.ID, 6)
+
+	recentForID := user.ID
 	data := map[string]any{
-		"Gyms":           gyms,
-		"Today":          time.Now().Format("02.01.2006"),
-		"RecentWorkouts": recent,
+		"Gyms":  gyms,
+		"Today": time.Now().Format("02.01.2006"),
 	}
 	if forClientStr := r.URL.Query().Get("for_client"); forClientStr != "" && user.IsTrainer() {
 		if clientID, err := uuid.Parse(forClientStr); err == nil {
 			if ok, _ := h.tc.IsAssigned(r.Context(), user.ID, clientID); ok {
 				if client, err := h.users.GetByID(r.Context(), clientID); err == nil {
 					data["ForClient"] = client
+					recentForID = clientID
 				}
 			}
 		}
 	}
+	recent, _ := h.workouts.GetRecentUnique(r.Context(), recentForID, 6)
+	data["RecentWorkouts"] = recent
 	renderTemplate(w, r, "workouts/form.html", data)
 }
 
@@ -172,6 +175,9 @@ func (h *WorkoutHandler) CopyFromWorkout(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	workout, err := h.workouts.GetByID(r.Context(), id, user.ID)
+	if err != nil && user.IsTrainer() {
+		workout, err = h.workouts.GetByIDForTrainer(r.Context(), id, user.ID)
+	}
 	if err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
