@@ -94,24 +94,39 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sparkline: up to 6 most-recent workouts in chronological order (oldest→newest).
-	n := len(cards)
+	// Разделяем: предстоящие (дата >= сегодня, не завершены) и история.
+	today := time.Now().Truncate(24 * time.Hour)
+	var upcomingCards, historyCards []model.WorkoutCardData
+	for _, c := range cards {
+		if !c.WorkoutDate.Truncate(24*time.Hour).Before(today) && c.EndedAt == nil {
+			upcomingCards = append(upcomingCards, c)
+		} else {
+			historyCards = append(historyCards, c)
+		}
+	}
+	// Предстоящие показываем ближайшими первыми.
+	for i, j := 0, len(upcomingCards)-1; i < j; i, j = i+1, j-1 {
+		upcomingCards[i], upcomingCards[j] = upcomingCards[j], upcomingCards[i]
+	}
+
+	// Sparkline: up to 6 most-recent history workouts in chronological order (oldest→newest).
+	n := len(historyCards)
 	end := n
 	if end > 6 {
 		end = 6
 	}
 	sparkline := make([]float64, end)
 	for i := 0; i < end; i++ {
-		sparkline[i] = cards[end-1-i].Tonnage
+		sparkline[i] = historyCards[end-1-i].Tonnage
 	}
 
-	// Tonnage delta: last 30 days vs. prior 30 days (no extra DB query).
+	// Tonnage delta: last 30 days vs. prior 30 days (history only).
 	var tonnageDelta string
 	now := time.Now()
 	cut30 := now.AddDate(0, 0, -30)
 	cut60 := now.AddDate(0, 0, -60)
 	var last30, prev30 float64
-	for _, c := range cards {
+	for _, c := range historyCards {
 		switch {
 		case c.WorkoutDate.After(cut30):
 			last30 += c.Tonnage
@@ -131,8 +146,9 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 	gyms, _ := h.gyms.List(r.Context())
 
 	renderTemplate(w, r, "workouts/list.html", map[string]any{
-		"WorkoutGroups":     groupByMonth(cards),
-		"TotalCount":        len(cards),
+		"WorkoutGroups":     groupByMonth(historyCards),
+		"UpcomingCards":     upcomingCards,
+		"TotalCount":        len(historyCards),
 		"SparklineTonnages": sparkline,
 		"TonnageDelta":      tonnageDelta,
 		"Gyms":              gyms,
@@ -159,6 +175,7 @@ func (h *WorkoutHandler) NewForm(w http.ResponseWriter, r *http.Request) {
 			if ok, _ := h.tc.IsAssigned(r.Context(), user.ID, clientID); ok {
 				if client, err := h.users.GetByID(r.Context(), clientID); err == nil {
 					data["ForClient"] = client
+					data["Today"] = time.Now().AddDate(0, 0, 1).Format("02.01.2006")
 					recentForID = clientID
 				}
 			}

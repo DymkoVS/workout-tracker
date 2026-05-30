@@ -35,6 +35,33 @@
 </div>
 {{end}}
 
+{{/* Предстоящие тренировки */}}
+{{if .UpcomingCards}}
+<div style="padding:20px 24px 0">
+  <div class="eyebrow" style="margin-bottom:12px">ПРЕДСТОЯЩИЕ</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    {{range .UpcomingCards}}
+    <a href="/workouts/{{.ID}}" style="display:flex;text-decoration:none;background:#FFFFFF;border:1px solid #D7FF1A">
+      <div style="padding:14px 16px;flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="eyebrow eyebrow-dim2">{{dateRU .WorkoutDate}}</div>
+          <span style="background:#D7FF1A;font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:3px 8px">ПЛАН</span>
+        </div>
+        <div class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;margin-bottom:4px">
+          {{if .Title}}{{.Title}}{{else}}Тренировка{{end}}
+        </div>
+        {{if or .GymName .WorkoutType}}
+        <div style="font-size:11px;color:#6B6560">
+          {{if .WorkoutType}}<span style="color:#7A9200;margin-right:6px;font-weight:600">{{.WorkoutType}}</span>{{end}}{{.GymName}}
+        </div>
+        {{end}}
+      </div>
+    </a>
+    {{end}}
+  </div>
+</div>
+{{end}}
+
 {{/* Filter panel */}}
 <div style="padding:16px 24px 0">
   <form method="GET" action="/workouts" id="filter-form">
