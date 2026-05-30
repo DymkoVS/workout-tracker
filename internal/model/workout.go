@@ -98,6 +98,12 @@ func (m WorkoutMedia) IsVideo() bool {
 	return len(m.MimeType) >= 5 && m.MimeType[:5] == "video"
 }
 
+type ClientExerciseSummary struct {
+	Name         string
+	SessionCount int
+	LastDate     time.Time
+}
+
 type ProgressSession struct {
 	WorkoutID    uuid.UUID
 	WorkoutDate  time.Time

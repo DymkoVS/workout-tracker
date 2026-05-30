@@ -31,16 +31,10 @@
       <div style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#9E9893;margin-top:3px">{{.MuscleGroup}}</div>
       {{end}}
     </div>
-    <div style="display:flex;gap:16px;flex-shrink:0;align-items:center">
-      <a href="/exercises/{{.ID}}/progress"
-        style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#7A9200;white-space:nowrap">
-        ПРОГРЕСС
-      </a>
-      <a href="/exercises/{{.ID}}/edit"
-        style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#6B6560;white-space:nowrap">
-        ИЗМЕНИТЬ
-      </a>
-    </div>
+    <a href="/exercises/{{.ID}}/edit"
+      style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#6B6560;white-space:nowrap;flex-shrink:0">
+      ИЗМЕНИТЬ
+    </a>
   </div>
   {{end}}
 </div>

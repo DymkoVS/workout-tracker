@@ -134,6 +134,29 @@ func (r *ExerciseRepository) GetProgress(ctx context.Context, exerciseName strin
 	return out, nil
 }
 
+func (r *ExerciseRepository) ListClientExercises(ctx context.Context, userID uuid.UUID) ([]model.ClientExerciseSummary, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT we.name, COUNT(DISTINCT w.id) AS session_count, MAX(w.workout_date) AS last_date
+		FROM workout_exercises we
+		JOIN workouts w ON w.id = we.workout_id
+		WHERE w.user_id = $1
+		GROUP BY we.name
+		ORDER BY MAX(w.workout_date) DESC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []model.ClientExerciseSummary
+	for rows.Next() {
+		var s model.ClientExerciseSummary
+		if err := rows.Scan(&s.Name, &s.SessionCount, &s.LastDate); err != nil {
+			return nil, err
+		}
+		out = append(out, s)
+	}
+	return out, nil
+}
+
 // Search returns exercises whose name starts with q (case-insensitive), up to limit.
 func (r *ExerciseRepository) Search(ctx context.Context, q string, limit int) ([]string, error) {
 	rows, err := r.db.Query(ctx, `

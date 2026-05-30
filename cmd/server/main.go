@@ -39,7 +39,7 @@ func main() {
 	workoutHandler := handler.NewWorkoutHandler(workoutRepo, gymRepo, tcRepo, userRepo, mediaRepo, exerciseRepo, cfg.UploadDir)
 	exerciseHandler := handler.NewExerciseHandler(exerciseRepo)
 	gymHandler := handler.NewGymHandler(gymRepo)
-	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo)
+	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo, exerciseRepo)
 	templateHandler := handler.NewTemplateHandler(templateRepo, tcRepo, gymRepo)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo, gymRepo)
 	profileHandler := handler.NewProfileHandler(workoutRepo, gymRepo, tcRepo, templateRepo, userRepo)
@@ -117,6 +117,7 @@ func main() {
 		r.Get("/trainer/clients", trainerHandler.Clients)
 		r.Get("/trainer/clients/{id}", trainerHandler.ClientDetail)
 		r.Get("/trainer/clients/{id}/workouts", trainerHandler.ClientWorkouts)
+		r.Get("/trainer/clients/{id}/progress", trainerHandler.ClientProgress)
 
 		// Шаблоны тренировок (только для тренеров)
 		r.Get("/templates", templateHandler.List)

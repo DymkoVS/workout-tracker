@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"workout-tracker/internal/middleware"
 	"workout-tracker/internal/repository"
 
@@ -11,13 +12,14 @@ import (
 )
 
 type TrainerHandler struct {
-	tc       *repository.TrainerClientRepository
-	workouts *repository.WorkoutRepository
-	users    *repository.UserRepository
+	tc        *repository.TrainerClientRepository
+	workouts  *repository.WorkoutRepository
+	users     *repository.UserRepository
+	exercises *repository.ExerciseRepository
 }
 
-func NewTrainerHandler(tc *repository.TrainerClientRepository, workouts *repository.WorkoutRepository, users *repository.UserRepository) *TrainerHandler {
-	return &TrainerHandler{tc: tc, workouts: workouts, users: users}
+func NewTrainerHandler(tc *repository.TrainerClientRepository, workouts *repository.WorkoutRepository, users *repository.UserRepository, exercises *repository.ExerciseRepository) *TrainerHandler {
+	return &TrainerHandler{tc: tc, workouts: workouts, users: users, exercises: exercises}
 }
 
 // Clients показывает список клиентов тренера с недельной статистикой.
@@ -126,5 +128,50 @@ func (h *TrainerHandler) ClientWorkouts(w http.ResponseWriter, r *http.Request) 
 		"Client":  client,
 		"Cards":   cards,
 		"BackURL": "/trainer/clients",
+	})
+}
+
+// ClientProgress показывает список упражнений клиента или историю конкретного упражнения (если передан ?name=).
+func (h *TrainerHandler) ClientProgress(w http.ResponseWriter, r *http.Request) {
+	trainer := middleware.UserFromContext(r.Context())
+	clientID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	ok, err := h.tc.IsAssigned(r.Context(), trainer.ID, clientID)
+	if err != nil || !ok {
+		http.Error(w, "Нет доступа", http.StatusForbidden)
+		return
+	}
+	client, err := h.users.GetByID(r.Context(), clientID)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	name := strings.TrimSpace(r.URL.Query().Get("name"))
+	if name != "" {
+		sessions, err := h.exercises.GetProgress(r.Context(), name, clientID, 20)
+		if err != nil {
+			http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+			return
+		}
+		renderTemplate(w, r, "trainer/client_exercise_progress.html", map[string]any{
+			"Client":       client,
+			"ExerciseName": name,
+			"Sessions":     sessions,
+		})
+		return
+	}
+
+	exercises, err := h.exercises.ListClientExercises(r.Context(), clientID)
+	if err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+	renderTemplate(w, r, "trainer/client_progress.html", map[string]any{
+		"Client":    client,
+		"Exercises": exercises,
 	})
 }
