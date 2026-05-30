@@ -245,6 +245,9 @@ func expand(rest string, weight *float64) []ParsedSet {
 			if m := regexp.MustCompile(`^(\d+(?:-\d+)?)\s*×\s*(\d+)$`).FindStringSubmatch(part); m != nil {
 				r := firstInt(m[1])
 				n, _ := strconv.Atoi(m[2])
+				if n > 100 {
+					n = 100
+				}
 				if r > 0 {
 					for i := 0; i < n; i++ {
 						sets = append(sets, ParsedSet{Weight: weight, Reps: r})
@@ -264,6 +267,9 @@ func expand(rest string, weight *float64) []ParsedSet {
 	if m := regexp.MustCompile(`^(\d+(?:-\d+)?)\s*×\s*(\d+)\s*$`).FindStringSubmatch(rest); m != nil {
 		r := firstInt(m[1])
 		n, _ := strconv.Atoi(m[2])
+		if n > 100 {
+			n = 100
+		}
 		if r > 0 && n > 0 {
 			sets := make([]ParsedSet, n)
 			for i := range sets {

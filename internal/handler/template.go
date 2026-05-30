@@ -52,7 +52,7 @@ func (h *TemplateHandler) Create(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := h.templates.Create(r.Context(), user.ID, r.FormValue("title"), r.FormValue("notes"), r.FormValue("type"), exercises)
 	if err != nil {
 		renderTemplate(w, r, "templates/form.html", map[string]any{
-			"Error": "Ошибка сохранения: " + err.Error(),
+			"Error": "Ошибка сохранения",
 		})
 		return
 	}
@@ -186,7 +186,7 @@ func (h *TemplateHandler) Apply(w http.ResponseWriter, r *http.Request) {
 			"Clients":  clients,
 			"Gyms":     gyms,
 			"Today":    time.Now().Format("02.01.2006"),
-			"Error":    "Ошибка применения: " + err.Error(),
+			"Error":    "Ошибка применения",
 		})
 		return
 	}

@@ -47,6 +47,7 @@ func (h *ImportHandler) Preview(w http.ResponseWriter, r *http.Request) {
 
 func (h *ImportHandler) Confirm(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
+	r.Body = http.MaxBytesReader(w, r.Body, 2<<20)
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return

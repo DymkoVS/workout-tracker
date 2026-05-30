@@ -185,13 +185,13 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data ma
 
 	tmpl, err := template.New("").Funcs(tmplFuncs).ParseFiles(files...)
 	if err != nil {
-		http.Error(w, "Ошибка шаблона: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := tmpl.ExecuteTemplate(w, "base", data); err != nil {
-		http.Error(w, "Ошибка рендеринга: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка рендеринга", http.StatusInternalServerError)
 	}
 }
 
@@ -207,7 +207,7 @@ func renderPartialWith(w http.ResponseWriter, r *http.Request, name string, extr
 	files = append(files, extra...)
 	tmpl, err := template.New("").Funcs(tmplFuncs).ParseFiles(files...)
 	if err != nil {
-		http.Error(w, "Ошибка шаблона: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

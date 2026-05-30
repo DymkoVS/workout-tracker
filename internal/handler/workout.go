@@ -251,7 +251,7 @@ func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		gyms, _ := h.gyms.List(r.Context())
 		renderTemplate(w, r, "workouts/form.html", map[string]any{
-			"Error": "Ошибка сохранения: " + err.Error(),
+			"Error": "Ошибка сохранения",
 			"Gyms":  gyms,
 			"Today": time.Now().Format("02.01.2006"),
 		})
@@ -367,8 +367,10 @@ func (h *WorkoutHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if forClientStr := r.FormValue("for_client_id"); forClientStr != "" {
-		http.Redirect(w, r, fmt.Sprintf("/trainer/clients/%s/workouts", forClientStr), http.StatusSeeOther)
-		return
+		if cid, err := uuid.Parse(forClientStr); err == nil {
+			http.Redirect(w, r, fmt.Sprintf("/trainer/clients/%s/workouts", cid), http.StatusSeeOther)
+			return
+		}
 	}
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%s", id), http.StatusSeeOther)
 }

@@ -435,7 +435,8 @@ func (r *WorkoutRepository) UpdateByTrainer(ctx context.Context, id, trainerID u
 
 	res, err := tx.Exec(ctx, `
 		UPDATE workouts SET gym_id=$1, title=$2, workout_type=$3, workout_date=$4, notes=$5, wellbeing=$6, updated_at=NOW()
-		WHERE id=$7 AND trainer_id=$8`,
+		WHERE id=$7 AND trainer_id=$8
+		  AND user_id IN (SELECT client_id FROM trainer_clients WHERE trainer_id=$8)`,
 		w.GymID, w.Title, w.WorkoutType, w.WorkoutDate, w.Notes, w.Wellbeing, id, trainerID)
 	if err != nil {
 		return err
