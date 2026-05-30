@@ -134,6 +134,9 @@ func main() {
 		r.Get("/profile", profileHandler.Show)
 		r.Post("/profile/password", profileHandler.ChangePassword)
 
+		// Прогресс по упражнениям (все пользователи)
+		r.Get("/progress", exerciseHandler.MyProgress)
+
 		// Справочник упражнений (тренер/админ)
 		r.Get("/exercises", exerciseHandler.List)
 		r.Get("/exercises/new", exerciseHandler.NewForm)

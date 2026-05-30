@@ -1,0 +1,79 @@
+{{define "title"}}Прогресс{{end}}
+
+{{define "content"}}
+
+<div style="padding:56px 24px 24px;border-bottom:1px solid #E0DDD8">
+  <a href="/progress" style="display:inline-flex;align-items:center;gap:6px;color:#6B6560;text-decoration:none;margin-bottom:10px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.4px;text-transform:uppercase">ПРОГРЕСС</span>
+  </a>
+  <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">МОЙ ПРОГРЕСС</div>
+  <div class="font-display" style="font-size:32px;line-height:1;letter-spacing:0.5px">{{toUpper .ExerciseName}}</div>
+</div>
+
+{{if .Sessions}}
+<div style="padding:16px 24px 0;display:flex;flex-direction:column;gap:12px">
+  {{range .Sessions}}
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8">
+
+    <div style="padding:12px 16px;border-bottom:1px solid #E9E8E4;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div class="font-display" style="font-size:22px;letter-spacing:0.5px">{{dateRU .WorkoutDate}}</div>
+        {{if .WorkoutTitle}}
+        <div style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#9E9893;margin-top:2px">{{.WorkoutTitle}}</div>
+        {{end}}
+      </div>
+      {{if gt .MaxWeight 0.0}}
+      <div style="background:#D7FF1A;padding:5px 10px;flex-shrink:0">
+        <span class="font-display" style="font-size:13px;letter-spacing:0.5px">MAX {{printf "%.4g" .MaxWeight}} КГ</span>
+      </div>
+      {{end}}
+    </div>
+
+    <div style="padding:6px 16px 0">
+      <div style="display:grid;grid-template-columns:20px 1fr 14px 1fr 60px;gap:4px;padding:0 0 4px">
+        <span></span>
+        <span class="eyebrow eyebrow-dim2" style="text-align:center">КГ</span>
+        <span></span>
+        <span class="eyebrow eyebrow-dim2" style="text-align:center">ПОВТ</span>
+        <span class="eyebrow eyebrow-dim2" style="text-align:right">RPE</span>
+      </div>
+      {{range .Sets}}
+      <div style="display:grid;grid-template-columns:20px 1fr 14px 1fr 60px;gap:4px;align-items:center;padding:5px 0;border-bottom:1px solid #F5F4F0">
+        <span style="font-family:'JetBrains Mono',ui-monospace;font-size:11px;color:#9E9893;text-align:right">{{.SetNum}}</span>
+        <span style="font-family:'JetBrains Mono',ui-monospace;font-size:15px;font-weight:500;text-align:center">
+          {{if .Weight}}{{printf "%.4g" (derefF .Weight)}}{{else}}—{{end}}
+        </span>
+        <span style="text-align:center;color:#9E9893;font-size:12px;font-family:'JetBrains Mono',ui-monospace">×</span>
+        <span style="font-family:'JetBrains Mono',ui-monospace;font-size:15px;text-align:center">
+          {{if .Reps}}{{derefI .Reps}}{{else}}—{{end}}
+        </span>
+        <span style="font-family:'JetBrains Mono',ui-monospace;font-size:11px;color:#9E9893;text-align:right">
+          {{if .RPE}}RPE {{printf "%.3g" (derefF .RPE)}}{{end}}
+        </span>
+      </div>
+      {{end}}
+    </div>
+
+    {{if gt .TotalVolume 0.0}}
+    <div style="padding:8px 16px;border-top:1px solid #F5F4F0">
+      <span style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#9E9893">
+        ОБЪЁМ {{formatTonnage .TotalVolume}}
+      </span>
+    </div>
+    {{end}}
+
+  </div>
+  {{end}}
+</div>
+{{else}}
+<div style="padding:80px 24px;text-align:center">
+  <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#9E9893;margin-bottom:8px">НЕТ ДАННЫХ</div>
+  <div style="font-family:'Space Grotesk',system-ui;font-size:13px;color:#9E9893">Упражнение ещё не выполнялось</div>
+</div>
+{{end}}
+
+<div style="height:40px"></div>
+{{end}}

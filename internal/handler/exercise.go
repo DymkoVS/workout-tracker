@@ -133,6 +133,31 @@ func (h *ExerciseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/exercises", http.StatusSeeOther)
 }
 
+func (h *ExerciseHandler) MyProgress(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	name := strings.TrimSpace(r.URL.Query().Get("name"))
+	if name != "" {
+		sessions, err := h.exercises.GetProgress(r.Context(), name, user.ID, 20)
+		if err != nil {
+			http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+			return
+		}
+		renderTemplate(w, r, "progress/exercise.html", map[string]any{
+			"ExerciseName": name,
+			"Sessions":     sessions,
+		})
+		return
+	}
+	exercises, err := h.exercises.ListClientExercises(r.Context(), user.ID)
+	if err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+	renderTemplate(w, r, "progress/list.html", map[string]any{
+		"Exercises": exercises,
+	})
+}
+
 func (h *ExerciseHandler) Progress(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
