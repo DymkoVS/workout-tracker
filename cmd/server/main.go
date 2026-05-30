@@ -31,11 +31,13 @@ func main() {
 	templateRepo := repository.NewTemplateRepository(pool)
 	analyticsRepo := repository.NewAnalyticsRepository(pool)
 	mediaRepo := repository.NewMediaRepository(pool)
+	exerciseRepo := repository.NewExerciseRepository(pool)
 
 	authHandler := handler.NewAuthHandler(userRepo, sessionStore)
 	adminHandler := handler.NewAdminHandler(userRepo, tcRepo)
 	dashboardHandler := handler.NewDashboardHandler(workoutRepo)
-	workoutHandler := handler.NewWorkoutHandler(workoutRepo, gymRepo, tcRepo, userRepo, mediaRepo, cfg.UploadDir)
+	workoutHandler := handler.NewWorkoutHandler(workoutRepo, gymRepo, tcRepo, userRepo, mediaRepo, exerciseRepo, cfg.UploadDir)
+	exerciseHandler := handler.NewExerciseHandler(exerciseRepo)
 	gymHandler := handler.NewGymHandler(gymRepo)
 	trainerHandler := handler.NewTrainerHandler(tcRepo, workoutRepo, userRepo)
 	templateHandler := handler.NewTemplateHandler(templateRepo, tcRepo, gymRepo)
@@ -130,6 +132,14 @@ func main() {
 		// Профиль
 		r.Get("/profile", profileHandler.Show)
 		r.Post("/profile/password", profileHandler.ChangePassword)
+
+		// Справочник упражнений (тренер/админ)
+		r.Get("/exercises", exerciseHandler.List)
+		r.Get("/exercises/new", exerciseHandler.NewForm)
+		r.Post("/exercises", exerciseHandler.Create)
+		r.Get("/exercises/{id}/edit", exerciseHandler.EditForm)
+		r.Post("/exercises/{id}", exerciseHandler.Update)
+		r.Post("/exercises/{id}/delete", exerciseHandler.Delete)
 
 		// Аналитика
 		r.Get("/analytics", analyticsHandler.Index)

@@ -23,6 +23,7 @@ type WorkoutHandler struct {
 	tc        *repository.TrainerClientRepository
 	users     *repository.UserRepository
 	media     *repository.MediaRepository
+	exercises *repository.ExerciseRepository
 	uploadDir string
 }
 
@@ -32,9 +33,10 @@ func NewWorkoutHandler(
 	tc *repository.TrainerClientRepository,
 	users *repository.UserRepository,
 	media *repository.MediaRepository,
+	exercises *repository.ExerciseRepository,
 	uploadDir string,
 ) *WorkoutHandler {
-	return &WorkoutHandler{workouts: workouts, gyms: gyms, tc: tc, users: users, media: media, uploadDir: uploadDir}
+	return &WorkoutHandler{workouts: workouts, gyms: gyms, tc: tc, users: users, media: media, exercises: exercises, uploadDir: uploadDir}
 }
 
 // WorkoutGroup groups workout cards under a month label for the history list.
@@ -455,8 +457,23 @@ func (h *WorkoutHandler) ExerciseSuggest(w http.ResponseWriter, r *http.Request)
 		w.Write([]byte(""))
 		return
 	}
-	names, err := h.workouts.SuggestExercises(r.Context(), user.ID, q)
-	if err != nil || len(names) == 0 {
+	// Catalog first, then fill from user history up to 6 total.
+	catalog, _ := h.exercises.Search(r.Context(), q, 6)
+	catalogSet := make(map[string]bool, len(catalog))
+	for _, n := range catalog {
+		catalogSet[n] = true
+	}
+	history, _ := h.workouts.SuggestExercises(r.Context(), user.ID, q)
+	names := catalog
+	for _, n := range history {
+		if !catalogSet[n] {
+			names = append(names, n)
+		}
+		if len(names) >= 6 {
+			break
+		}
+	}
+	if len(names) == 0 {
 		w.Write([]byte(""))
 		return
 	}

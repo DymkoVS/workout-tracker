@@ -51,6 +51,14 @@ type Set struct {
 	Done              bool
 }
 
+type Exercise struct {
+	ID          uuid.UUID
+	Name        string
+	MuscleGroup string
+	Description string
+	CreatedAt   time.Time
+}
+
 // WorkoutCardData — workout with precomputed display stats for list/card views
 type WorkoutCardData struct {
 	Workout

@@ -1,0 +1,93 @@
+{{define "title"}}{{if .Exercise}}Редактировать упражнение{{else}}Новое упражнение{{end}}{{end}}
+
+{{define "tabbar"}}{{end}}
+
+{{define "head_extra"}}
+<style>
+.dk-input{width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;display:block;box-sizing:border-box}
+.dk-input:focus{border-color:#7A9200}
+.dk-input::placeholder{color:#9E9893}
+.dk-select{width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;cursor:pointer;box-sizing:border-box}
+.dk-select:focus{border-color:#7A9200}
+.group-chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.group-chip{font-family:'Space Grotesk',system-ui;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;border:1.5px solid #E0DDD8;cursor:pointer;background:#F5F4F0;color:#6B6560;transition:border-color .15s,background .15s;user-select:none}
+.group-chip.active{background:#D7FF1A;border-color:#D7FF1A;color:#000}
+</style>
+{{end}}
+
+{{define "content"}}
+{{$ex := .Exercise}}
+
+<div style="display:flex;align-items:center;justify-content:space-between;padding:56px 20px 16px;border-bottom:1px solid #E0DDD8">
+  <a href="/exercises" style="display:flex;align-items:center;gap:8px;color:#6B6560;text-decoration:none">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    <span style="font-family:'Space Grotesk',system-ui;font-size:11px;letter-spacing:1.4px;text-transform:uppercase">УПРАЖНЕНИЯ</span>
+  </a>
+  <div class="font-display" style="font-size:13px;letter-spacing:1.5px;color:#6B6560">
+    {{if $ex}}РЕДАКТИРОВАТЬ{{else}}НОВОЕ{{end}}
+  </div>
+</div>
+
+{{if .Error}}
+<div style="margin:16px 24px 0;padding:12px 16px;border-left:3px solid #ff453a;background:#FFFFFF;font-size:13px;color:#ff453a">{{.Error}}</div>
+{{end}}
+
+<form method="POST"
+  action="{{if $ex}}/exercises/{{$ex.ID}}{{else}}/exercises{{end}}"
+  style="padding:20px 24px 0">
+
+  <div style="margin-bottom:20px">
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">НАЗВАНИЕ</div>
+    <input type="text" name="name" required autofocus
+      value="{{if $ex}}{{$ex.Name}}{{end}}"
+      placeholder="Жим лёжа, Подтягивания…"
+      class="dk-input">
+  </div>
+
+  <div style="margin-bottom:24px">
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">ГРУППА МЫШЦ</div>
+    <input type="hidden" name="muscle_group" id="muscle_group_input" value="{{if $ex}}{{$ex.MuscleGroup}}{{end}}">
+    <div class="group-chip-wrap" id="group-chips">
+      {{range .MuscleGroups}}
+      <div class="group-chip {{if $ex}}{{if eq $ex.MuscleGroup .}}active{{end}}{{end}}"
+        onclick="pickGroup(this, '{{.}}')">{{.}}</div>
+      {{end}}
+    </div>
+  </div>
+
+  <div style="margin-bottom:28px">
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:8px">ОПИСАНИЕ / ТЕХНИКА</div>
+    <textarea name="description" rows="4"
+      placeholder="Краткое описание техники выполнения…"
+      class="dk-input" style="resize:vertical;line-height:1.5">{{if $ex}}{{$ex.Description}}{{end}}</textarea>
+  </div>
+
+  <button type="submit"
+    style="width:100%;background:#D7FF1A;color:#000;border:none;font-family:'Anton',Impact,sans-serif;font-size:22px;letter-spacing:2px;padding:20px;cursor:pointer;margin-bottom:20px">
+    {{if $ex}}СОХРАНИТЬ ИЗМЕНЕНИЯ{{else}}ДОБАВИТЬ УПРАЖНЕНИЕ{{end}}
+  </button>
+
+</form>
+
+{{if $ex}}
+<form method="POST" action="/exercises/{{$ex.ID}}/delete" style="padding:0 24px;margin-bottom:32px">
+  <button type="submit"
+    onclick="return confirm('Удалить упражнение «{{$ex.Name}}»?')"
+    style="width:100%;background:none;border:1.5px solid #E0DDD8;color:#9E9893;font-family:'Space Grotesk',system-ui;font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:14px;cursor:pointer">
+    УДАЛИТЬ УПРАЖНЕНИЕ
+  </button>
+</form>
+{{end}}
+
+<script>
+function pickGroup(el, val) {
+  document.querySelectorAll('.group-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('muscle_group_input').value = val;
+}
+</script>
+
+<div style="height:40px"></div>
+{{end}}
