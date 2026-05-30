@@ -203,14 +203,12 @@ func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	targetUserID := user.ID
 	var trainerID *uuid.UUID
-	var redirectAfter string
 
 	if forClientStr := r.FormValue("for_client_id"); forClientStr != "" && user.IsTrainer() {
 		if clientID, err := uuid.Parse(forClientStr); err == nil {
 			if ok, _ := h.tc.IsAssigned(r.Context(), user.ID, clientID); ok {
 				targetUserID = clientID
 				trainerID = &user.ID
-				redirectAfter = fmt.Sprintf("/trainer/clients/%s/workouts", clientID)
 			}
 		}
 	}
@@ -241,10 +239,6 @@ func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if redirectAfter != "" {
-		http.Redirect(w, r, redirectAfter, http.StatusSeeOther)
-		return
-	}
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%s", workout.ID), http.StatusSeeOther)
 }
 
