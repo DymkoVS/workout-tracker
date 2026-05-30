@@ -1,0 +1,5 @@
+{{define "copy_exercises.html"}}
+{{range $ei, $ex := .Exercises}}
+{{template "exercise_block" dict "ExIdx" $ei "Ex" $ex}}
+{{end}}
+{{end}}

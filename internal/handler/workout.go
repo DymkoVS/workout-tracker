@@ -146,9 +146,11 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *WorkoutHandler) NewForm(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
 	gyms, _ := h.gyms.List(r.Context())
+	recent, _ := h.workouts.GetRecentUnique(r.Context(), user.ID, 6)
 	data := map[string]any{
-		"Gyms":  gyms,
-		"Today": time.Now().Format("02.01.2006"),
+		"Gyms":           gyms,
+		"Today":          time.Now().Format("02.01.2006"),
+		"RecentWorkouts": recent,
 	}
 	if forClientStr := r.URL.Query().Get("for_client"); forClientStr != "" && user.IsTrainer() {
 		if clientID, err := uuid.Parse(forClientStr); err == nil {
@@ -160,6 +162,25 @@ func (h *WorkoutHandler) NewForm(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	renderTemplate(w, r, "workouts/form.html", data)
+}
+
+func (h *WorkoutHandler) CopyFromWorkout(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	id, err := uuid.Parse(r.URL.Query().Get("id"))
+	if err != nil {
+		http.Error(w, "bad id", http.StatusBadRequest)
+		return
+	}
+	workout, err := h.workouts.GetByID(r.Context(), id, user.ID)
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	renderPartialWith(w, r, "workouts/partials/copy_exercises.html", []string{
+		"web/templates/workouts/partials/exercise_block.html",
+	}, map[string]any{
+		"Exercises": workout.Exercises,
+	})
 }
 
 func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {

@@ -102,6 +102,7 @@ func main() {
 		r.Get("/workouts/htmx/add-exercise", workoutHandler.AddExerciseRow)
 		r.Get("/workouts/htmx/add-set", workoutHandler.AddSetRow)
 		r.Get("/workouts/htmx/exercise-suggest", workoutHandler.ExerciseSuggest)
+		r.Get("/workouts/htmx/copy-from", workoutHandler.CopyFromWorkout)
 
 		// Залы
 		r.Get("/gyms", gymHandler.List)

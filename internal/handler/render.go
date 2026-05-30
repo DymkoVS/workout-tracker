@@ -196,12 +196,16 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data ma
 }
 
 func renderPartial(w http.ResponseWriter, r *http.Request, name string, data map[string]any) {
+	renderPartialWith(w, r, name, nil, data)
+}
+
+func renderPartialWith(w http.ResponseWriter, r *http.Request, name string, extra []string, data map[string]any) {
 	if data == nil {
 		data = map[string]any{}
 	}
-	tmpl, err := template.New("").Funcs(tmplFuncs).ParseFiles(
-		filepath.Join("web", "templates", name),
-	)
+	files := []string{filepath.Join("web", "templates", name)}
+	files = append(files, extra...)
+	tmpl, err := template.New("").Funcs(tmplFuncs).ParseFiles(files...)
 	if err != nil {
 		http.Error(w, "Ошибка шаблона: "+err.Error(), http.StatusInternalServerError)
 		return

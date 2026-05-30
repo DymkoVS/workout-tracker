@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -691,6 +692,41 @@ func (r *WorkoutRepository) GetRecentPRs(ctx context.Context, userID uuid.UUID) 
 		prs = append(prs, pr)
 	}
 	return prs, nil
+}
+
+// RecentWorkout is a lightweight summary of the last occurrence of each unique workout title.
+type RecentWorkout struct {
+	ID          uuid.UUID
+	Title       string
+	WorkoutDate time.Time
+	WorkoutType string
+}
+
+// GetRecentUnique returns the last workout for each distinct title, sorted by date desc, capped at limit.
+func (r *WorkoutRepository) GetRecentUnique(ctx context.Context, userID uuid.UUID, limit int) ([]RecentWorkout, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT ON (title) id, title, workout_date, workout_type
+		FROM workouts
+		WHERE user_id = $1
+		ORDER BY title, workout_date DESC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var all []RecentWorkout
+	for rows.Next() {
+		var rw RecentWorkout
+		if err := rows.Scan(&rw.ID, &rw.Title, &rw.WorkoutDate, &rw.WorkoutType); err != nil {
+			return nil, err
+		}
+		all = append(all, rw)
+	}
+	sort.Slice(all, func(i, j int) bool { return all[i].WorkoutDate.After(all[j].WorkoutDate) })
+	if limit > 0 && len(all) > limit {
+		all = all[:limit]
+	}
+	return all, nil
 }
 
 // SuggestExercises returns exercise names from the user's history matching the prefix.
