@@ -80,6 +80,7 @@ func (r *AnalyticsRepository) WorkoutFrequency(ctx context.Context, userID uuid.
 		SELECT TO_CHAR(DATE_TRUNC('week', w.workout_date), 'DD.MM') AS week_start, COUNT(*)::int AS count
 		FROM workouts w
 		WHERE w.user_id = $1
+		  AND w.ended_at IS NOT NULL
 		  AND w.workout_date >= CURRENT_DATE - INTERVAL '8 weeks'`+extraSQL+`
 		GROUP BY DATE_TRUNC('week', w.workout_date)
 		ORDER BY DATE_TRUNC('week', w.workout_date)`, args...)

@@ -106,12 +106,15 @@ func main() {
 		r.Get("/workouts/htmx/exercise-suggest", workoutHandler.ExerciseSuggest)
 		r.Get("/workouts/htmx/copy-from", workoutHandler.CopyFromWorkout)
 
-		// Залы
+		// Залы: просмотр — все, мутации — только trainer
 		r.Get("/gyms", gymHandler.List)
-		r.Get("/gyms/new", gymHandler.NewForm)
-		r.Post("/gyms", gymHandler.Create)
-		r.Get("/gyms/{id}/edit", gymHandler.EditForm)
-		r.Post("/gyms/{id}", gymHandler.Update)
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddleware.RequireRole("trainer"))
+			r.Get("/gyms/new", gymHandler.NewForm)
+			r.Post("/gyms", gymHandler.Create)
+			r.Get("/gyms/{id}/edit", gymHandler.EditForm)
+			r.Post("/gyms/{id}", gymHandler.Update)
+		})
 
 		// Тренер: список клиентов и их тренировки (только роль trainer)
 		r.Group(func(r chi.Router) {

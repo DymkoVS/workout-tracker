@@ -33,7 +33,7 @@ func (r *TrainerClientRepository) GetClientStats(ctx context.Context, trainerID 
 			MAX(w.workout_date) AS last_workout
 		FROM trainer_clients tc
 		JOIN users u ON u.id = tc.client_id
-		LEFT JOIN workouts w ON w.user_id = tc.client_id
+		LEFT JOIN workouts w ON w.user_id = tc.client_id AND w.ended_at IS NOT NULL
 		WHERE tc.trainer_id = $1
 		GROUP BY u.id, u.login, u.email, u.password_hash, u.full_name, u.role,
 		         u.is_admin, u.is_active, u.created_at, u.updated_at
@@ -94,6 +94,7 @@ func (r *TrainerClientRepository) GetClientStats(ctx context.Context, trainerID 
 		SELECT DISTINCT user_id, workout_date::date
 		FROM workouts
 		WHERE user_id IN (SELECT client_id FROM trainer_clients WHERE trainer_id = $1)
+		  AND ended_at IS NOT NULL
 		  AND workout_date >= CURRENT_DATE - INTERVAL '60 days'
 		ORDER BY user_id, workout_date DESC`, trainerID)
 	if err != nil {
@@ -118,7 +119,7 @@ func (r *TrainerClientRepository) GetClientStats(ctx context.Context, trainerID 
 			continue
 		}
 		for i, d := range dates {
-			if d.Truncate(24*time.Hour).Equal(today.AddDate(0, 0, -i)) {
+			if d.Truncate(24 * time.Hour).Equal(today.AddDate(0, 0, -i)) {
 				cs.Streak++
 			} else {
 				break
@@ -167,7 +168,7 @@ func (r *TrainerClientRepository) GetClientDetailData(ctx context.Context, train
 			MAX(w.workout_date) AS last_workout
 		FROM trainer_clients tc
 		JOIN users u ON u.id = tc.client_id
-		LEFT JOIN workouts w ON w.user_id = tc.client_id
+		LEFT JOIN workouts w ON w.user_id = tc.client_id AND w.ended_at IS NOT NULL
 		WHERE tc.trainer_id = $1 AND tc.client_id = $2
 		GROUP BY u.id, u.login, u.email, u.password_hash, u.full_name, u.role,
 		         u.is_admin, u.is_active, u.created_at, u.updated_at`,
@@ -195,6 +196,7 @@ func (r *TrainerClientRepository) GetClientDetailData(ctx context.Context, train
 		SELECT date_trunc('week', workout_date)::date AS week_start, COUNT(DISTINCT id)::int
 		FROM workouts
 		WHERE user_id = $1
+		  AND ended_at IS NOT NULL
 		  AND workout_date >= date_trunc('week', CURRENT_DATE) - INTERVAL '21 days'
 		GROUP BY week_start`, clientID)
 	if err == nil {
@@ -238,7 +240,9 @@ func (r *TrainerClientRepository) GetClientDetailData(ctx context.Context, train
 	dateRows, err := r.db.Query(ctx, `
 		SELECT DISTINCT workout_date::date
 		FROM workouts
-		WHERE user_id = $1 AND workout_date >= CURRENT_DATE - INTERVAL '60 days'
+		WHERE user_id = $1
+		  AND ended_at IS NOT NULL
+		  AND workout_date >= CURRENT_DATE - INTERVAL '60 days'
 		ORDER BY workout_date DESC`, clientID)
 	if err == nil {
 		today := time.Now().Truncate(24 * time.Hour)
@@ -247,7 +251,7 @@ func (r *TrainerClientRepository) GetClientDetailData(ctx context.Context, train
 			if scanErr := dateRows.Scan(&d); scanErr != nil {
 				break
 			}
-			if d.Truncate(24*time.Hour).Equal(today.AddDate(0, 0, -i)) {
+			if d.Truncate(24 * time.Hour).Equal(today.AddDate(0, 0, -i)) {
 				cd.Streak++
 			} else {
 				break
@@ -290,6 +294,7 @@ func (r *TrainerClientRepository) GetClientDetailData(ctx context.Context, train
 		LEFT JOIN sets s ON s.workout_exercise_id = e.id
 		         AND s.weight IS NOT NULL AND s.reps IS NOT NULL
 		WHERE w.user_id = $1
+		  AND w.ended_at IS NOT NULL
 		GROUP BY w.id, w.title, w.workout_date, w.wellbeing
 		ORDER BY w.workout_date DESC
 		LIMIT 4`, clientID)

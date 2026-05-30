@@ -165,7 +165,11 @@ func (h *TemplateHandler) Apply(w http.ResponseWriter, r *http.Request) {
 
 	var clientIDs []uuid.UUID
 	for _, s := range clientStrs {
-		if cid, err := uuid.Parse(strings.TrimSpace(s)); err == nil {
+		cid, err := uuid.Parse(strings.TrimSpace(s))
+		if err != nil {
+			continue
+		}
+		if ok, _ := h.tc.IsAssigned(r.Context(), user.ID, cid); ok {
 			clientIDs = append(clientIDs, cid)
 		}
 	}
