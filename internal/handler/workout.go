@@ -182,10 +182,15 @@ func (h *WorkoutHandler) CopyFromWorkout(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
+	gymID := ""
+	if workout.GymID != nil {
+		gymID = workout.GymID.String()
+	}
 	renderPartialWith(w, r, "workouts/partials/copy_exercises.html", []string{
 		"web/templates/workouts/partials/exercise_block.html",
 	}, map[string]any{
 		"Exercises": workout.Exercises,
+		"GymID":     gymID,
 	})
 }
 

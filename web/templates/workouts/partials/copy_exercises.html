@@ -1,4 +1,5 @@
 {{define "copy_exercises.html"}}
+{{if .GymID}}<input type="hidden" id="copy-gym-id" value="{{.GymID}}">{{end}}
 {{range $ei, $ex := .Exercises}}
 {{template "exercise_block" dict "ExIdx" $ei "Ex" $ex}}
 {{end}}

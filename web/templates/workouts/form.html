@@ -295,6 +295,13 @@ document.body.addEventListener('htmx:afterSwap', function(e) {
       btn.setAttribute('hx-get', '/workouts/htmx/add-exercise?idx=' + count);
       htmx.process(btn);
     }
+    // pre-select gym from copied workout
+    const gymHidden = document.getElementById('copy-gym-id');
+    if (gymHidden) {
+      var gymSel = document.querySelector('[name=gym_id]');
+      if (gymSel) gymSel.value = gymHidden.value;
+      gymHidden.remove();
+    }
   }
   if (e.target.classList && e.target.classList.contains('sets-list')) {
     const block = e.target.closest('.exercise-block');
