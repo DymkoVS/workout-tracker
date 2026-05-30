@@ -41,6 +41,10 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if oldID, err := session.ReadCookie(r); err == nil {
+		_ = h.sessions.Delete(r.Context(), oldID)
+	}
+
 	sessionID, err := h.sessions.Create(r.Context(), user.ID)
 	if err != nil {
 		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)

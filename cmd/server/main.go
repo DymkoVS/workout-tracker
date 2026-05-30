@@ -113,22 +113,28 @@ func main() {
 		r.Get("/gyms/{id}/edit", gymHandler.EditForm)
 		r.Post("/gyms/{id}", gymHandler.Update)
 
-		// Тренер: список клиентов и их тренировки
-		r.Get("/trainer/clients", trainerHandler.Clients)
-		r.Get("/trainer/clients/{id}", trainerHandler.ClientDetail)
-		r.Get("/trainer/clients/{id}/workouts", trainerHandler.ClientWorkouts)
-		r.Get("/trainer/clients/{id}/progress", trainerHandler.ClientProgress)
+		// Тренер: список клиентов и их тренировки (только роль trainer)
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddleware.RequireRole("trainer"))
+			r.Get("/trainer/clients", trainerHandler.Clients)
+			r.Get("/trainer/clients/{id}", trainerHandler.ClientDetail)
+			r.Get("/trainer/clients/{id}/workouts", trainerHandler.ClientWorkouts)
+			r.Get("/trainer/clients/{id}/progress", trainerHandler.ClientProgress)
+		})
 
-		// Шаблоны тренировок (только для тренеров)
-		r.Get("/templates", templateHandler.List)
-		r.Get("/templates/new", templateHandler.NewForm)
-		r.Post("/templates", templateHandler.Create)
-		r.Get("/templates/{id}", templateHandler.Show)
-		r.Get("/templates/{id}/edit", templateHandler.EditForm)
-		r.Post("/templates/{id}", templateHandler.Update)
-		r.Post("/templates/{id}/delete", templateHandler.Delete)
-		r.Get("/templates/{id}/apply", templateHandler.ApplyForm)
-		r.Post("/templates/{id}/apply", templateHandler.Apply)
+		// Шаблоны тренировок (только роль trainer)
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddleware.RequireRole("trainer"))
+			r.Get("/templates", templateHandler.List)
+			r.Get("/templates/new", templateHandler.NewForm)
+			r.Post("/templates", templateHandler.Create)
+			r.Get("/templates/{id}", templateHandler.Show)
+			r.Get("/templates/{id}/edit", templateHandler.EditForm)
+			r.Post("/templates/{id}", templateHandler.Update)
+			r.Post("/templates/{id}/delete", templateHandler.Delete)
+			r.Get("/templates/{id}/apply", templateHandler.ApplyForm)
+			r.Post("/templates/{id}/apply", templateHandler.Apply)
+		})
 
 		// Профиль
 		r.Get("/profile", profileHandler.Show)

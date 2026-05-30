@@ -136,11 +136,11 @@ func (r *ExerciseRepository) GetProgress(ctx context.Context, exerciseName strin
 
 func (r *ExerciseRepository) ListClientExercises(ctx context.Context, userID uuid.UUID) ([]model.ClientExerciseSummary, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT we.name, COUNT(DISTINCT w.id) AS session_count, MAX(w.workout_date) AS last_date
+		SELECT lower(we.name), COUNT(DISTINCT w.id) AS session_count, MAX(w.workout_date) AS last_date
 		FROM workout_exercises we
 		JOIN workouts w ON w.id = we.workout_id
 		WHERE w.user_id = $1
-		GROUP BY we.name
+		GROUP BY lower(we.name)
 		ORDER BY MAX(w.workout_date) DESC`, userID)
 	if err != nil {
 		return nil, err

@@ -385,8 +385,11 @@ func (h *WorkoutHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if deleteErr != nil && user.IsTrainer() {
 		deleteErr = h.workouts.DeleteByTrainer(r.Context(), id, user.ID)
 	}
+	if deleteErr != nil {
+		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		return
+	}
 
-	_ = deleteErr
 	http.Redirect(w, r, "/workouts", http.StatusSeeOther)
 }
 
@@ -583,8 +586,11 @@ func (h *WorkoutHandler) UploadMedia(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
-	// verify ownership
+	// verify ownership (trainer fallback for client workouts)
 	workout, err := h.workouts.GetByID(r.Context(), workoutID, user.ID)
+	if err != nil && user.IsTrainer() {
+		workout, err = h.workouts.GetByIDForTrainer(r.Context(), workoutID, user.ID)
+	}
 	if err != nil || workout == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
@@ -664,8 +670,11 @@ func (h *WorkoutHandler) DeleteMedia(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
-	// verify ownership
+	// verify ownership (trainer fallback for client workouts)
 	workout, err := h.workouts.GetByID(r.Context(), workoutID, user.ID)
+	if err != nil && user.IsTrainer() {
+		workout, err = h.workouts.GetByIDForTrainer(r.Context(), workoutID, user.ID)
+	}
 	if err != nil || workout == nil {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
@@ -677,8 +686,11 @@ func (h *WorkoutHandler) DeleteMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.media.Delete(r.Context(), mediaID); err != nil {
+		http.Error(w, "Ошибка базы данных", http.StatusInternalServerError)
+		return
+	}
 	os.Remove(filepath.Join(h.uploadDir, workoutID.String(), m.Filename))
-	h.media.Delete(r.Context(), mediaID)
 
 	http.Redirect(w, r, "/workouts/"+workoutID.String(), http.StatusSeeOther)
 }

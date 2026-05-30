@@ -340,6 +340,7 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 		LEFT JOIN workout_exercises we ON we.workout_id = w.id
 		LEFT JOIN sets s ON s.workout_exercise_id = we.id
 		WHERE w.user_id = $1
+		  AND w.ended_at IS NOT NULL
 		  AND date_trunc('week', w.workout_date) = date_trunc('week', CURRENT_DATE)`,
 		userID).Scan(&stats.WeekCount, &stats.WeekTonnage); err != nil {
 		return stats, err
@@ -347,7 +348,7 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 
 	dateRows, err := r.db.Query(ctx, `
 		SELECT DISTINCT workout_date::date
-		FROM workouts WHERE user_id = $1
+		FROM workouts WHERE user_id = $1 AND ended_at IS NOT NULL
 		ORDER BY 1 DESC LIMIT 60`, userID)
 	if err != nil {
 		return stats, err
@@ -649,8 +650,9 @@ func parseOptInt(s string) *int {
 func (r *WorkoutRepository) GetRecentPRs(ctx context.Context, userID uuid.UUID) ([]model.RecentPR, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH recent AS (
-			SELECT DISTINCT ON (we.name)
+			SELECT DISTINCT ON (lower(we.name))
 				we.name,
+				lower(we.name)    AS name_key,
 				s.weight          AS new_weight,
 				COALESCE(s.reps, 0) AS reps
 			FROM sets s
@@ -659,22 +661,22 @@ func (r *WorkoutRepository) GetRecentPRs(ctx context.Context, userID uuid.UUID) 
 			WHERE w.user_id = $1
 			  AND s.weight IS NOT NULL AND s.weight > 0
 			  AND w.workout_date >= NOW() - INTERVAL '30 days'
-			ORDER BY we.name, s.weight DESC
+			ORDER BY lower(we.name), s.weight DESC
 		),
 		historical AS (
-			SELECT we.name, MAX(s.weight) AS prev_max
+			SELECT lower(we.name) AS name_key, MAX(s.weight) AS prev_max
 			FROM sets s
 			JOIN workout_exercises we ON we.id = s.workout_exercise_id
 			JOIN workouts w ON w.id = we.workout_id
 			WHERE w.user_id = $1
 			  AND s.weight IS NOT NULL
 			  AND w.workout_date < NOW() - INTERVAL '30 days'
-			GROUP BY we.name
+			GROUP BY lower(we.name)
 		)
 		SELECT r.name, r.new_weight, r.reps,
 		       r.new_weight - COALESCE(h.prev_max, 0) AS delta
 		FROM recent r
-		LEFT JOIN historical h ON h.name = r.name
+		LEFT JOIN historical h ON h.name_key = r.name_key
 		WHERE r.new_weight > COALESCE(h.prev_max, 0)
 		ORDER BY delta DESC
 		LIMIT 3
