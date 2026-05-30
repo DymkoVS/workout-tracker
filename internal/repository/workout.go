@@ -140,9 +140,9 @@ func (r *WorkoutRepository) Create(ctx context.Context, userID uuid.UUID, w mode
 
 	var workoutID uuid.UUID
 	err = tx.QueryRow(ctx, `
-		INSERT INTO workouts (user_id, trainer_id, gym_id, title, workout_type, workout_date, notes, wellbeing)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
-		userID, w.TrainerID, w.GymID, w.Title, w.WorkoutType, w.WorkoutDate, w.Notes, w.Wellbeing,
+		INSERT INTO workouts (user_id, trainer_id, gym_id, title, workout_type, workout_date, notes, wellbeing, ended_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+		userID, w.TrainerID, w.GymID, w.Title, w.WorkoutType, w.WorkoutDate, w.Notes, w.Wellbeing, w.EndedAt,
 	).Scan(&workoutID)
 	if err != nil {
 		return nil, fmt.Errorf("insert workout: %w", err)

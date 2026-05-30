@@ -66,11 +66,13 @@ func (h *ImportHandler) Confirm(w http.ResponseWriter, r *http.Request) {
 
 	imported := 0
 	for _, pw := range parsed {
+		endedAt := pw.Date
 		wo := model.Workout{
 			UserID:      user.ID,
 			Title:       pw.Title,
 			WorkoutDate: pw.Date,
 			GymID:       gymID,
+			EndedAt:     &endedAt,
 		}
 		var exercises []model.FormExercise
 		for _, ex := range pw.Exercises {
