@@ -453,6 +453,15 @@ func (h *WorkoutHandler) AddSetRow(w http.ResponseWriter, r *http.Request) {
 func (h *WorkoutHandler) ExerciseSuggest(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if q == "" {
+		// HTMX sends the input's own field name, e.g. exercises[0][name]
+		for k, v := range r.URL.Query() {
+			if strings.Contains(k, "[name]") && len(v) > 0 {
+				q = strings.TrimSpace(v[0])
+				break
+			}
+		}
+	}
 	if len(q) < 2 {
 		w.Write([]byte(""))
 		return

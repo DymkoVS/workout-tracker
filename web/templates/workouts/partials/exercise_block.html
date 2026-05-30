@@ -12,11 +12,9 @@
         class="dk-input"
         style="font-family:'Anton',Impact,sans-serif;font-size:17px;letter-spacing:0.5px;padding:8px 10px"
         hx-get="/workouts/htmx/exercise-suggest"
-        hx-trigger="input changed delay:250ms"
+        hx-trigger="input delay:250ms"
         hx-target="next .ex-suggest"
         hx-swap="innerHTML"
-        hx-params="none"
-        hx-vals='js:{"q": this.value}'
         hx-sync="this:replace">
       <div class="ex-suggest" style="position:absolute;left:0;right:0;top:100%;z-index:30;background:#FFFFFF;border:1px solid #E0DDD8;border-top:none"></div>
     </div>
