@@ -21,16 +21,11 @@
   </div>
 </div>
 
-{{if .SparklineTonnages}}
+{{if .HeatmapDates}}
 <div style="padding:20px 24px 0">
   <div style="background:#FFFFFF;border:1px solid #E0DDD8;padding:16px 18px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div class="eyebrow eyebrow-dim2">ТОННАЖ · 6 ПОСЛЕДНИХ</div>
-      {{if .TonnageDelta}}
-      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#7A9200">{{.TonnageDelta}}</div>
-      {{end}}
-    </div>
-    <div id="sparkline-wrap" style="height:60px;position:relative"></div>
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:12px">АКТИВНОСТЬ · 16 НЕДЕЛЬ</div>
+    <div id="heatmap-wrap"></div>
   </div>
 </div>
 {{end}}
@@ -163,40 +158,63 @@
 {{end}}
 
 {{define "scripts"}}
-{{if .SparklineTonnages}}
+{{if .HeatmapDates}}
 <script>
 (function() {
-  var vals = [{{range $i, $v := .SparklineTonnages}}{{if $i}},{{end}}{{printf "%.4g" $v}}{{end}}];
-  var wrap = document.getElementById('sparkline-wrap');
-  if (!wrap || !vals.length) return;
+  var activeDates = [{{range $i, $v := .HeatmapDates}}{{if $i}},{{end}}"{{$v}}"{{end}}];
+  var dateSet = {};
+  for (var i = 0; i < activeDates.length; i++) dateSet[activeDates[i]] = 1;
 
-  var W = wrap.offsetWidth || 300;
-  var H = 60;
-  var pad = 6;
+  var wrap = document.getElementById('heatmap-wrap');
+  if (!wrap) return;
 
-  var min = vals[0], max = vals[0];
-  for (var i = 1; i < vals.length; i++) {
-    if (vals[i] < min) min = vals[i];
-    if (vals[i] > max) max = vals[i];
+  var WEEKS = 16, DAYS = 7;
+  var GAP = 3;
+  var cellSize = Math.floor((wrap.offsetWidth - 16 - GAP * (WEEKS - 1)) / WEEKS);
+  cellSize = Math.max(10, Math.min(cellSize, 18));
+
+  // Start on the Monday of the week 15 weeks ago
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var todayStr = today.toISOString().slice(0, 10);
+
+  var start = new Date(today);
+  var dow = start.getDay();
+  start.setDate(start.getDate() - (dow === 0 ? 6 : dow - 1)); // this week's Monday
+  start.setDate(start.getDate() - 15 * 7);                    // go back 15 more weeks
+
+  var dayLabels = ['Пн', '', 'Ср', '', 'Пт', '', 'Вс'];
+
+  var html = '<div style="display:flex;gap:' + GAP + 'px;align-items:flex-start">';
+
+  // Day label column
+  html += '<div style="display:flex;flex-direction:column;gap:' + GAP + 'px;width:14px;flex-shrink:0;padding-top:0">';
+  for (var d = 0; d < DAYS; d++) {
+    html += '<div style="height:' + cellSize + 'px;line-height:' + cellSize + 'px;font-family:\'Space Grotesk\',system-ui;font-size:8px;color:#B0ADA8;text-align:right">' + (dayLabels[d] || '') + '</div>';
   }
-  var range = max - min || 1;
+  html += '</div>';
 
-  var pts = vals.map(function(v, i) {
-    var x = pad + (vals.length < 2 ? (W - 2 * pad) / 2 : i / (vals.length - 1) * (W - 2 * pad));
-    var y = pad + (1 - (v - min) / range) * (H - 2 * pad);
-    return [x.toFixed(1), y.toFixed(1)];
-  });
+  // Week columns
+  for (var w = 0; w < WEEKS; w++) {
+    html += '<div style="display:flex;flex-direction:column;gap:' + GAP + 'px">';
+    for (var d = 0; d < DAYS; d++) {
+      var date = new Date(start.getTime());
+      date.setDate(start.getDate() + w * 7 + d);
+      var ds = date.toISOString().slice(0, 10);
+      var isFuture = date > today;
+      var isToday = ds === todayStr;
+      var active = !!dateSet[ds];
 
-  var d = pts.map(function(p, i) { return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join(' ');
-  var circles = pts.map(function(p) {
-    return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3" fill="#7A9200"/>';
-  }).join('');
+      var bg = isFuture ? 'transparent' : (active ? '#7A9200' : '#EEEDE9');
+      var extra = isToday ? ';outline:2px solid #D7FF1A;outline-offset:-1px' : '';
 
-  wrap.innerHTML =
-    '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" style="display:block">' +
-    '<path d="' + d + '" fill="none" stroke="#B8D800" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
-    circles +
-    '</svg>';
+      html += '<div style="width:' + cellSize + 'px;height:' + cellSize + 'px;background:' + bg + ';border-radius:2px' + extra + '" title="' + ds + '"></div>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+  wrap.innerHTML = html;
 })();
 </script>
 {{end}}

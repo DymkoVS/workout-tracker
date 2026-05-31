@@ -747,6 +747,27 @@ func (r *WorkoutRepository) GetRecentUnique(ctx context.Context, userID uuid.UUI
 	return all, nil
 }
 
+// GetWorkoutDates returns workout_date for all completed workouts on or after since.
+func (r *WorkoutRepository) GetWorkoutDates(ctx context.Context, userID uuid.UUID, since time.Time) ([]time.Time, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT workout_date FROM workouts
+		WHERE user_id = $1 AND ended_at IS NOT NULL AND workout_date >= $2
+		ORDER BY workout_date`, userID, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var dates []time.Time
+	for rows.Next() {
+		var d time.Time
+		if err := rows.Scan(&d); err != nil {
+			return nil, err
+		}
+		dates = append(dates, d)
+	}
+	return dates, nil
+}
+
 // SuggestExercises returns exercise names from the user's history matching the prefix.
 func (r *WorkoutRepository) SuggestExercises(ctx context.Context, userID uuid.UUID, q string) ([]string, error) {
 	rows, err := r.db.Query(ctx, `

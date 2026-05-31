@@ -109,55 +109,28 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 		upcomingCards[i], upcomingCards[j] = upcomingCards[j], upcomingCards[i]
 	}
 
-	// Sparkline: up to 6 most-recent history workouts in chronological order (oldest→newest).
-	n := len(historyCards)
-	end := n
-	if end > 6 {
-		end = 6
-	}
-	sparkline := make([]float64, end)
-	for i := 0; i < end; i++ {
-		sparkline[i] = historyCards[end-1-i].Tonnage
-	}
-
-	// Tonnage delta: last 30 days vs. prior 30 days (history only).
-	var tonnageDelta string
-	now := time.Now()
-	cut30 := now.AddDate(0, 0, -30)
-	cut60 := now.AddDate(0, 0, -60)
-	var last30, prev30 float64
-	for _, c := range historyCards {
-		switch {
-		case c.WorkoutDate.After(cut30):
-			last30 += c.Tonnage
-		case c.WorkoutDate.After(cut60):
-			prev30 += c.Tonnage
-		}
-	}
-	if prev30 > 0 {
-		pct := (last30 - prev30) / prev30 * 100
-		if pct >= 0 {
-			tonnageDelta = fmt.Sprintf("▲ +%.0f%%", pct)
-		} else {
-			tonnageDelta = fmt.Sprintf("▼ %.0f%%", pct)
-		}
+	// Heatmap: workout dates from the last 16 weeks (all workouts, filter-independent).
+	heatmapSince := time.Now().AddDate(0, 0, -112)
+	heatmapTimes, _ := h.workouts.GetWorkoutDates(r.Context(), user.ID, heatmapSince)
+	heatmapDates := make([]string, len(heatmapTimes))
+	for i, d := range heatmapTimes {
+		heatmapDates[i] = d.Format("2006-01-02")
 	}
 
 	gyms, _ := h.gyms.List(r.Context())
 
 	renderTemplate(w, r, "workouts/list.html", map[string]any{
-		"WorkoutGroups":     groupByMonth(historyCards),
-		"UpcomingCards":     upcomingCards,
-		"TotalCount":        len(historyCards),
-		"SparklineTonnages": sparkline,
-		"TonnageDelta":      tonnageDelta,
-		"Gyms":              gyms,
-		"FilterFrom":        filterFrom,
-		"FilterTo":          filterTo,
-		"FilterGymID":       filterGymID,
-		"FilterExercise":    filterExercise,
-		"FilterType":        filterType,
-		"FilterActive":      filter.IsActive(),
+		"WorkoutGroups":  groupByMonth(historyCards),
+		"UpcomingCards":  upcomingCards,
+		"TotalCount":     len(historyCards),
+		"HeatmapDates":   heatmapDates,
+		"Gyms":           gyms,
+		"FilterFrom":     filterFrom,
+		"FilterTo":       filterTo,
+		"FilterGymID":    filterGymID,
+		"FilterExercise": filterExercise,
+		"FilterType":     filterType,
+		"FilterActive":   filter.IsActive(),
 	})
 }
 
