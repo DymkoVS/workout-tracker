@@ -83,6 +83,21 @@
 </head>
 <body class="font-sans min-h-screen" style="background:#F5F4F0;color:#111110">
 
+{{if and .ActiveWorkout (not (contains .CurrentPath "/active"))}}
+<a href="/workouts/{{.ActiveWorkout.ID}}/active"
+   style="display:flex;align-items:center;justify-content:space-between;background:#D7FF1A;color:#000;padding:14px 20px;text-decoration:none;position:sticky;top:0;z-index:60">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="display:inline-block;width:8px;height:8px;background:#000;border-radius:50%;animation:pulse 1.2s ease-in-out infinite"></span>
+    <div>
+      <div style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;opacity:0.6">АКТИВНАЯ ТРЕНИРОВКА</div>
+      <div class="font-display" style="font-size:16px;line-height:1.1;letter-spacing:0.5px">{{if .ActiveWorkout.Title}}{{toUpper .ActiveWorkout.Title}}{{else}}ТРЕНИРОВКА{{end}}</div>
+    </div>
+  </div>
+  <div style="font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">ПРОДОЛЖИТЬ →</div>
+</a>
+<style>@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }</style>
+{{end}}
+
 <main class="{{if .CurrentUser}}pb-28{{end}}">
   {{block "content" .}}{{end}}
 </main>

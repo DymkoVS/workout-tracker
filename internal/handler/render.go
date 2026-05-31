@@ -85,8 +85,9 @@ var tmplFuncs = template.FuncMap{
 		}
 		return ""
 	},
-	"toUpper": strings.ToUpper,
-	"printf":  fmt.Sprintf,
+	"toUpper":  strings.ToUpper,
+	"contains": strings.Contains,
+	"printf":   fmt.Sprintf,
 	"formatTonnage": func(kg float64) string {
 		if kg == 0 {
 			return "0кг"
@@ -165,6 +166,9 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, name string, data ma
 	}
 	if _, ok := data["CurrentPath"]; !ok {
 		data["CurrentPath"] = r.URL.Path
+	}
+	if _, ok := data["ActiveWorkout"]; !ok {
+		data["ActiveWorkout"] = middleware.ActiveWorkoutFromContext(r.Context())
 	}
 
 	// Собираем все шаблоны: base + страница + партиалы упражнений

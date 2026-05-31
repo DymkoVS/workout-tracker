@@ -489,6 +489,19 @@ func (r *WorkoutRepository) FinishSession(ctx context.Context, workoutID, userID
 	return err
 }
 
+// FindActiveWorkout returns the workout that is currently in progress (started but not finished).
+func (r *WorkoutRepository) FindActiveWorkout(ctx context.Context, userID uuid.UUID) *model.Workout {
+	var w model.Workout
+	err := r.db.QueryRow(ctx, `
+		SELECT id, title FROM workouts
+		WHERE user_id = $1 AND started_at IS NOT NULL AND ended_at IS NULL
+		ORDER BY started_at DESC LIMIT 1`, userID).Scan(&w.ID, &w.Title)
+	if err != nil {
+		return nil
+	}
+	return &w
+}
+
 // GetActiveSession loads a workout with started_at/ended_at and sets with done status.
 func (r *WorkoutRepository) GetActiveSession(ctx context.Context, id, userID uuid.UUID) (*model.Workout, error) {
 	rows, err := r.db.Query(ctx, `

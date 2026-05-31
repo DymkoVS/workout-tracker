@@ -11,14 +11,16 @@ import (
 type contextKey string
 
 const UserKey contextKey = "user"
+const ActiveWorkoutKey contextKey = "active_workout"
 
 type AuthMiddleware struct {
 	sessions *session.Store
 	users    *repository.UserRepository
+	workouts *repository.WorkoutRepository
 }
 
-func NewAuthMiddleware(sessions *session.Store, users *repository.UserRepository) *AuthMiddleware {
-	return &AuthMiddleware{sessions: sessions, users: users}
+func NewAuthMiddleware(sessions *session.Store, users *repository.UserRepository, workouts *repository.WorkoutRepository) *AuthMiddleware {
+	return &AuthMiddleware{sessions: sessions, users: users, workouts: workouts}
 }
 
 func (m *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
@@ -34,6 +36,9 @@ func (m *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
 			return
 		}
 		ctx := context.WithValue(r.Context(), UserKey, user)
+		if aw := m.workouts.FindActiveWorkout(ctx, user.ID); aw != nil {
+			ctx = context.WithValue(ctx, ActiveWorkoutKey, aw)
+		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -81,4 +86,9 @@ func (m *AuthMiddleware) userFromRequest(r *http.Request) *model.User {
 func UserFromContext(ctx context.Context) *model.User {
 	u, _ := ctx.Value(UserKey).(*model.User)
 	return u
+}
+
+func ActiveWorkoutFromContext(ctx context.Context) *model.Workout {
+	w, _ := ctx.Value(ActiveWorkoutKey).(*model.Workout)
+	return w
 }

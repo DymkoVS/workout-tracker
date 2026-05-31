@@ -44,7 +44,7 @@ func main() {
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo, gymRepo)
 	profileHandler := handler.NewProfileHandler(workoutRepo, gymRepo, tcRepo, templateRepo, userRepo)
 	importHandler := handler.NewImportHandler(workoutRepo, gymRepo)
-	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo)
+	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo, workoutRepo)
 
 	r := chi.NewRouter()
 	r.Use(chimiddleware.Logger)
