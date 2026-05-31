@@ -280,7 +280,7 @@ func (h *WorkoutHandler) Show(w http.ResponseWriter, r *http.Request) {
 
 	media, _ := h.media.ListForWorkout(r.Context(), id)
 
-	data := map[string]any{"Workout": workout, "Media": media}
+	data := map[string]any{"Workout": workout, "Media": media, "ShareText": buildShareText(workout)}
 	if workout.UserID != user.ID && user.IsTrainer() {
 		data["BackURL"] = fmt.Sprintf("/trainer/clients/%s/workouts", workout.UserID)
 		data["CanEdit"] = workout.TrainerID != nil && *workout.TrainerID == user.ID
@@ -717,4 +717,53 @@ func (h *WorkoutHandler) ServeMedia(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.ServeFile(w, r, filepath.Join(h.uploadDir, workoutID.String(), filepath.Base(filename)))
+}
+
+func buildShareText(w *model.Workout) string {
+	var b strings.Builder
+	title := w.Title
+	if title == "" {
+		title = "Тренировка"
+	}
+	b.WriteString(title + " · " + w.WorkoutDate.Format("02.01.2006") + "\n")
+	if w.GymName != "" {
+		b.WriteString("Зал: " + w.GymName + "\n")
+	}
+	for i, ex := range w.Exercises {
+		b.WriteString(fmt.Sprintf("\n%d. %s\n", i+1, ex.Name))
+		var parts []string
+		for _, s := range ex.Sets {
+			var part string
+			if s.Weight != nil && s.Reps != nil {
+				part = strconv.FormatFloat(*s.Weight, 'f', -1, 64) + "×" + strconv.Itoa(*s.Reps)
+			} else if s.Reps != nil {
+				part = "б/в×" + strconv.Itoa(*s.Reps)
+			}
+			if part != "" {
+				parts = append(parts, part)
+			}
+		}
+		if len(parts) > 0 {
+			b.WriteString("   " + strings.Join(parts, ", ") + "\n")
+		}
+	}
+	var tonnage float64
+	for _, ex := range w.Exercises {
+		for _, s := range ex.Sets {
+			if s.Weight != nil && s.Reps != nil {
+				tonnage += *s.Weight * float64(*s.Reps)
+			}
+		}
+	}
+	if tonnage > 0 {
+		b.WriteString("\nТоннаж: " + fmtTonnageShare(tonnage))
+	}
+	return b.String()
+}
+
+func fmtTonnageShare(kg float64) string {
+	if kg >= 1000 {
+		return strconv.FormatFloat(kg/1000, 'f', 1, 64) + "т"
+	}
+	return strconv.FormatFloat(kg, 'f', 0, 64) + "кг"
 }
