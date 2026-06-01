@@ -71,7 +71,7 @@ func genIcon(size int, path string) {
 }
 
 func main() {
-	base := "/Users/vladimir/Documents/Claude Projects/workout-tracker/web/static/icons/"
+	base := "web/static/icons/"
 	genIcon(512, base+"icon-512.png")
 	genIcon(192, base+"icon-192.png")
 	genIcon(180, base+"apple-touch-icon.png")

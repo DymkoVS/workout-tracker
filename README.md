@@ -2,8 +2,6 @@
 
 Personal workout tracking web app with trainer–client roles. Mobile-first, Russian UI.
 
-**Live:** [dymko.ru](https://dymko.ru)
-
 ## Stack
 
 - **Backend:** Go 1.22, [chi](https://github.com/go-chi/chi) router
