@@ -173,10 +173,17 @@
   var cellSize = Math.floor((wrap.offsetWidth - 16 - GAP * (WEEKS - 1)) / WEEKS);
   cellSize = Math.max(10, Math.min(cellSize, 18));
 
+  // Use local date formatting to avoid UTC offset shifting dates by 1 day
+  function localDateStr(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+
   // Start on the Monday of the week 15 weeks ago
   var today = new Date();
   today.setHours(0, 0, 0, 0);
-  var todayStr = today.toISOString().slice(0, 10);
+  var todayStr = localDateStr(today);
 
   var start = new Date(today);
   var dow = start.getDay();
@@ -200,7 +207,7 @@
     for (var d = 0; d < DAYS; d++) {
       var date = new Date(start.getTime());
       date.setDate(start.getDate() + w * 7 + d);
-      var ds = date.toISOString().slice(0, 10);
+      var ds = localDateStr(date);
       var isFuture = date > today;
       var isToday = ds === todayStr;
       var active = !!dateSet[ds];
