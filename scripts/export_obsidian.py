@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 """
-Export new completed workouts from workout-tracker DB to Obsidian journal.
+Export new completed workouts to Obsidian journal.
+
+Two modes:
+  --from-json FILE  Read workouts from pre-fetched JSON (server-side data)
+  (default)         Query DB directly via SSH (requires server to be reachable)
 
 Usage:
-  python3 scripts/export_obsidian.py           # sync new workouts
-  python3 scripts/export_obsidian.py --dry-run # show what would be added
+  python3 scripts/export_obsidian.py                        # SSH mode
+  python3 scripts/export_obsidian.py --from-json /tmp/w.json
+  python3 scripts/export_obsidian.py --dry-run
 """
 
 import subprocess
 import re
 import sys
+import json
 import argparse
 from datetime import date
 from pathlib import Path
@@ -28,8 +34,9 @@ MONTHS_RU = {
 }
 
 
+# ── DB access (SSH mode) ──────────────────────────────────────────────────────
+
 def run_query(sql):
-    """Run SQL on production DB via SSH. Returns list of rows."""
     cmd = f'docker exec {DB_CONTAINER} psql -U {DB_USER} -d {DB_NAME} -t -A -F"|" -c "{sql}"'
     result = subprocess.run(
         ["ssh", "-o", "ConnectTimeout=15", SSH_HOST, cmd],
@@ -45,8 +52,43 @@ def run_query(sql):
     return rows
 
 
+def fetch_workouts_via_ssh():
+    rows = run_query(
+        "SELECT w.id, w.title, w.workout_date::text, COALESCE(g.name, '') "
+        "FROM workouts w "
+        "LEFT JOIN gyms g ON g.id = w.gym_id "
+        "JOIN users u ON u.id = w.user_id "
+        f"WHERE u.login = '{CLIENT_LOGIN}' AND w.ended_at IS NOT NULL "
+        "ORDER BY w.workout_date"
+    )
+    workouts = []
+    for wid, title, wdate, gym in rows:
+        ex_rows = run_query(
+            "SELECT we.name, we.order_num, "
+            "COALESCE(TRIM(TRAILING '0' FROM TRIM(TRAILING '.' FROM weight::text)), ''), s.reps "
+            "FROM workout_exercises we "
+            "JOIN sets s ON s.workout_exercise_id = we.id "
+            f"WHERE we.workout_id = '{wid}' "
+            "ORDER BY we.order_num, s.set_num"
+        )
+        exercises_map = {}
+        for row in ex_rows:
+            name, order, weight, reps = row[0], int(row[1]), row[2], int(row[3])
+            name = name.replace("×", "х")
+            if order not in exercises_map:
+                exercises_map[order] = {"name": name, "sets": []}
+            exercises_map[order]["sets"].append([weight, int(reps)])
+
+        workouts.append({
+            "id": wid, "title": title, "date": wdate, "gym": gym,
+            "exercises": [exercises_map[k] for k in sorted(exercises_map)],
+        })
+    return workouts
+
+
+# ── Obsidian file helpers ─────────────────────────────────────────────────────
+
 def get_existing_dates():
-    """Parse all journal files and return set of workout dates already recorded."""
     existing = set()
     date_re = re.compile(r"## Тренировка \d+ — .+ \| (\d{2})\.(\d{2})\.(\d{4})")
     for f in JOURNAL_DIR.glob("20*.md"):
@@ -59,7 +101,6 @@ def get_existing_dates():
 
 
 def get_max_workout_num():
-    """Find the highest тренировка number across all journal files."""
     max_num = 0
     num_re = re.compile(r"## Тренировка (\d+) —")
     for f in JOURNAL_DIR.glob("20*.md"):
@@ -70,72 +111,7 @@ def get_max_workout_num():
     return max_num
 
 
-def get_db_workouts():
-    """Fetch all completed workouts for CLIENT_LOGIN, ordered by date."""
-    sql = (
-        "SELECT w.id, w.title, w.workout_date, COALESCE(g.name, '') "
-        "FROM workouts w "
-        "LEFT JOIN gyms g ON g.id = w.gym_id "
-        "JOIN users u ON u.id = w.user_id "
-        f"WHERE u.login = '{CLIENT_LOGIN}' AND w.ended_at IS NOT NULL "
-        "ORDER BY w.workout_date"
-    )
-    result = []
-    for row in run_query(sql):
-        wid, title, wdate_str, gym = row[0], row[1], row[2], row[3]
-        result.append({"id": wid, "title": title, "date": date.fromisoformat(wdate_str), "gym": gym})
-    return result
-
-
-def get_exercises(workout_id):
-    """Fetch exercises + sets for a workout, grouped by exercise order."""
-    sql = (
-        "SELECT we.name, we.order_num, s.set_num, "
-        "COALESCE(TRIM(TRAILING '0' FROM TRIM(TRAILING '.' FROM weight::text)), ''), s.reps "
-        "FROM workout_exercises we "
-        "JOIN sets s ON s.workout_exercise_id = we.id "
-        f"WHERE we.workout_id = '{workout_id}' "
-        "ORDER BY we.order_num, s.set_num"
-    )
-    exercises = {}
-    for row in run_query(sql):
-        name, order_num, _, weight, reps = row[0], int(row[1]), int(row[2]), row[3], int(row[4])
-        # Fix × (multiplication sign) mistakenly used instead of Cyrillic х in names
-        name = name.replace("×", "х")
-        if order_num not in exercises:
-            exercises[order_num] = {"name": name, "sets": []}
-        exercises[order_num]["sets"].append((weight, int(reps)))
-    return [exercises[k] for k in sorted(exercises.keys())]
-
-
-def format_sets(sets):
-    """Collapse consecutive identical sets: (10, 8), (10, 8) → 10×8×2."""
-    parts = []
-    i = 0
-    while i < len(sets):
-        weight, reps = sets[i]
-        count = 1
-        while i + count < len(sets) and sets[i + count] == (weight, reps):
-            count += 1
-        w = weight if weight else "б/в"
-        parts.append(f"{w}×{reps}×{count}" if count > 1 else f"{w}×{reps}")
-        i += count
-    return ", ".join(parts)
-
-
-def format_block(num, wo, exercises):
-    """Return Obsidian markdown block for a workout."""
-    d = wo["date"]
-    date_str = f"{d.day:02d}.{d.month:02d}.{d.year}"
-    lines = [f"## Тренировка {num} — {wo['title']} | {date_str}", ""]
-    for i, ex in enumerate(exercises, 1):
-        lines.append(f"{i}. {ex['name']} — {format_sets(ex['sets'])}")
-    lines += ["", "---", ""]
-    return "\n".join(lines)
-
-
 def get_journal_file(wo_date):
-    """Return path to the month journal file, creating it if needed."""
     fpath = JOURNAL_DIR / f"{wo_date.year}-{wo_date.month:02d}.md"
     if not fpath.exists():
         month_name = MONTHS_RU[wo_date.month]
@@ -168,18 +144,53 @@ def append_to_file(fpath, text):
     fpath.write_text(content + "\n\n" + text, encoding="utf-8")
 
 
+# ── Formatting ────────────────────────────────────────────────────────────────
+
+def format_sets(sets):
+    parts = []
+    i = 0
+    while i < len(sets):
+        weight, reps = sets[i]
+        count = 1
+        while i + count < len(sets) and sets[i + count] == [weight, reps]:
+            count += 1
+        w = weight if weight else "б/в"
+        parts.append(f"{w}×{reps}×{count}" if count > 1 else f"{w}×{reps}")
+        i += count
+    return ", ".join(parts)
+
+
+def format_block(num, wo, wo_date):
+    date_str = f"{wo_date.day:02d}.{wo_date.month:02d}.{wo_date.year}"
+    lines = [f"## Тренировка {num} — {wo['title']} | {date_str}", ""]
+    for i, ex in enumerate(wo["exercises"], 1):
+        lines.append(f"{i}. {ex['name']} — {format_sets(ex['sets'])}")
+    lines += ["", "---", ""]
+    return "\n".join(lines)
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be added, don't write")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--from-json", metavar="FILE",
+                        help="Read workouts from JSON file instead of querying DB via SSH")
     args = parser.parse_args()
 
     print("workout-tracker → Obsidian sync")
 
-    existing_dates = get_existing_dates()
-    db_workouts = get_db_workouts()
-    new_workouts = [w for w in db_workouts if w["date"] not in existing_dates]
+    if args.from_json:
+        all_workouts = json.loads(Path(args.from_json).read_text(encoding="utf-8"))
+        print(f"Источник: {args.from_json} ({len(all_workouts)} записей)")
+    else:
+        all_workouts = fetch_workouts_via_ssh()
 
-    print(f"Obsidian: {len(existing_dates)} | БД: {len(db_workouts)} | Новых: {len(new_workouts)}")
+    existing_dates = get_existing_dates()
+    new_workouts = [w for w in all_workouts
+                    if date.fromisoformat(w["date"]) not in existing_dates]
+
+    print(f"Obsidian: {len(existing_dates)} | БД: {len(all_workouts)} | Новых: {len(new_workouts)}")
 
     if not new_workouts:
         print("Нечего добавлять.")
@@ -189,11 +200,11 @@ def main():
     file_counts = {}
 
     for wo in new_workouts:
-        exercises = get_exercises(wo["id"])
-        block = format_block(next_num, wo, exercises)
-        fpath = get_journal_file(wo["date"])
+        wo_date = date.fromisoformat(wo["date"])
+        block = format_block(next_num, wo, wo_date)
+        fpath = get_journal_file(wo_date)
 
-        key = (wo["date"].year, wo["date"].month)
+        key = (wo_date.year, wo_date.month)
         if key not in file_counts:
             file_counts[key] = count_entries_in_file(fpath)
 
@@ -204,7 +215,7 @@ def main():
             file_counts[key] += 1
             append_to_file(fpath, block)
             update_month_count(fpath, file_counts[key])
-            print(f"  ✓ #{next_num} — {wo['title']} | {wo['date']}")
+            print(f"  ✓ #{next_num} — {wo['title']} | {wo_date}")
 
         next_num += 1
 
