@@ -65,7 +65,8 @@ def fetch_workouts_via_ssh():
     for wid, title, wdate, gym in rows:
         ex_rows = run_query(
             "SELECT we.name, we.order_num, "
-            "COALESCE(TRIM(TRAILING '0' FROM TRIM(TRAILING '.' FROM weight::text)), ''), s.reps "
+            "COALESCE(TRIM(TRAILING '0' FROM TRIM(TRAILING '.' FROM weight::text)), ''), "
+            "COALESCE(s.reps, 0) "
             "FROM workout_exercises we "
             "JOIN sets s ON s.workout_exercise_id = we.id "
             f"WHERE we.workout_id = '{wid}' "

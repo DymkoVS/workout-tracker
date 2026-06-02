@@ -110,7 +110,7 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Heatmap: workout dates from the last 16 weeks (all workouts, filter-independent).
-	heatmapSince := time.Now().AddDate(0, 0, -112)
+	heatmapSince := time.Now().UTC().Truncate(24*time.Hour).AddDate(0, 0, -112)
 	heatmapTimes, _ := h.workouts.GetWorkoutDates(r.Context(), user.ID, heatmapSince)
 	heatmapDates := make([]string, len(heatmapTimes))
 	for i, d := range heatmapTimes {

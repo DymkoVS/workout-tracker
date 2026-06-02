@@ -364,12 +364,18 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 	}
 	dateRows.Close()
 
-	today := time.Now().Truncate(24 * time.Hour)
-	for i, d := range dates {
-		if d.Truncate(24 * time.Hour).Equal(today.AddDate(0, 0, -i)) {
-			stats.Streak++
-		} else {
-			break
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	if len(dates) > 0 {
+		mostRecent := dates[0].UTC().Truncate(24 * time.Hour)
+		// Accept streak starting from today OR yesterday (user may not have trained yet today)
+		if mostRecent.Equal(today) || mostRecent.Equal(today.AddDate(0, 0, -1)) {
+			for i, d := range dates {
+				if d.UTC().Truncate(24 * time.Hour).Equal(mostRecent.AddDate(0, 0, -i)) {
+					stats.Streak++
+				} else {
+					break
+				}
+			}
 		}
 	}
 
@@ -750,7 +756,7 @@ func (r *WorkoutRepository) GetRecentUnique(ctx context.Context, userID uuid.UUI
 // GetWorkoutDates returns workout_date for all completed workouts on or after since.
 func (r *WorkoutRepository) GetWorkoutDates(ctx context.Context, userID uuid.UUID, since time.Time) ([]time.Time, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT workout_date FROM workouts
+		SELECT DISTINCT workout_date FROM workouts
 		WHERE user_id = $1 AND ended_at IS NOT NULL AND workout_date >= $2
 		ORDER BY workout_date`, userID, since)
 	if err != nil {

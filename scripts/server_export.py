@@ -50,7 +50,8 @@ def main():
     for wid, title, wdate, gym in workout_rows:
         ex_rows = psql(
             "SELECT we.name, we.order_num, "
-            "COALESCE(TRIM(TRAILING '0' FROM TRIM(TRAILING '.' FROM weight::text)), ''), s.reps "
+            "COALESCE(TRIM(TRAILING '0' FROM TRIM(TRAILING '.' FROM weight::text)), ''), "
+            "COALESCE(s.reps, 0) "
             "FROM workout_exercises we "
             "JOIN sets s ON s.workout_exercise_id = we.id "
             f"WHERE we.workout_id = '{wid}' "
@@ -74,7 +75,9 @@ def main():
         })
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(workouts, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp = OUTPUT.with_suffix(".tmp")
+    tmp.write_text(json.dumps(workouts, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.rename(OUTPUT)  # atomic on same filesystem
     print(f"Exported {len(workouts)} workouts → {OUTPUT}")
 
 

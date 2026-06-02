@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"time"
 	"workout-tracker/internal/config"
 	"workout-tracker/internal/db"
 	"workout-tracker/internal/handler"
@@ -24,6 +26,15 @@ func main() {
 	defer pool.Close()
 
 	sessionStore := session.NewStore(pool)
+
+	go func() {
+		for {
+			if err := sessionStore.DeleteExpired(context.Background()); err != nil {
+				log.Printf("session cleanup: %v", err)
+			}
+			time.Sleep(24 * time.Hour)
+		}
+	}()
 	userRepo := repository.NewUserRepository(pool)
 	gymRepo := repository.NewGymRepository(pool)
 	workoutRepo := repository.NewWorkoutRepository(pool)
