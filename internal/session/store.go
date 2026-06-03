@@ -58,28 +58,24 @@ func (s *Store) DeleteExpired(ctx context.Context) error {
 	return err
 }
 
-func SetCookie(w http.ResponseWriter, sessionID uuid.UUID) {
-	http.SetCookie(w, &http.Cookie{
+func newCookie(value string, maxAge int) *http.Cookie {
+	return &http.Cookie{
 		Name:     cookieName,
-		Value:    sessionID.String(),
+		Value:    value,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(sessionTTL.Seconds()),
-	})
+		MaxAge:   maxAge,
+	}
+}
+
+func SetCookie(w http.ResponseWriter, sessionID uuid.UUID) {
+	http.SetCookie(w, newCookie(sessionID.String(), int(sessionTTL.Seconds())))
 }
 
 func ClearCookie(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     cookieName,
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   -1,
-	})
+	http.SetCookie(w, newCookie("", -1))
 }
 
 func ReadCookie(r *http.Request) (uuid.UUID, error) {

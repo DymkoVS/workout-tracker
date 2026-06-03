@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 	"workout-tracker/internal/config"
 	"workout-tracker/internal/db"
@@ -25,14 +28,28 @@ func main() {
 	}
 	defer pool.Close()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
+		cancel()
+	}()
+
 	sessionStore := session.NewStore(pool)
 
 	go func() {
 		for {
-			if err := sessionStore.DeleteExpired(context.Background()); err != nil {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(24 * time.Hour):
+			}
+			if err := sessionStore.DeleteExpired(ctx); err != nil && ctx.Err() == nil {
 				log.Printf("session cleanup: %v", err)
 			}
-			time.Sleep(24 * time.Hour)
 		}
 	}()
 	userRepo := repository.NewUserRepository(pool)

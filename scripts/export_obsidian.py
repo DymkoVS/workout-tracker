@@ -37,7 +37,7 @@ MONTHS_RU = {
 # ── DB access (SSH mode) ──────────────────────────────────────────────────────
 
 def run_query(sql):
-    cmd = f'docker exec {DB_CONTAINER} psql -U {DB_USER} -d {DB_NAME} -t -A -F"|" -c "{sql}"'
+    cmd = f'docker exec {DB_CONTAINER} psql -U {DB_USER} -d {DB_NAME} -t -A -F"\t" -c "{sql}"'
     result = subprocess.run(
         ["ssh", "-o", "ConnectTimeout=15", SSH_HOST, cmd],
         capture_output=True, text=True,
@@ -48,68 +48,65 @@ def run_query(sql):
     for line in result.stdout.strip().splitlines():
         line = line.strip()
         if line and not line.startswith("("):
-            rows.append(line.split("|"))
+            rows.append(line.split("\t"))
     return rows
 
 
 def fetch_workouts_via_ssh():
     rows = run_query(
-        "SELECT w.id, w.title, w.workout_date::text, COALESCE(g.name, '') "
+        "SELECT w.id, w.title, w.workout_date::text, COALESCE(g.name, ''), "
+        "COALESCE(we.name, ''), COALESCE(we.order_num::text, ''), "
+        "COALESCE(TRIM(TRAILING '0' FROM TRIM(TRAILING '.' FROM s.weight::text)), ''), "
+        "COALESCE(s.reps::text, '0') "
         "FROM workouts w "
         "LEFT JOIN gyms g ON g.id = w.gym_id "
         "JOIN users u ON u.id = w.user_id "
+        "LEFT JOIN workout_exercises we ON we.workout_id = w.id "
+        "LEFT JOIN sets s ON s.workout_exercise_id = we.id "
         f"WHERE u.login = '{CLIENT_LOGIN}' AND w.ended_at IS NOT NULL "
-        "ORDER BY w.workout_date"
+        "ORDER BY w.workout_date, w.id, we.order_num, s.set_num"
     )
+
     workouts = []
-    for wid, title, wdate, gym in rows:
-        ex_rows = run_query(
-            "SELECT we.name, we.order_num, "
-            "COALESCE(TRIM(TRAILING '0' FROM TRIM(TRAILING '.' FROM weight::text)), ''), "
-            "COALESCE(s.reps, 0) "
-            "FROM workout_exercises we "
-            "JOIN sets s ON s.workout_exercise_id = we.id "
-            f"WHERE we.workout_id = '{wid}' "
-            "ORDER BY we.order_num, s.set_num"
-        )
-        exercises_map = {}
-        for row in ex_rows:
-            name, order, weight, reps = row[0], int(row[1]), row[2], int(row[3])
-            name = name.replace("×", "х")
+    current_wid = None
+    exercises_map = {}
+
+    for row in rows:
+        wid, title, wdate, gym, ex_name, ex_order, weight, reps_str = row
+        if wid != current_wid:
+            if current_wid is not None:
+                workouts[-1]["exercises"] = [exercises_map[k] for k in sorted(exercises_map)]
+            workouts.append({"id": wid, "title": title, "date": wdate, "gym": gym, "exercises": []})
+            current_wid = wid
+            exercises_map = {}
+        if ex_order:
+            order = int(ex_order)
+            name = ex_name.replace("×", "х")
             if order not in exercises_map:
                 exercises_map[order] = {"name": name, "sets": []}
-            exercises_map[order]["sets"].append([weight, int(reps)])
+            exercises_map[order]["sets"].append([weight, int(reps_str)])
 
-        workouts.append({
-            "id": wid, "title": title, "date": wdate, "gym": gym,
-            "exercises": [exercises_map[k] for k in sorted(exercises_map)],
-        })
+    if workouts:
+        workouts[-1]["exercises"] = [exercises_map[k] for k in sorted(exercises_map)]
+
     return workouts
 
 
 # ── Obsidian file helpers ─────────────────────────────────────────────────────
 
-def get_existing_dates():
+def scan_obsidian_state() -> tuple:
+    """Single pass over all journal files — returns (existing_dates, max_workout_num)."""
     existing = set()
-    date_re = re.compile(r"## Тренировка \d+ — .+ \| (\d{2})\.(\d{2})\.(\d{4})")
-    for f in JOURNAL_DIR.glob("20*.md"):
-        for line in f.read_text(encoding="utf-8").splitlines():
-            m = date_re.match(line)
-            if m:
-                d, mo, y = m.groups()
-                existing.add(date(int(y), int(mo), int(d)))
-    return existing
-
-
-def get_max_workout_num():
     max_num = 0
-    num_re = re.compile(r"## Тренировка (\d+) —")
+    heading_re = re.compile(r"## Тренировка (\d+) — .+ \| (\d{2})\.(\d{2})\.(\d{4})")
     for f in JOURNAL_DIR.glob("20*.md"):
         for line in f.read_text(encoding="utf-8").splitlines():
-            m = num_re.match(line)
+            m = heading_re.match(line)
             if m:
-                max_num = max(max_num, int(m.group(1)))
-    return max_num
+                num, d, mo, y = m.groups()
+                max_num = max(max_num, int(num))
+                existing.add(date(int(y), int(mo), int(d)))
+    return existing, max_num
 
 
 def get_journal_file(wo_date):
@@ -187,7 +184,7 @@ def main():
     else:
         all_workouts = fetch_workouts_via_ssh()
 
-    existing_dates = get_existing_dates()
+    existing_dates, max_num = scan_obsidian_state()
     new_workouts = [w for w in all_workouts
                     if date.fromisoformat(w["date"]) not in existing_dates]
 
@@ -197,7 +194,7 @@ def main():
         print("Нечего добавлять.")
         return
 
-    next_num = get_max_workout_num() + 1
+    next_num = max_num + 1
     file_counts = {}
 
     for wo in new_workouts:
