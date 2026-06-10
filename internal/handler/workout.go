@@ -386,9 +386,34 @@ func (h *WorkoutHandler) ActiveSession(w http.ResponseWriter, r *http.Request) {
 		workout.StartedAt = &now
 	}
 	startedUnix := workout.StartedAt.Unix()
+
+	// "Прошлый раз" — последняя более ранняя сессия с тем же упражнением.
+	prevByEx := make(map[uuid.UUID]string, len(workout.Exercises))
+	for _, ex := range workout.Exercises {
+		perf, err := h.workouts.GetPreviousExercisePerf(
+			r.Context(), user.ID, ex.Name, workout.ID, workout.WorkoutDate, workout.CreatedAt)
+		if err != nil || perf == nil || len(perf.Sets) == 0 {
+			continue
+		}
+		parts := make([]string, 0, len(perf.Sets))
+		for _, s := range perf.Sets {
+			wt := "—"
+			if s.Weight != nil {
+				wt = strconv.FormatFloat(*s.Weight, 'g', 4, 64)
+			}
+			rp := "—"
+			if s.Reps != nil {
+				rp = strconv.Itoa(*s.Reps)
+			}
+			parts = append(parts, wt+"×"+rp)
+		}
+		prevByEx[ex.ID] = perf.Date.Format("02.01") + ": " + strings.Join(parts, ", ")
+	}
+
 	renderTemplate(w, r, "workouts/active.html", map[string]any{
-		"Workout":       workout,
-		"StartedAtUnix": startedUnix,
+		"Workout":        workout,
+		"StartedAtUnix":  startedUnix,
+		"PrevByExercise": prevByEx,
 	})
 }
 
@@ -490,7 +515,13 @@ func (h *WorkoutHandler) FinishSession(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	_ = h.workouts.FinishSession(r.Context(), id, user.ID)
+	var wb *int
+	if v := strings.TrimSpace(r.FormValue("wellbeing")); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 1 && n <= 5 {
+			wb = &n
+		}
+	}
+	_ = h.workouts.FinishSession(r.Context(), id, user.ID, wb)
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%s", id), http.StatusSeeOther)
 }
 

@@ -487,12 +487,48 @@ func (r *WorkoutRepository) StartSession(ctx context.Context, workoutID, userID 
 	return err
 }
 
-// FinishSession sets ended_at = NOW().
-func (r *WorkoutRepository) FinishSession(ctx context.Context, workoutID, userID uuid.UUID) error {
+// FinishSession sets ended_at = NOW(); if wellbeing is non-nil, also records it.
+func (r *WorkoutRepository) FinishSession(ctx context.Context, workoutID, userID uuid.UUID, wellbeing *int) error {
 	_, err := r.db.Exec(ctx,
-		`UPDATE workouts SET ended_at = NOW() WHERE id = $1 AND user_id = $2`,
-		workoutID, userID)
+		`UPDATE workouts SET ended_at = NOW(), wellbeing = COALESCE($3, wellbeing) WHERE id = $1 AND user_id = $2`,
+		workoutID, userID, wellbeing)
 	return err
+}
+
+// ExercisePerf is the previous-session performance for one exercise.
+type ExercisePerf struct {
+	Date time.Time
+	Sets []model.Set
+}
+
+// GetPreviousExercisePerf returns the sets from the most recent *earlier* workout
+// (same user) that contains an exercise with the same name — used to show
+// "прошлый раз" reference during an active session. Returns nil if none.
+func (r *WorkoutRepository) GetPreviousExercisePerf(ctx context.Context, userID uuid.UUID, name string, currentID uuid.UUID, before, beforeCreated time.Time) (*ExercisePerf, error) {
+	var weID uuid.UUID
+	var date time.Time
+	err := r.db.QueryRow(ctx, `
+		SELECT we.id, w.workout_date
+		FROM workout_exercises we
+		JOIN workouts w ON w.id = we.workout_id
+		WHERE w.user_id = $1
+		  AND lower(we.name) = lower($2)
+		  AND w.id <> $3
+		  AND (w.workout_date < $4 OR (w.workout_date = $4 AND w.created_at < $5))
+		ORDER BY w.workout_date DESC, w.created_at DESC
+		LIMIT 1`,
+		userID, name, currentID, before, beforeCreated).Scan(&weID, &date)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	sets, err := r.loadSets(ctx, weID)
+	if err != nil {
+		return nil, err
+	}
+	return &ExercisePerf{Date: date, Sets: sets}, nil
 }
 
 // FindActiveWorkout returns the workout that is currently in progress (started but not finished).

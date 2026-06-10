@@ -41,6 +41,7 @@
       {{if $w.Title}}{{toUpper $w.Title}}{{else}}ТРЕНИРОВКА{{end}}
     </div>
     <form method="POST" action="/workouts/{{$w.ID}}/finish" style="min-width:48px;text-align:right">
+      <input type="hidden" name="wellbeing" id="wb-top">
       <button type="submit"
         style="background:#D7FF1A;color:#000;border:none;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:8px 14px;cursor:pointer">
         ГОТОВО
@@ -73,6 +74,13 @@
     {{if $ex.Notes}}
     <div style="font-size:12px;color:#9E9893;margin-top:4px">{{$ex.Notes}}</div>
     {{end}}
+    {{$prev := ""}}{{if $.PrevByExercise}}{{$prev = index $.PrevByExercise $ex.ID}}{{end}}
+    {{if $prev}}
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+      <span class="eyebrow eyebrow-dim2">ПРОШЛЫЙ РАЗ</span>
+      <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#6B6560">{{$prev}}</span>
+    </div>
+    {{end}}
   </div>
 
   {{/* Column headers */}}
@@ -99,7 +107,18 @@
 
 {{/* Bottom finish button */}}
 <div style="padding:24px 20px 40px">
+  {{/* Самочувствие — фиксируется при завершении, кормит email-отчёты */}}
+  <div style="margin-bottom:16px">
+    <div class="eyebrow eyebrow-dim2" style="margin-bottom:10px;text-align:center">КАК ПРОШЛА ТРЕНИРОВКА?</div>
+    <div style="display:flex;gap:6px;justify-content:center">
+      {{range $i := iterate 5}}{{$v := add $i 1}}
+      <button type="button" class="wb-btn" data-wb="{{$v}}" onclick="selectWellbeing({{$v}})"
+        style="width:52px;height:52px;background:#FFFFFF;border:1px solid #E0DDD8;font-size:24px;line-height:1;cursor:pointer;transition:transform 0.1s,background 0.1s,border-color 0.1s">{{wellbeingEmoji $v}}</button>
+      {{end}}
+    </div>
+  </div>
   <form method="POST" action="/workouts/{{$w.ID}}/finish">
+    <input type="hidden" name="wellbeing" id="wb-bottom">
     <button type="submit"
       style="width:100%;background:transparent;color:#6B6560;border:1px solid #E0DDD8;font-family:'Space Grotesk',system-ui;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:16px;cursor:pointer">
       ЗАВЕРШИТЬ ТРЕНИРОВКУ
@@ -187,6 +206,20 @@ document.body.addEventListener('startRestTimer', function(e) {
   var secs = (e.detail && e.detail.seconds) ? e.detail.seconds : 180;
   startRestTimer(secs);
 });
+
+// Wellbeing picker — синхронизирует обе формы завершения (верх + низ)
+function selectWellbeing(n) {
+  var top = document.getElementById('wb-top');
+  var bot = document.getElementById('wb-bottom');
+  if (top) top.value = n;
+  if (bot) bot.value = n;
+  document.querySelectorAll('.wb-btn').forEach(function(b) {
+    var sel = (b.getAttribute('data-wb') == n);
+    b.style.background = sel ? '#D7FF1A' : '#FFFFFF';
+    b.style.borderColor = sel ? '#B8D800' : '#E0DDD8';
+    b.style.transform = sel ? 'scale(1.08)' : 'scale(1)';
+  });
+}
 
 // Init progress
 updateProgress();
