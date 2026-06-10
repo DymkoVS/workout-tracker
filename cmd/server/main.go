@@ -78,6 +78,7 @@ func main() {
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo, tcRepo, gymRepo)
 	profileHandler := handler.NewProfileHandler(workoutRepo, gymRepo, tcRepo, templateRepo, userRepo)
 	importHandler := handler.NewImportHandler(workoutRepo, gymRepo)
+	apiHandler := handler.NewAPIHandler(workoutRepo, gymRepo, userRepo, cfg.ImportAPIToken)
 	authMiddleware := middleware.NewAuthMiddleware(sessionStore, userRepo, workoutRepo)
 
 	r := chi.NewRouter()
@@ -106,6 +107,10 @@ func main() {
 	r.Get("/offline", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/static/offline.html")
 	})
+
+	// Server-to-server import API (bearer-token auth внутри хендлера, без сессии).
+	r.Post("/api/import", apiHandler.Import)
+	r.Get("/api/gyms", apiHandler.Gyms)
 
 	// Публичные маршруты
 	r.Get("/login", authHandler.LoginPage)
