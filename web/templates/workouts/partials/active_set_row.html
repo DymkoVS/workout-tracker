@@ -5,13 +5,17 @@
 
   <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9E9893">{{.Set.SetNum}}</span>
 
-  <div style="display:flex;align-items:baseline;gap:2px">
-    <span class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;color:{{if .Set.Done}}#9E9893{{else}}#111110{{end}}">{{if .Set.Weight}}{{printf "%.4g" (derefF .Set.Weight)}}{{else}}—{{end}}</span>
+  {{/* Вес — тап для редактирования */}}
+  <div hx-get="/workouts/sets/{{.Set.ID}}/edit" hx-target="#asr-{{.Set.ID}}" hx-swap="outerHTML"
+       style="display:flex;align-items:baseline;gap:2px;cursor:pointer">
+    <span class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;border-bottom:1px dotted #C9C6C0;color:{{if .Set.Done}}#9E9893{{else}}#111110{{end}}">{{if .Set.Weight}}{{printf "%.4g" (derefF .Set.Weight)}}{{else}}—{{end}}</span>
     {{if .Set.Weight}}<span style="font-size:10px;color:#9E9893;margin-left:1px">кг</span>{{end}}
   </div>
 
-  <div style="text-align:center">
-    <span class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;color:{{if .Set.Done}}#9E9893{{else}}#111110{{end}}">{{if .Set.Reps}}{{derefI .Set.Reps}}{{else}}—{{end}}</span>
+  {{/* Повторы — тап для редактирования */}}
+  <div hx-get="/workouts/sets/{{.Set.ID}}/edit" hx-target="#asr-{{.Set.ID}}" hx-swap="outerHTML"
+       style="text-align:center;cursor:pointer">
+    <span class="font-display" style="font-size:22px;line-height:1;letter-spacing:0.5px;border-bottom:1px dotted #C9C6C0;color:{{if .Set.Done}}#9E9893{{else}}#111110{{end}}">{{if .Set.Reps}}{{derefI .Set.Reps}}{{else}}—{{end}}</span>
   </div>
 
   <div style="text-align:center">
@@ -19,12 +23,17 @@
   </div>
 
   {{if .Set.Done}}
-  <div style="display:flex;align-items:center;justify-content:center;gap:4px;color:#9E9893">
+  {{/* Готово — тап снимает отметку */}}
+  <button
+    hx-post="/workouts/sets/{{.Set.ID}}/done"
+    hx-target="#asr-{{.Set.ID}}"
+    hx-swap="outerHTML"
+    style="display:flex;align-items:center;justify-content:center;gap:4px;color:#9E9893;background:none;border:none;cursor:pointer;width:80px;padding:7px 0">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="20 6 9 17 4 12"/>
     </svg>
     <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.2px">ГОТОВО</span>
-  </div>
+  </button>
   {{else}}
   <button
     hx-post="/workouts/sets/{{.Set.ID}}/done"

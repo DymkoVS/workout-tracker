@@ -1,0 +1,28 @@
+{{define "active_set_edit.html"}}
+<form class="asr" id="asr-{{.Set.ID}}"
+      hx-post="/workouts/sets/{{.Set.ID}}"
+      hx-target="#asr-{{.Set.ID}}"
+      hx-swap="outerHTML"
+      style="display:grid;grid-template-columns:24px 1fr 1fr 48px 80px;gap:0;align-items:center;padding:7px 18px;border-left:3px solid #B8D800;background:rgba(184,216,0,0.12)">
+
+  <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9E9893">{{.Set.SetNum}}</span>
+
+  <input name="weight" inputmode="decimal" autocomplete="off" autofocus
+         value="{{if .Set.Weight}}{{printf "%.4g" (derefF .Set.Weight)}}{{end}}" placeholder="—"
+         style="width:66px;font-family:'Anton',Impact,sans-serif;font-size:22px;line-height:1;letter-spacing:0.5px;color:#111110;background:#FFFFFF;border:1px solid #B8D800;padding:2px 6px;outline:none">
+
+  <input name="reps" inputmode="numeric" autocomplete="off"
+         value="{{if .Set.Reps}}{{derefI .Set.Reps}}{{end}}" placeholder="—"
+         style="width:56px;justify-self:center;text-align:center;font-family:'Anton',Impact,sans-serif;font-size:22px;line-height:1;letter-spacing:0.5px;color:#111110;background:#FFFFFF;border:1px solid #B8D800;padding:2px 6px;outline:none">
+
+  <span style="text-align:center;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#9E9893">{{if .Set.RPE}}{{printf "%.3g" (derefF .Set.RPE)}}{{else}}—{{end}}</span>
+
+  <div style="display:flex;gap:4px;justify-content:flex-end">
+    <button type="submit"
+      style="background:#D7FF1A;color:#000;border:none;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:0.5px;padding:8px 10px;cursor:pointer">OK</button>
+    <button type="button"
+      hx-get="/workouts/sets/{{.Set.ID}}/row" hx-target="#asr-{{.Set.ID}}" hx-swap="outerHTML"
+      style="background:none;border:1px solid #E0DDD8;color:#9E9893;font-size:13px;font-weight:700;padding:6px 9px;cursor:pointer">✕</button>
+  </div>
+</form>
+{{end}}

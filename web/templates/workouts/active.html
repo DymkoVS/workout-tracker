@@ -143,13 +143,15 @@ function updateProgress() {
 
 function startRestTimer(seconds) {
   if (restTimer) clearInterval(restTimer);
-  var remaining = seconds;
+  // Считаем от времени окончания, а не декрементим переменную — иначе таймер
+  // замирает при блокировке экрана (iOS приостанавливает setInterval).
+  var endsAt = Math.floor(Date.now() / 1000) + seconds;
   var toast = document.getElementById('rest-toast');
   var countdown = document.getElementById('rest-countdown');
   toast.classList.add('visible');
   function fmt(n) { return (n < 10 ? '0' : '') + n; }
   function tick() {
-    remaining--;
+    var remaining = endsAt - Math.floor(Date.now() / 1000);
     if (remaining <= 0) {
       clearInterval(restTimer);
       restTimer = null;
@@ -181,8 +183,9 @@ document.body.addEventListener('htmx:afterSwap', function() {
   updateProgress();
 });
 
-document.body.addEventListener('startRestTimer', function() {
-  startRestTimer(180);
+document.body.addEventListener('startRestTimer', function(e) {
+  var secs = (e.detail && e.detail.seconds) ? e.detail.seconds : 180;
+  startRestTimer(secs);
 });
 
 // Init progress

@@ -603,6 +603,24 @@ func (r *WorkoutRepository) ToggleSetDone(ctx context.Context, setID, userID uui
 	return done, err
 }
 
+// UpdateSetValues updates weight and reps of a single set (used for inline
+// editing during an active session), verifying it belongs to userID.
+func (r *WorkoutRepository) UpdateSetValues(ctx context.Context, setID, userID uuid.UUID, weight *float64, reps *int) (*model.Set, error) {
+	_, err := r.db.Exec(ctx, `
+		UPDATE sets SET weight = $1, reps = $2
+		WHERE id = $3
+		  AND workout_exercise_id IN (
+		      SELECT we.id FROM workout_exercises we
+		      JOIN workouts w ON w.id = we.workout_id
+		      WHERE w.user_id = $4
+		  )`,
+		weight, reps, setID, userID)
+	if err != nil {
+		return nil, err
+	}
+	return r.GetSetByID(ctx, setID, userID)
+}
+
 // GetSetByID returns a single set (including done) verifying it belongs to userID.
 func (r *WorkoutRepository) GetSetByID(ctx context.Context, setID, userID uuid.UUID) (*model.Set, error) {
 	var s model.Set

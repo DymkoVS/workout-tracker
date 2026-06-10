@@ -404,17 +404,83 @@ func (h *WorkoutHandler) ToggleSetDone(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка", http.StatusInternalServerError)
 		return
 	}
+	s, err := h.workouts.GetSetByID(r.Context(), setID, user.ID)
+	if err != nil {
+		http.Error(w, "Ошибка", http.StatusInternalServerError)
+		return
+	}
+	// При завершении подхода запускаем таймер отдыха на индивидуальное время
+	// подхода (rest_seconds), с дефолтом 180 с, если не задано.
 	if done {
-		w.Header().Set("HX-Trigger", "startRestTimer")
+		rest := 180
+		if s.RestSeconds != nil && *s.RestSeconds > 0 {
+			rest = *s.RestSeconds
+		}
+		w.Header().Set("HX-Trigger", fmt.Sprintf(`{"startRestTimer":{"seconds":%d}}`, rest))
+	}
+	renderPartial(w, r, "workouts/partials/active_set_row.html", map[string]any{
+		"Set": s,
+	})
+}
+
+// EditSetRow returns the inline-edit version of an active set row.
+func (h *WorkoutHandler) EditSetRow(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	setID, err := uuid.Parse(chi.URLParam(r, "setID"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
 	}
 	s, err := h.workouts.GetSetByID(r.Context(), setID, user.ID)
 	if err != nil {
 		http.Error(w, "Ошибка", http.StatusInternalServerError)
 		return
 	}
-	renderPartial(w, r, "workouts/partials/active_set_row.html", map[string]any{
-		"Set": s,
-	})
+	renderPartial(w, r, "workouts/partials/active_set_edit.html", map[string]any{"Set": s})
+}
+
+// SetRow returns the read-only active set row (used to cancel inline edit).
+func (h *WorkoutHandler) SetRow(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	setID, err := uuid.Parse(chi.URLParam(r, "setID"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	s, err := h.workouts.GetSetByID(r.Context(), setID, user.ID)
+	if err != nil {
+		http.Error(w, "Ошибка", http.StatusInternalServerError)
+		return
+	}
+	renderPartial(w, r, "workouts/partials/active_set_row.html", map[string]any{"Set": s})
+}
+
+// UpdateSet saves edited weight/reps for a set and returns the read-only row.
+func (h *WorkoutHandler) UpdateSet(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	setID, err := uuid.Parse(chi.URLParam(r, "setID"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	var weight *float64
+	if v := strings.TrimSpace(strings.ReplaceAll(r.FormValue("weight"), ",", ".")); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			weight = &f
+		}
+	}
+	var reps *int
+	if v := strings.TrimSpace(r.FormValue("reps")); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			reps = &n
+		}
+	}
+	s, err := h.workouts.UpdateSetValues(r.Context(), setID, user.ID, weight, reps)
+	if err != nil {
+		http.Error(w, "Ошибка", http.StatusInternalServerError)
+		return
+	}
+	renderPartial(w, r, "workouts/partials/active_set_row.html", map[string]any{"Set": s})
 }
 
 func (h *WorkoutHandler) FinishSession(w http.ResponseWriter, r *http.Request) {
