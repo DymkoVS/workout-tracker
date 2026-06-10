@@ -53,7 +53,15 @@ HTMX partials use `renderPartial`, which parses only the target partial file and
 
 ### Migrations
 
-SQL files in `migrations/` are numbered sequentially (`001_init.sql` … `005_active_session.sql`). Docker Compose mounts them into `/docker-entrypoint-initdb.d` so they run automatically on a fresh DB container. There is **no runtime migration runner** — apply new migrations manually or recreate the container.
+SQL files in `migrations/` are numbered sequentially (`001_init.sql` … `009_*.sql`) and embedded into the binary (`migrations/embed.go`). On startup `db.Migrate` (`internal/db/migrate.go`) applies any not-yet-recorded files in order, each in its own transaction, tracking them in a `schema_migrations` table (guarded by a `pg_advisory_lock` so concurrent instances don't race).
+
+**Baseline:** on the first run against a DB that already has the schema (the `users` table exists — e.g. prod, built earlier via the Docker `initdb` mount), all currently-bundled migrations are *recorded as applied without being executed*. So adding the runner to an existing DB is safe.
+
+**Adding a migration:** drop a new `NNN_name.sql` into `migrations/` and deploy — it auto-applies. ⚠️ Do **not** add a brand-new migration in the same deploy that first introduces the runner (it would be baselined, not run). Docker Compose still mounts `migrations/` into `/docker-entrypoint-initdb.d` for fresh containers; the runner makes them idempotent on existing ones.
+
+### Tests
+
+`make test` runs `go test ./...`. Integration tests in `internal/repository/` exercise the real DB: `TestMain` (`main_test.go`) drops/recreates a `workout_tracker_test` database (override via `TEST_DATABASE_URL`) and runs the migrator to build the schema. If no Postgres is reachable the integration tests **skip** (not fail), so `go test ./...` stays green without a DB. Requires `make db` running locally.
 
 ### Deployment
 

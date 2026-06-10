@@ -14,6 +14,7 @@ import (
 	"workout-tracker/internal/middleware"
 	"workout-tracker/internal/repository"
 	"workout-tracker/internal/session"
+	"workout-tracker/migrations"
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
@@ -27,6 +28,11 @@ func main() {
 		log.Fatalf("database: %v", err)
 	}
 	defer pool.Close()
+
+	// Применяем новые миграции при старте (idempotent; baseline на существующей БД).
+	if err := db.Migrate(context.Background(), pool, migrations.FS); err != nil {
+		log.Fatalf("migrate: %v", err)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
