@@ -90,6 +90,10 @@ func main() {
 		http.ServeFile(w, r, "web/static/sw.js")
 	})
 	r.Handle("/icons/*", http.StripPrefix("/icons", http.FileServer(http.Dir("web/static/icons"))))
+	r.Get("/static/app.css", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		http.ServeFile(w, r, "web/static/app.css")
+	})
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/static/icons/favicon-32.png")
 	})

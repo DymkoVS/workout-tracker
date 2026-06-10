@@ -1,0 +1,50 @@
+/* app.css — статические стили приложения.
+   Заменяет Tailwind Play-CDN (рантайм-компиляция ~3 МБ JS, FOUC на мобильном).
+   Содержит: мини-reset (замена preflight), дизайн-токены, утилиты. */
+
+/* ── Reset (повторяет нужные части Tailwind preflight) ───────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+body { min-height: 100vh; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4, h5, h6, p { font-size: inherit; font-weight: inherit; }
+ul, ol { list-style: none; padding: 0; }
+img, svg, video { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Дизайн-токены ───────────────────────────────────────────────────────── */
+:root {
+  --bg: #F5F4F0; --surface: #FFFFFF; --surface-2: #EEEDE9;
+  --hair: #E0DDD8; --hair-2: #E9E8E4;
+  --text: #111110; --dim: #6B6560; --dim-2: #9E9893;
+  --accent: #D7FF1A; --accent-dk: #B8D800; --accent-text: #7A9200;
+  --danger: #D93025; --warn: #D97706;
+}
+
+body { background: #F5F4F0; color: #111110; }
+
+/* ── Утилиты (перенесены из base.html) ───────────────────────────────────── */
+.font-sans     { font-family: 'Space Grotesk', system-ui, sans-serif; }
+.min-h-screen  { min-height: 100vh; }
+.pb-28         { padding-bottom: 7rem; }
+
+.eyebrow {
+  font-family: 'Space Grotesk', system-ui;
+  font-size: 10px; letter-spacing: 1.8px;
+  text-transform: uppercase; color: var(--dim); font-weight: 600;
+}
+.eyebrow-accent { color: var(--accent-text); }
+.eyebrow-dim2   { color: var(--dim-2); }
+.font-display   { font-family: 'Anton', Impact, sans-serif; }
+.font-mono-wt   { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* iOS Safari placeholder fix */
+input::placeholder, textarea::placeholder {
+  color: #9E9893; opacity: 1; -webkit-text-fill-color: #9E9893;
+}
+/* Wellbeing emoji contrast on real devices */
+.wellbeing-emoji { font-size: 24px; line-height: 1; filter: saturate(1.2) contrast(1.0); }
+/* Tab bar label contrast */
+.tab-inactive { color: #9E9893; }
+.tab-active   { color: #111110; }

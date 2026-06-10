@@ -1,9 +1,10 @@
-const CACHE_STATIC = 'wt-static-v2';
-const CACHE_PAGES  = 'wt-pages-v2';
-const CACHE_MEDIA  = 'wt-media-v2';
+const CACHE_STATIC = 'wt-static-v3';
+const CACHE_PAGES  = 'wt-pages-v3';
+const CACHE_MEDIA  = 'wt-media-v3';
 
 const STATIC_ASSETS = [
   '/manifest.json',
+  '/static/app.css',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/favicon-32.png',
@@ -44,8 +45,8 @@ self.addEventListener('fetch', function(e) {
   // Never cache POST/DELETE/etc.
   if (req.method !== 'GET') return;
 
-  // Static icons & manifest — cache-first
-  if (url.pathname.startsWith('/icons/') || url.pathname === '/manifest.json' || url.pathname === '/sw.js') {
+  // Static icons, css & manifest — cache-first
+  if (url.pathname.startsWith('/icons/') || url.pathname.startsWith('/static/') || url.pathname === '/manifest.json' || url.pathname === '/sw.js') {
     e.respondWith(
       caches.match(req).then(function(cached) {
         return cached || fetch(req).then(function(resp) {

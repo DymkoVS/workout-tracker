@@ -19,65 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            bg:         '#F5F4F0',
-            surface:    '#FFFFFF',
-            surface2:   '#EEEDE9',
-            hair:       '#E0DDD8',
-            hair2:      '#E9E8E4',
-            dim:        '#6B6560',
-            dim2:       '#9E9893',
-            accent:     '#D7FF1A',
-            accentDk:   '#B8D800',
-            accentText: '#7A9200',
-            danger:     '#D93025',
-            warn:       '#D97706',
-          },
-          fontFamily: {
-            display: ['"Anton"', 'Impact', 'sans-serif'],
-            sans:    ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-            mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-          },
-        },
-      },
-    };
-  </script>
-  <style>
-    :root {
-      --bg: #F5F4F0; --surface: #FFFFFF; --surface-2: #EEEDE9;
-      --hair: #E0DDD8; --hair-2: #E9E8E4;
-      --text: #111110; --dim: #6B6560; --dim-2: #9E9893;
-      --accent: #D7FF1A; --accent-dk: #B8D800; --accent-text: #7A9200;
-      --danger: #D93025; --warn: #D97706;
-    }
-    * { box-sizing: border-box; }
-    body { background: #F5F4F0; color: #111110; }
-    .eyebrow {
-      font-family: 'Space Grotesk', system-ui;
-      font-size: 10px; letter-spacing: 1.8px;
-      text-transform: uppercase; color: var(--dim); font-weight: 600;
-    }
-    .eyebrow-accent { color: var(--accent-text); }
-    .eyebrow-dim2   { color: var(--dim-2); }
-    .font-display   { font-family: 'Anton', Impact, sans-serif; }
-    .font-mono-wt   { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-    a { text-decoration: none; color: inherit; }
-    input, button, select, textarea { font-family: inherit; }
-    /* iOS Safari placeholder fix */
-    input::placeholder, textarea::placeholder {
-      color: #9E9893; opacity: 1; -webkit-text-fill-color: #9E9893;
-    }
-    /* Wellbeing emoji contrast on real devices */
-    .wellbeing-emoji { font-size: 24px; line-height: 1; filter: saturate(1.2) contrast(1.0); }
-    /* Tab bar label contrast */
-    .tab-inactive { color: #9E9893; }
-    .tab-active   { color: #111110; }
-  </style>
+  <link rel="stylesheet" href="/static/app.css">
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   {{block "head_extra" .}}{{end}}
 </head>
