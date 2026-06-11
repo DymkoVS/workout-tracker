@@ -6,6 +6,8 @@ import (
 	"workout-tracker/internal/model"
 	"workout-tracker/internal/repository"
 	"workout-tracker/internal/session"
+
+	"github.com/google/uuid"
 )
 
 type contextKey string
@@ -25,7 +27,7 @@ func NewAuthMiddleware(sessions *session.Store, users *repository.UserRepository
 
 func (m *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := m.userFromRequest(r)
+		user, sessionID := m.userFromRequest(r)
 		if user == nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -34,6 +36,11 @@ func (m *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
 			session.ClearCookie(w)
 			http.Redirect(w, r, "/login?error=inactive", http.StatusSeeOther)
 			return
+		}
+		// Скользящая сессия: при активности продлеваем TTL (не чаще раза в сутки)
+		// и переустанавливаем cookie, чтобы активного пользователя не разлогинивало.
+		if m.sessions.Touch(r.Context(), sessionID) {
+			session.SetCookie(w, sessionID)
 		}
 		ctx := context.WithValue(r.Context(), UserKey, user)
 		if aw := m.workouts.FindActiveWorkout(ctx, user.ID); aw != nil {
@@ -67,20 +74,20 @@ func (m *AuthMiddleware) RequireRole(role string) func(http.Handler) http.Handle
 	}
 }
 
-func (m *AuthMiddleware) userFromRequest(r *http.Request) *model.User {
+func (m *AuthMiddleware) userFromRequest(r *http.Request) (*model.User, uuid.UUID) {
 	sessionID, err := session.ReadCookie(r)
 	if err != nil {
-		return nil
+		return nil, uuid.Nil
 	}
 	userID, err := m.sessions.GetUserID(r.Context(), sessionID)
 	if err != nil {
-		return nil
+		return nil, uuid.Nil
 	}
 	user, err := m.users.GetByID(r.Context(), userID)
 	if err != nil {
-		return nil
+		return nil, uuid.Nil
 	}
-	return user
+	return user, sessionID
 }
 
 func UserFromContext(ctx context.Context) *model.User {

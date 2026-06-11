@@ -48,6 +48,21 @@ func (s *Store) GetUserID(ctx context.Context, sessionID uuid.UUID) (uuid.UUID, 
 	return userID, nil
 }
 
+// Touch продлевает живую сессию до полного TTL от текущего момента (скользящая
+// сессия). Чтобы не писать в БД на каждый запрос, продлеваем только если с
+// прошлого продления прошло больше суток. Возвращает true, если продлили —
+// тогда вызывающий должен переустановить cookie с новым MaxAge.
+func (s *Store) Touch(ctx context.Context, sessionID uuid.UUID) bool {
+	ct, err := s.db.Exec(ctx, `
+		UPDATE sessions
+		SET expires_at = NOW() + make_interval(secs => $2)
+		WHERE id = $1
+		  AND expires_at > NOW()
+		  AND expires_at < NOW() + make_interval(secs => $2) - interval '24 hours'`,
+		sessionID, sessionTTL.Seconds())
+	return err == nil && ct.RowsAffected() > 0
+}
+
 func (s *Store) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	_, err := s.db.Exec(ctx, `DELETE FROM sessions WHERE id = $1`, sessionID)
 	return err
