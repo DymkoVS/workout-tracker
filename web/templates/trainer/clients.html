@@ -89,7 +89,11 @@
   {{end}}
 </div>
 
-<div style="padding:20px 24px 0">
+<div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:10px">
+  <a href="/trainer/clients/new"
+    style="display:block;width:100%;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:18px;letter-spacing:2px;padding:18px;text-align:center;text-decoration:none">
+    + ДОБАВИТЬ КЛИЕНТА
+  </a>
   <a href="/templates"
     style="display:block;width:100%;background:transparent;color:#111110;border:1px solid #E0DDD8;font-family:'Space Grotesk',system-ui;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:16px;text-align:center;text-decoration:none">
     Применить шаблон ко всем →
@@ -99,7 +103,11 @@
 {{else}}
 <div style="padding:80px 24px;text-align:center">
   <div class="font-display" style="font-size:22px;letter-spacing:0.5px;color:#9E9893;margin-bottom:12px">КЛИЕНТОВ ПОКА НЕТ</div>
-  <div style="color:#6B6560;font-size:13px">Обратитесь к администратору для назначения клиентов</div>
+  <div style="color:#6B6560;font-size:13px;margin-bottom:24px">Добавьте первого клиента — он получит логин и пароль для входа</div>
+  <a href="/trainer/clients/new"
+    style="display:inline-block;background:#D7FF1A;color:#000;font-family:'Anton',Impact,sans-serif;font-size:18px;letter-spacing:2px;padding:16px 32px;text-decoration:none">
+    + ДОБАВИТЬ КЛИЕНТА
+  </a>
 </div>
 {{end}}
 

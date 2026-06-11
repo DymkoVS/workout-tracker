@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"workout-tracker/internal/middleware"
+	"workout-tracker/internal/model"
 	"workout-tracker/internal/repository"
 
 	"github.com/go-chi/chi/v5"
@@ -69,6 +70,56 @@ func (h *TrainerHandler) Clients(w http.ResponseWriter, r *http.Request) {
 		"WeekPulseDelta":    weekPulseDelta,
 		"WeekPulseDeltaNeg": weekPulseDeltaNeg,
 	})
+}
+
+// NewClientForm показывает форму добавления нового клиента тренером.
+func (h *TrainerHandler) NewClientForm(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, r, "trainer/client_form.html", map[string]any{
+		"CurrentUser": middleware.UserFromContext(r.Context()),
+	})
+}
+
+// CreateClient создаёт аккаунт клиента и сразу привязывает его к тренеру.
+func (h *TrainerHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
+	trainer := middleware.UserFromContext(r.Context())
+
+	in := model.CreateUserInput{
+		Login:    strings.TrimSpace(r.FormValue("login")),
+		Password: r.FormValue("password"),
+		FullName: strings.TrimSpace(r.FormValue("full_name")),
+		Role:     model.RoleClient,
+	}
+
+	renderErr := func(msg string) {
+		renderTemplate(w, r, "trainer/client_form.html", map[string]any{
+			"Error":       msg,
+			"Input":       in,
+			"CurrentUser": trainer,
+		})
+	}
+
+	if in.Login == "" || in.Password == "" {
+		renderErr("Заполните логин и пароль")
+		return
+	}
+	if len(in.Password) < 6 {
+		renderErr("Пароль должен быть не короче 6 символов")
+		return
+	}
+
+	client, err := h.users.Create(r.Context(), in)
+	if err != nil {
+		renderErr("Пользователь с таким логином уже существует")
+		return
+	}
+	if err := h.tc.Assign(r.Context(), trainer.ID, client.ID); err != nil {
+		// Аккаунт создан, но связка не записалась — отправляем к списку,
+		// клиента можно привязать через админа.
+		http.Error(w, "Клиент создан, но не привязан — обратитесь к администратору", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/trainer/clients/"+client.ID.String(), http.StatusSeeOther)
 }
 
 // ClientDetail показывает страницу детали клиента с compliance grid и статистикой.

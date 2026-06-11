@@ -166,6 +166,8 @@ func main() {
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware.RequireRole("trainer"))
 			r.Get("/trainer/clients", trainerHandler.Clients)
+			r.Get("/trainer/clients/new", trainerHandler.NewClientForm)
+			r.Post("/trainer/clients", trainerHandler.CreateClient)
 			r.Get("/trainer/clients/{id}", trainerHandler.ClientDetail)
 			r.Get("/trainer/clients/{id}/workouts", trainerHandler.ClientWorkouts)
 			r.Get("/trainer/clients/{id}/progress", trainerHandler.ClientProgress)
