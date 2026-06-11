@@ -639,6 +639,21 @@ func (r *WorkoutRepository) ToggleSetDone(ctx context.Context, setID, userID uui
 	return done, err
 }
 
+// GetTodayStatus returns whether the user already finished a workout today and
+// the title of a workout planned for today (not finished yet) — feeds the
+// contextual dashboard headline.
+func (r *WorkoutRepository) GetTodayStatus(ctx context.Context, userID uuid.UUID) (doneToday bool, plannedTitle string) {
+	_ = r.db.QueryRow(ctx, `
+		SELECT
+		  EXISTS(SELECT 1 FROM workouts
+		         WHERE user_id = $1 AND workout_date = CURRENT_DATE AND ended_at IS NOT NULL),
+		  COALESCE((SELECT NULLIF(title, '') FROM workouts
+		            WHERE user_id = $1 AND workout_date = CURRENT_DATE AND ended_at IS NULL
+		            ORDER BY created_at LIMIT 1), '')`,
+		userID).Scan(&doneToday, &plannedTitle)
+	return doneToday, plannedTitle
+}
+
 // UpdateSetValues updates weight and reps of a single set (used for inline
 // editing during an active session), verifying it belongs to userID.
 func (r *WorkoutRepository) UpdateSetValues(ctx context.Context, setID, userID uuid.UUID, weight *float64, reps *int) (*model.Set, error) {

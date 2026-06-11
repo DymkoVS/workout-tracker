@@ -16,7 +16,7 @@ func NewDashboardHandler(workouts *repository.WorkoutRepository) *DashboardHandl
 	return &DashboardHandler{workouts: workouts}
 }
 
-var ruMonthsGen   = [...]string{"", "ЯНВ", "ФЕВ", "МАР", "АПР", "МАЯ", "ИЮН", "ИЮЛ", "АВГ", "СЕН", "ОКТ", "НОЯ", "ДЕК"}
+var ruMonthsGen = [...]string{"", "ЯНВ", "ФЕВ", "МАР", "АПР", "МАЯ", "ИЮН", "ИЮЛ", "АВГ", "СЕН", "ОКТ", "НОЯ", "ДЕК"}
 var ruWeekdaysShort = [...]string{"ВС", "ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ"}
 
 func fmtTonnage(kg float64) string {
@@ -41,14 +41,17 @@ func (h *DashboardHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	stats, _ := h.workouts.GetDashboardStats(r.Context(), user.ID)
 	recentPRs, _ := h.workouts.GetRecentPRs(r.Context(), user.ID)
+	doneToday, plannedTitle := h.workouts.GetTodayStatus(r.Context(), user.ID)
 
 	renderTemplate(w, r, "dashboard.html", map[string]any{
-		"CurrentUser": user,
-		"TodayRU":     todayRU,
-		"WeekCount":   stats.WeekCount,
-		"WeekTonnage": fmtTonnage(stats.WeekTonnage),
-		"Streak":      stats.Streak,
-		"LastCard":    stats.LastCard,
-		"RecentPRs":   recentPRs,
+		"CurrentUser":  user,
+		"TodayRU":      todayRU,
+		"TodayDone":    doneToday,
+		"TodayPlanned": plannedTitle,
+		"WeekCount":    stats.WeekCount,
+		"WeekTonnage":  fmtTonnage(stats.WeekTonnage),
+		"Streak":       stats.Streak,
+		"LastCard":     stats.LastCard,
+		"RecentPRs":    recentPRs,
 	})
 }

@@ -85,6 +85,13 @@ var tmplFuncs = template.FuncMap{
 		}
 		return ""
 	},
+	"dateISO": func(t interface{}) string {
+		switch v := t.(type) {
+		case interface{ Format(string) string }:
+			return v.Format("2006-01-02")
+		}
+		return ""
+	},
 	"toUpper":  strings.ToUpper,
 	"contains": strings.Contains,
 	"printf":   fmt.Sprintf,

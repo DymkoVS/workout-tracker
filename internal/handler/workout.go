@@ -141,14 +141,14 @@ func (h *WorkoutHandler) NewForm(w http.ResponseWriter, r *http.Request) {
 	recentForID := user.ID
 	data := map[string]any{
 		"Gyms":  gyms,
-		"Today": time.Now().Format("02.01.2006"),
+		"Today": time.Now().Format("2006-01-02"),
 	}
 	if forClientStr := r.URL.Query().Get("for_client"); forClientStr != "" && user.IsTrainer() {
 		if clientID, err := uuid.Parse(forClientStr); err == nil {
 			if ok, _ := h.tc.IsAssigned(r.Context(), user.ID, clientID); ok {
 				if client, err := h.users.GetByID(r.Context(), clientID); err == nil {
 					data["ForClient"] = client
-					data["Today"] = time.Now().AddDate(0, 0, 1).Format("02.01.2006")
+					data["Today"] = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 					recentForID = clientID
 				}
 			}
@@ -226,7 +226,7 @@ func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "workouts/form.html", map[string]any{
 			"Error": "Ошибка сохранения",
 			"Gyms":  gyms,
-			"Today": time.Now().Format("02.01.2006"),
+			"Today": time.Now().Format("2006-01-02"),
 		})
 		return
 	}
@@ -294,7 +294,7 @@ func (h *WorkoutHandler) EditForm(w http.ResponseWriter, r *http.Request) {
 	data := map[string]any{
 		"Workout": workout,
 		"Gyms":    gyms,
-		"Today":   time.Now().Format("02.01.2006"),
+		"Today":   time.Now().Format("2006-01-02"),
 	}
 	if isTrainerEdit {
 		if client, err := h.users.GetByID(r.Context(), workout.UserID); err == nil {
