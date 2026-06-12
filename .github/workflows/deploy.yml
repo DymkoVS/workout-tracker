@@ -30,6 +30,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
             cd ~/workout-tracker
             git pull
             docker compose up --build -d
