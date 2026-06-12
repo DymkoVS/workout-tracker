@@ -151,3 +151,14 @@ type TemplateSet struct {
 	RestSeconds        *int
 	Notes              string
 }
+
+// WorkoutComment — комментарий к тренировке (фидбэк тренера, ответ клиента).
+type WorkoutComment struct {
+	ID         uuid.UUID
+	WorkoutID  uuid.UUID
+	AuthorID   uuid.UUID
+	Body       string
+	CreatedAt  time.Time
+	AuthorName string // full_name или login автора
+	AuthorRole string // trainer / client — для подписи в UI
+}

@@ -208,6 +208,39 @@
   {{end}}
 </div>
 
+{{/* Comments */}}
+<div id="comments" style="padding:24px 24px 0">
+  <div class="eyebrow" style="margin-bottom:12px">КОММЕНТАРИИ</div>
+
+  {{if .Comments}}
+  <div style="background:#FFFFFF;border:1px solid #E0DDD8;margin-bottom:12px">
+    {{range $i, $c := .Comments}}
+    <div style="padding:14px 18px;{{if gt $i 0}}border-top:1px solid #E9E8E4;{{end}}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;font-weight:600">{{$c.AuthorName}}</span>
+          {{if eq $c.AuthorRole "trainer"}}
+          <span style="font-family:'Space Grotesk',system-ui;font-size:9px;font-weight:700;letter-spacing:1.2px;color:#7A9200">ТРЕНЕР</span>
+          {{end}}
+        </div>
+        <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:#9E9893">{{dateRU $c.CreatedAt}}</span>
+      </div>
+      <div style="font-size:14px;line-height:1.5;white-space:pre-wrap">{{$c.Body}}</div>
+    </div>
+    {{end}}
+  </div>
+  {{end}}
+
+  <form method="POST" action="/workouts/{{$w.ID}}/comments">
+    <textarea name="body" required maxlength="2000" rows="2" placeholder="Написать комментарий…"
+      style="width:100%;background:#F5F4F0;border:1px solid #E0DDD8;color:#111110;font-family:'Space Grotesk',system-ui;font-size:14px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;display:block;resize:vertical;box-sizing:border-box"></textarea>
+    <button type="submit"
+      style="margin-top:8px;background:transparent;color:#111110;border:1px solid #E0DDD8;padding:10px 18px;font-family:'Space Grotesk',system-ui;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;cursor:pointer">
+      ОТПРАВИТЬ
+    </button>
+  </form>
+</div>
+
 <div style="height:40px"></div>
 {{end}}
 

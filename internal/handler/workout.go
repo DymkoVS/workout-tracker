@@ -24,6 +24,7 @@ type WorkoutHandler struct {
 	users     *repository.UserRepository
 	media     *repository.MediaRepository
 	exercises *repository.ExerciseRepository
+	comments  *repository.CommentRepository
 	uploadDir string
 }
 
@@ -34,9 +35,10 @@ func NewWorkoutHandler(
 	users *repository.UserRepository,
 	media *repository.MediaRepository,
 	exercises *repository.ExerciseRepository,
+	comments *repository.CommentRepository,
 	uploadDir string,
 ) *WorkoutHandler {
-	return &WorkoutHandler{workouts: workouts, gyms: gyms, tc: tc, users: users, media: media, exercises: exercises, uploadDir: uploadDir}
+	return &WorkoutHandler{workouts: workouts, gyms: gyms, tc: tc, users: users, media: media, exercises: exercises, comments: comments, uploadDir: uploadDir}
 }
 
 // WorkoutGroup groups workout cards under a month label for the history list.
@@ -252,8 +254,9 @@ func (h *WorkoutHandler) Show(w http.ResponseWriter, r *http.Request) {
 	}
 
 	media, _ := h.media.ListForWorkout(r.Context(), id)
+	comments, _ := h.comments.ListForWorkout(r.Context(), id)
 
-	data := map[string]any{"Workout": workout, "Media": media, "ShareText": buildShareText(workout)}
+	data := map[string]any{"Workout": workout, "Media": media, "Comments": comments, "ShareText": buildShareText(workout)}
 	if workout.UserID != user.ID && user.IsTrainer() {
 		data["BackURL"] = fmt.Sprintf("/trainer/clients/%s/workouts", workout.UserID)
 		data["CanEdit"] = workout.TrainerID != nil && *workout.TrainerID == user.ID
@@ -263,6 +266,38 @@ func (h *WorkoutHandler) Show(w http.ResponseWriter, r *http.Request) {
 		data["CanStart"] = true
 	}
 	renderTemplate(w, r, "workouts/show.html", data)
+}
+
+// AddComment добавляет комментарий к тренировке. Право комментировать = право
+// видеть тренировку: владелец или назначенный тренер (та же логика, что в Show).
+func (h *WorkoutHandler) AddComment(w http.ResponseWriter, r *http.Request) {
+	user := middleware.UserFromContext(r.Context())
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	_, err = h.workouts.GetByID(r.Context(), id, user.ID)
+	if err != nil && user.IsTrainer() {
+		_, err = h.workouts.GetByIDForTrainer(r.Context(), id, user.ID)
+	}
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	body := strings.TrimSpace(r.FormValue("body"))
+	if body == "" || len(body) > 2000 {
+		http.Redirect(w, r, "/workouts/"+id.String(), http.StatusSeeOther)
+		return
+	}
+
+	if err := h.comments.Add(r.Context(), id, user.ID, body); err != nil {
+		http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/workouts/"+id.String()+"#comments", http.StatusSeeOther)
 }
 
 func (h *WorkoutHandler) EditForm(w http.ResponseWriter, r *http.Request) {
