@@ -113,13 +113,15 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	// Heatmap: workout dates from the last 16 weeks (all workouts, filter-independent).
 	heatmapSince := time.Now().UTC().Truncate(24*time.Hour).AddDate(0, 0, -112)
-	heatmapTimes, _ := h.workouts.GetWorkoutDates(r.Context(), user.ID, heatmapSince)
+	heatmapTimes, err := h.workouts.GetWorkoutDates(r.Context(), user.ID, heatmapSince)
+	logErr("workout list: heatmap", err)
 	heatmapDates := make([]string, len(heatmapTimes))
 	for i, d := range heatmapTimes {
 		heatmapDates[i] = d.Format("2006-01-02")
 	}
 
-	gyms, _ := h.gyms.List(r.Context())
+	gyms, err := h.gyms.List(r.Context())
+	logErr("workout list: gyms", err)
 
 	renderTemplate(w, r, "workouts/list.html", map[string]any{
 		"WorkoutGroups":  groupByMonth(historyCards),
@@ -138,7 +140,8 @@ func (h *WorkoutHandler) List(w http.ResponseWriter, r *http.Request) {
 
 func (h *WorkoutHandler) NewForm(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
-	gyms, _ := h.gyms.List(r.Context())
+	gyms, err := h.gyms.List(r.Context())
+	logErr("workout form: gyms", err)
 
 	recentForID := user.ID
 	data := map[string]any{
@@ -156,7 +159,8 @@ func (h *WorkoutHandler) NewForm(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	recent, _ := h.workouts.GetRecentUnique(r.Context(), recentForID, 6)
+	recent, err := h.workouts.GetRecentUnique(r.Context(), recentForID, 6)
+	logErr("workout form: recent", err)
 	data["RecentWorkouts"] = recent
 	renderTemplate(w, r, "workouts/form.html", data)
 }
@@ -208,9 +212,9 @@ func (h *WorkoutHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wo := model.Workout{
-		Title:       r.FormValue("title"),
+		Title:       clampStr(r.FormValue("title"), 200),
 		WorkoutType: r.FormValue("workout_type"),
-		Notes:       r.FormValue("notes"),
+		Notes:       clampStr(r.FormValue("notes"), 4000),
 		WorkoutDate: parseDate(r.FormValue("workout_date")),
 		GymID:       parseUUIDPtr(r.FormValue("gym_id")),
 		TrainerID:   trainerID,
@@ -253,8 +257,10 @@ func (h *WorkoutHandler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	media, _ := h.media.ListForWorkout(r.Context(), id)
-	comments, _ := h.comments.ListForWorkout(r.Context(), id)
+	media, err := h.media.ListForWorkout(r.Context(), id)
+	logErr("workout show: media", err)
+	comments, err := h.comments.ListForWorkout(r.Context(), id)
+	logErr("workout show: comments", err)
 
 	data := map[string]any{"Workout": workout, "Media": media, "Comments": comments, "ShareText": buildShareText(workout)}
 	if workout.UserID != user.ID && user.IsTrainer() {
@@ -352,9 +358,9 @@ func (h *WorkoutHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wo := model.Workout{
-		Title:       r.FormValue("title"),
+		Title:       clampStr(r.FormValue("title"), 200),
 		WorkoutType: r.FormValue("workout_type"),
-		Notes:       r.FormValue("notes"),
+		Notes:       clampStr(r.FormValue("notes"), 4000),
 		WorkoutDate: parseDate(r.FormValue("workout_date")),
 		GymID:       parseUUIDPtr(r.FormValue("gym_id")),
 	}
@@ -624,8 +630,8 @@ func parseExercisesFromForm(r *http.Request) []model.FormExercise {
 			}
 		}
 		ex := model.FormExercise{
-			Name:  name,
-			Notes: r.FormValue(fmt.Sprintf("exercises[%d][notes]", i)),
+			Name:  clampStr(name, 120),
+			Notes: clampStr(r.FormValue(fmt.Sprintf("exercises[%d][notes]", i)), 500),
 		}
 		for j := 0; ; j++ {
 			wt := r.FormValue(fmt.Sprintf("exercises[%d][sets][%d][weight]", i, j))
@@ -638,7 +644,7 @@ func parseExercisesFromForm(r *http.Request) []model.FormExercise {
 			}
 			if wt != "" || reps != "" {
 				ex.Sets = append(ex.Sets, model.FormSet{
-					Weight: wt, Reps: reps, RPE: rpe, RestSeconds: rest, Notes: notes,
+					Weight: wt, Reps: reps, RPE: rpe, RestSeconds: rest, Notes: clampStr(notes, 500),
 				})
 			}
 			if j > 50 {
@@ -651,6 +657,17 @@ func parseExercisesFromForm(r *http.Request) []model.FormExercise {
 		}
 	}
 	return exercises
+}
+
+// clampStr обрезает строку до max рун — серверный предохранитель
+// от сверхдлинных полей (title, notes и т.п.).
+func clampStr(s string, max int) string {
+	s = strings.TrimSpace(s)
+	r := []rune(s)
+	if len(r) <= max {
+		return s
+	}
+	return string(r[:max])
 }
 
 func parseDate(s string) time.Time {

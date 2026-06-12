@@ -32,7 +32,7 @@ func (h *GymHandler) NewForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *GymHandler) Create(w http.ResponseWriter, r *http.Request) {
-	name := r.FormValue("name")
+	name := clampStr(r.FormValue("name"), 120)
 	if name == "" {
 		renderTemplate(w, r, "gyms/form.html", map[string]any{
 			"Error": "Название зала обязательно",
@@ -71,7 +71,7 @@ func (h *GymHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	name := r.FormValue("name")
+	name := clampStr(r.FormValue("name"), 120)
 	if name == "" {
 		gym, _ := h.gyms.GetByID(r.Context(), id)
 		renderTemplate(w, r, "gyms/form.html", map[string]any{

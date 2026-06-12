@@ -48,10 +48,14 @@ func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tonnage, _ := h.analytics.TonnageByDate(r.Context(), targetUserID, filter)
-	frequency, _ := h.analytics.WorkoutFrequency(r.Context(), targetUserID, filter)
-	exercises, _ := h.analytics.ExerciseNames(r.Context(), targetUserID, filter)
-	cur90, prev90, _ := h.analytics.TonnagePeriodTotals(r.Context(), targetUserID, filter)
+	tonnage, err := h.analytics.TonnageByDate(r.Context(), targetUserID, filter)
+	logErr("analytics: tonnage", err)
+	frequency, err := h.analytics.WorkoutFrequency(r.Context(), targetUserID, filter)
+	logErr("analytics: frequency", err)
+	exercises, err := h.analytics.ExerciseNames(r.Context(), targetUserID, filter)
+	logErr("analytics: exercise names", err)
+	cur90, prev90, err := h.analytics.TonnagePeriodTotals(r.Context(), targetUserID, filter)
+	logErr("analytics: period totals", err)
 
 	var tonnageDelta string
 	if prev90 > 0 {
@@ -82,7 +86,8 @@ func (h *AnalyticsHandler) Index(w http.ResponseWriter, r *http.Request) {
 	flJSON, _ := json.Marshal(freqLabels)
 	fvJSON, _ := json.Marshal(freqValues)
 
-	gymList, _ := h.gyms.List(r.Context())
+	gymList, err := h.gyms.List(r.Context())
+	logErr("analytics: gyms", err)
 
 	data := map[string]any{
 		"TonnageLabels": template.JS(string(tlJSON)),

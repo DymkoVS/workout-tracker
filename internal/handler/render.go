@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -211,6 +212,14 @@ func renderPartialWith(w http.ResponseWriter, r *http.Request, name string, extr
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_ = tmpl.ExecuteTemplate(w, filepath.Base(name), data)
+}
+
+// logErr логирует ошибки best-effort-вызовов (виджеты, которые мягко
+// деградируют): страница рендерится, но проблема с БД больше не молчит.
+func logErr(scope string, err error) {
+	if err != nil {
+		log.Printf("%s: %v", scope, err)
+	}
 }
 
 // fmtTonnage — единый формат тоннажа: «850кг», «1.2т», «2т».

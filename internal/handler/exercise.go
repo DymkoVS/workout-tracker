@@ -59,7 +59,7 @@ func (h *ExerciseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка формы", http.StatusBadRequest)
 		return
 	}
-	name := strings.TrimSpace(r.FormValue("name"))
+	name := clampStr(r.FormValue("name"), 120)
 	if name == "" {
 		renderTemplate(w, r, "exercises/form.html", map[string]any{
 			"Error":        "Название обязательно",
@@ -67,7 +67,7 @@ func (h *ExerciseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	_, err := h.exercises.Create(r.Context(), name, r.FormValue("muscle_group"), r.FormValue("description"))
+	_, err := h.exercises.Create(r.Context(), name, clampStr(r.FormValue("muscle_group"), 60), clampStr(r.FormValue("description"), 2000))
 	if err != nil {
 		renderTemplate(w, r, "exercises/form.html", map[string]any{
 			"Error":        "Ошибка сохранения: " + err.Error(),
@@ -111,7 +111,7 @@ func (h *ExerciseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка формы", http.StatusBadRequest)
 		return
 	}
-	name := strings.TrimSpace(r.FormValue("name"))
+	name := clampStr(r.FormValue("name"), 120)
 	if name == "" {
 		ex, _ := h.exercises.GetByID(r.Context(), id)
 		renderTemplate(w, r, "exercises/form.html", map[string]any{
@@ -121,7 +121,7 @@ func (h *ExerciseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	if err := h.exercises.Update(r.Context(), id, name, r.FormValue("muscle_group"), r.FormValue("description")); err != nil {
+	if err := h.exercises.Update(r.Context(), id, name, clampStr(r.FormValue("muscle_group"), 60), clampStr(r.FormValue("description"), 2000)); err != nil {
 		ex, _ := h.exercises.GetByID(r.Context(), id)
 		renderTemplate(w, r, "exercises/form.html", map[string]any{
 			"Error":        "Ошибка сохранения: " + err.Error(),

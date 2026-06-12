@@ -25,8 +25,10 @@ func (h *DashboardHandler) Index(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	todayRU := fmt.Sprintf("%d %s · %s", now.Day(), ruMonthsGen[now.Month()], ruWeekdaysShort[now.Weekday()])
 
-	stats, _ := h.workouts.GetDashboardStats(r.Context(), user.ID)
-	recentPRs, _ := h.workouts.GetRecentPRs(r.Context(), user.ID)
+	stats, err := h.workouts.GetDashboardStats(r.Context(), user.ID)
+	logErr("dashboard: stats", err)
+	recentPRs, err := h.workouts.GetRecentPRs(r.Context(), user.ID)
+	logErr("dashboard: recent PRs", err)
 	doneToday, plannedTitle := h.workouts.GetTodayStatus(r.Context(), user.ID)
 
 	renderTemplate(w, r, "dashboard.html", map[string]any{
