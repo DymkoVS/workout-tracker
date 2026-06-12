@@ -23,6 +23,7 @@
     <div style="padding:12px 14px;background:rgba(217,48,37,0.08);color:#D93025;font-size:12px;letter-spacing:1.2px;text-transform:uppercase">
       {{if eq .Error "invalid"}}НЕВЕРНЫЙ ЛОГИН ИЛИ ПАРОЛЬ{{end}}
       {{if eq .Error "inactive"}}АККАУНТ ДЕАКТИВИРОВАН{{end}}
+      {{if eq .Error "toomany"}}СЛИШКОМ МНОГО ПОПЫТОК — ПОДОЖДИТЕ 15 МИНУТ{{end}}
     </div>
     {{end}}
 

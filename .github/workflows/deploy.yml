@@ -5,7 +5,22 @@ on:
     branches: [master]
 
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: go vet
+        run: go vet ./...
+      - name: go test
+        # Без Postgres интеграционные тесты корректно скипаются —
+        # здесь ловим компиляцию тестов и юнит-логику.
+        run: go test ./...
+
   deploy:
+    needs: checks
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH

@@ -25,7 +25,6 @@ services:
     environment:
       DATABASE_URL: postgres://workout:workout_secret@db:5432/workout_tracker?sslmode=disable
       LISTEN_ADDR: :8080
-      SESSION_SECRET: change-me-in-production-32-chars!!
     depends_on:
       db:
         condition: service_healthy

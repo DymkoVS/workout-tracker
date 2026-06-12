@@ -861,14 +861,7 @@ func buildShareText(w *model.Workout) string {
 		}
 	}
 	if tonnage > 0 {
-		b.WriteString("\nТоннаж: " + fmtTonnageShare(tonnage))
+		b.WriteString("\nТоннаж: " + fmtTonnage(tonnage))
 	}
 	return b.String()
-}
-
-func fmtTonnageShare(kg float64) string {
-	if kg >= 1000 {
-		return strconv.FormatFloat(kg/1000, 'f', 1, 64) + "т"
-	}
-	return strconv.FormatFloat(kg, 'f', 0, 64) + "кг"
 }

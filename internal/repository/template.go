@@ -41,6 +41,9 @@ func (r *TemplateRepository) List(ctx context.Context, trainerID uuid.UUID) ([]m
 		}
 		list = append(list, t)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	for i := range list {
 		exs, err := r.loadExercises(ctx, list[i].ID)
@@ -98,6 +101,9 @@ func (r *TemplateRepository) loadExercises(ctx context.Context, templateID uuid.
 		exercises = append(exercises, e)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	for i := range exercises {
 		exercises[i].Sets, err = r.loadSets(ctx, exercises[i].ID)
@@ -128,7 +134,7 @@ func (r *TemplateRepository) loadSets(ctx context.Context, exerciseID uuid.UUID)
 		}
 		sets = append(sets, s)
 	}
-	return sets, nil
+	return sets, rows.Err()
 }
 
 func (r *TemplateRepository) Create(ctx context.Context, trainerID uuid.UUID, title, notes, typeStr string, exercises []model.FormExercise) (*model.WorkoutTemplate, error) {

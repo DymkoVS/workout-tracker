@@ -66,7 +66,7 @@ func (r *AnalyticsRepository) TonnageByDate(ctx context.Context, userID uuid.UUI
 		}
 		points = append(points, p)
 	}
-	return points, nil
+	return points, rows.Err()
 }
 
 func (r *AnalyticsRepository) WorkoutFrequency(ctx context.Context, userID uuid.UUID, f AnalyticsFilter) ([]model.FrequencyPoint, error) {
@@ -97,7 +97,7 @@ func (r *AnalyticsRepository) WorkoutFrequency(ctx context.Context, userID uuid.
 		}
 		points = append(points, p)
 	}
-	return points, nil
+	return points, rows.Err()
 }
 
 func (r *AnalyticsRepository) ExerciseNames(ctx context.Context, userID uuid.UUID, f AnalyticsFilter) ([]string, error) {
@@ -126,7 +126,7 @@ func (r *AnalyticsRepository) ExerciseNames(ctx context.Context, userID uuid.UUI
 		}
 		names = append(names, name)
 	}
-	return names, nil
+	return names, rows.Err()
 }
 
 // TonnagePeriodTotals returns total tonnage for the current 90 days and the
@@ -185,5 +185,5 @@ func (r *AnalyticsRepository) ExerciseProgress(ctx context.Context, userID uuid.
 		}
 		points = append(points, p)
 	}
-	return points, nil
+	return points, rows.Err()
 }

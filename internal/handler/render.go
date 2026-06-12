@@ -92,22 +92,10 @@ var tmplFuncs = template.FuncMap{
 		}
 		return ""
 	},
-	"toUpper":  strings.ToUpper,
-	"contains": strings.Contains,
-	"printf":   fmt.Sprintf,
-	"formatTonnage": func(kg float64) string {
-		if kg == 0 {
-			return "0кг"
-		}
-		if kg >= 1000 {
-			t := kg / 1000
-			if t == float64(int(t)) {
-				return fmt.Sprintf("%dт", int(t))
-			}
-			return fmt.Sprintf("%.1fт", t)
-		}
-		return fmt.Sprintf("%.0fкг", kg)
-	},
+	"toUpper":       strings.ToUpper,
+	"contains":      strings.Contains,
+	"printf":        fmt.Sprintf,
+	"formatTonnage": fmtTonnage,
 	"exerciseTonnage": func(e model.WorkoutExercise) float64 {
 		var t float64
 		for _, s := range e.Sets {
@@ -223,4 +211,19 @@ func renderPartialWith(w http.ResponseWriter, r *http.Request, name string, extr
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_ = tmpl.ExecuteTemplate(w, filepath.Base(name), data)
+}
+
+// fmtTonnage — единый формат тоннажа: «850кг», «1.2т», «2т».
+func fmtTonnage(kg float64) string {
+	if kg == 0 {
+		return "0кг"
+	}
+	if kg >= 1000 {
+		t := kg / 1000
+		if t == float64(int(t)) {
+			return fmt.Sprintf("%dт", int(t))
+		}
+		return fmt.Sprintf("%.1fт", t)
+	}
+	return fmt.Sprintf("%.0fкг", kg)
 }

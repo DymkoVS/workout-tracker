@@ -55,7 +55,7 @@ func (r *WorkoutRepository) List(ctx context.Context, userID uuid.UUID) ([]model
 		}
 		list = append(list, w)
 	}
-	return list, nil
+	return list, rows.Err()
 }
 
 // GetByID возвращает тренировку вместе с упражнениями и подходами
@@ -99,6 +99,9 @@ func (r *WorkoutRepository) loadExercises(ctx context.Context, workoutID uuid.UU
 		exercises = append(exercises, e)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	for i := range exercises {
 		exercises[i].Sets, err = r.loadSets(ctx, exercises[i].ID)
@@ -127,7 +130,7 @@ func (r *WorkoutRepository) loadSets(ctx context.Context, exerciseID uuid.UUID) 
 		}
 		sets = append(sets, s)
 	}
-	return sets, nil
+	return sets, rows.Err()
 }
 
 // Create сохраняет тренировку вместе с упражнениями и подходами в одной транзакции
@@ -258,7 +261,7 @@ func (r *WorkoutRepository) ListCards(ctx context.Context, userID uuid.UUID) ([]
 		}
 		cards = append(cards, c)
 	}
-	return cards, nil
+	return cards, rows.Err()
 }
 
 func (r *WorkoutRepository) ListCardsFiltered(ctx context.Context, userID uuid.UUID, f WorkoutFilter) ([]model.WorkoutCardData, error) {
@@ -319,7 +322,7 @@ func (r *WorkoutRepository) ListCardsFiltered(ctx context.Context, userID uuid.U
 		}
 		cards = append(cards, c)
 	}
-	return cards, nil
+	return cards, rows.Err()
 }
 
 // DashboardStats holds aggregated data for the home screen.
@@ -363,6 +366,9 @@ func (r *WorkoutRepository) GetDashboardStats(ctx context.Context, userID uuid.U
 		dates = append(dates, d)
 	}
 	dateRows.Close()
+	if err := dateRows.Err(); err != nil {
+		return stats, err
+	}
 
 	today := time.Now().UTC().Truncate(24 * time.Hour)
 	if len(dates) > 0 {
@@ -592,6 +598,9 @@ func (r *WorkoutRepository) loadExercisesActive(ctx context.Context, workoutID u
 		exercises = append(exercises, e)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	for i := range exercises {
 		exercises[i].Sets, err = r.loadSetsActive(ctx, exercises[i].ID)
@@ -620,7 +629,7 @@ func (r *WorkoutRepository) loadSetsActive(ctx context.Context, exerciseID uuid.
 		}
 		sets = append(sets, s)
 	}
-	return sets, nil
+	return sets, rows.Err()
 }
 
 // ToggleSetDone flips the done flag and returns the new state.
@@ -782,7 +791,7 @@ func (r *WorkoutRepository) GetRecentPRs(ctx context.Context, userID uuid.UUID) 
 		}
 		prs = append(prs, pr)
 	}
-	return prs, nil
+	return prs, rows.Err()
 }
 
 // RecentWorkout is a lightweight summary of the last occurrence of each unique workout title.
@@ -815,6 +824,9 @@ func (r *WorkoutRepository) GetRecentUnique(ctx context.Context, userID uuid.UUI
 		}
 		all = append(all, rw)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	sort.Slice(all, func(i, j int) bool { return all[i].WorkoutDate.After(all[j].WorkoutDate) })
 	if limit > 0 && len(all) > limit {
 		all = all[:limit]
@@ -840,7 +852,7 @@ func (r *WorkoutRepository) GetWorkoutDates(ctx context.Context, userID uuid.UUI
 		}
 		dates = append(dates, d)
 	}
-	return dates, nil
+	return dates, rows.Err()
 }
 
 // SuggestExercises returns exercise names from the user's history matching the prefix.
@@ -867,5 +879,5 @@ func (r *WorkoutRepository) SuggestExercises(ctx context.Context, userID uuid.UU
 		}
 		names = append(names, name)
 	}
-	return names, nil
+	return names, rows.Err()
 }

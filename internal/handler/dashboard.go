@@ -19,20 +19,6 @@ func NewDashboardHandler(workouts *repository.WorkoutRepository) *DashboardHandl
 var ruMonthsGen = [...]string{"", "ЯНВ", "ФЕВ", "МАР", "АПР", "МАЯ", "ИЮН", "ИЮЛ", "АВГ", "СЕН", "ОКТ", "НОЯ", "ДЕК"}
 var ruWeekdaysShort = [...]string{"ВС", "ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ"}
 
-func fmtTonnage(kg float64) string {
-	if kg == 0 {
-		return "0кг"
-	}
-	if kg >= 1000 {
-		t := kg / 1000
-		if t == float64(int(t)) {
-			return fmt.Sprintf("%dт", int(t))
-		}
-		return fmt.Sprintf("%.1fт", t)
-	}
-	return fmt.Sprintf("%.0fкг", kg)
-}
-
 func (h *DashboardHandler) Index(w http.ResponseWriter, r *http.Request) {
 	user := middleware.UserFromContext(r.Context())
 

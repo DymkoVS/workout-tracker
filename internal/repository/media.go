@@ -43,7 +43,7 @@ func (r *MediaRepository) ListForWorkout(ctx context.Context, workoutID uuid.UUI
 		}
 		media = append(media, m)
 	}
-	return media, nil
+	return media, rows.Err()
 }
 
 func (r *MediaRepository) GetByID(ctx context.Context, id, workoutID uuid.UUID) (*model.WorkoutMedia, error) {

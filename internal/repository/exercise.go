@@ -34,7 +34,7 @@ func (r *ExerciseRepository) List(ctx context.Context) ([]model.Exercise, error)
 		}
 		out = append(out, e)
 	}
-	return out, nil
+	return out, rows.Err()
 }
 
 func (r *ExerciseRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Exercise, error) {
@@ -127,6 +127,10 @@ func (r *ExerciseRepository) GetProgress(ctx context.Context, exerciseName strin
 		}
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	out := make([]model.ProgressSession, 0, len(order))
 	for _, id := range order {
 		out = append(out, *sessionMap[id])
@@ -154,7 +158,7 @@ func (r *ExerciseRepository) ListClientExercises(ctx context.Context, userID uui
 		}
 		out = append(out, s)
 	}
-	return out, nil
+	return out, rows.Err()
 }
 
 // Search returns exercises whose name starts with q (case-insensitive), up to limit.
@@ -176,5 +180,5 @@ func (r *ExerciseRepository) Search(ctx context.Context, q string, limit int) ([
 		}
 		names = append(names, name)
 	}
-	return names, nil
+	return names, rows.Err()
 }

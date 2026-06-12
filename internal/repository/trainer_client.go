@@ -85,6 +85,10 @@ func (r *TrainerClientRepository) GetClientStats(ctx context.Context, trainerID 
 	}
 	rows.Close()
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	if len(statsList) == 0 {
 		return statsList, nil
 	}
@@ -353,7 +357,7 @@ func (r *TrainerClientRepository) GetClients(ctx context.Context, trainerID uuid
 		}
 		users = append(users, u)
 	}
-	return users, nil
+	return users, rows.Err()
 }
 
 // GetTrainers возвращает всех тренеров клиента
@@ -382,7 +386,7 @@ func (r *TrainerClientRepository) GetTrainers(ctx context.Context, clientID uuid
 		}
 		users = append(users, u)
 	}
-	return users, nil
+	return users, rows.Err()
 }
 
 // IsAssigned проверяет, назначен ли клиент к тренеру
@@ -434,7 +438,7 @@ func (r *TrainerClientRepository) GetAllTrainers(ctx context.Context) ([]*model.
 		}
 		users = append(users, u)
 	}
-	return users, nil
+	return users, rows.Err()
 }
 
 // GetAllClients возвращает всех клиентов (для админа)
@@ -460,5 +464,5 @@ func (r *TrainerClientRepository) GetAllClients(ctx context.Context) ([]*model.U
 		}
 		users = append(users, u)
 	}
-	return users, nil
+	return users, rows.Err()
 }

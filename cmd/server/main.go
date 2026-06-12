@@ -224,7 +224,15 @@ func main() {
 	})
 
 	log.Printf("Сервер запущен на %s", cfg.ListenAddr)
-	if err := http.ListenAndServe(cfg.ListenAddr, r); err != nil {
+	srv := &http.Server{
+		Addr:              cfg.ListenAddr,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       60 * time.Second, // загрузка фото/видео
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -30,7 +30,7 @@ func (r *GymRepository) List(ctx context.Context) ([]model.Gym, error) {
 		}
 		gyms = append(gyms, g)
 	}
-	return gyms, nil
+	return gyms, rows.Err()
 }
 
 func (r *GymRepository) Create(ctx context.Context, name string) (model.Gym, error) {

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"workout-tracker/internal/config"
 	"workout-tracker/internal/db"
 	"workout-tracker/internal/model"
@@ -11,6 +12,13 @@ import (
 
 func main() {
 	cfg := config.Load()
+
+	// Предохранитель: seed пересоздаёт admin со слабым паролем — это только
+	// для локальной разработки. Против прода без явного SEED_ALLOW=1 не работаем.
+	if os.Getenv("SEED_ALLOW") != "1" {
+		log.Fatal("seed: задайте SEED_ALLOW=1 (инструмент пересоздаёт admin/admin123 — только для локальной разработки)")
+	}
+
 	pool, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("db: %v", err)
