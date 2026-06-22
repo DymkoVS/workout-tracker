@@ -1,0 +1,16 @@
+[Unit]
+Description=Workout Tracker Telegram Bot
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/workout-bot
+ExecStart=/opt/workout-bot/venv/bin/python3 /opt/workout-bot/bot.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
