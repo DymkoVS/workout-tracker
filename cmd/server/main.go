@@ -112,6 +112,7 @@ func main() {
 	// Server-to-server import API (bearer-token auth внутри хендлера, без сессии).
 	r.Post("/api/import", apiHandler.Import)
 	r.Get("/api/gyms", apiHandler.Gyms)
+	r.Get("/api/active-session", apiHandler.ActiveSession) // источник для Apple Watch-пульта
 
 	// Публичные маршруты
 	r.Get("/login", authHandler.LoginPage)

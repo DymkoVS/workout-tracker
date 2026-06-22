@@ -65,6 +65,74 @@ func (h *APIHandler) Gyms(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"gyms": names})
 }
 
+// ── Активная сессия (источник для Apple Watch-пульта) ─────────────────────────
+
+type apiActiveSet struct {
+	SetNum      int      `json:"set_num"`
+	Weight      *float64 `json:"weight"`
+	Reps        *int     `json:"reps"`
+	RPE         *float64 `json:"rpe"`
+	RestSeconds *int     `json:"rest_seconds"`
+	Done        bool     `json:"done"`
+}
+
+type apiActiveExercise struct {
+	Name  string         `json:"name"`
+	Order int            `json:"order"`
+	Sets  []apiActiveSet `json:"sets"`
+}
+
+type apiActiveResp struct {
+	ID        string              `json:"id"`
+	Title     string              `json:"title"`
+	StartedAt *time.Time          `json:"started_at"`
+	Exercises []apiActiveExercise `json:"exercises"`
+}
+
+// ActiveSession возвращает текущую активную тренировку пользователя (начата, не
+// завершена) с упражнениями и целевыми подходами — источник для Apple Watch-пульта.
+// Нет активной сессии → {"active": null}. Только чтение; auth — общий токен.
+func (h *APIHandler) ActiveSession(w http.ResponseWriter, r *http.Request) {
+	if !h.authOK(r) {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+	login := strings.TrimSpace(r.URL.Query().Get("login"))
+	if login == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "login required"})
+		return
+	}
+	user, err := h.users.GetByLogin(r.Context(), login)
+	if err != nil || user == nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unknown user: " + login})
+		return
+	}
+
+	active := h.workouts.FindActiveWorkout(r.Context(), user.ID)
+	if active == nil {
+		writeJSON(w, http.StatusOK, map[string]any{"active": nil})
+		return
+	}
+	full, err := h.workouts.GetActiveSession(r.Context(), active.ID, user.ID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "db"})
+		return
+	}
+
+	resp := apiActiveResp{ID: full.ID.String(), Title: full.Title, StartedAt: full.StartedAt}
+	for _, ex := range full.Exercises {
+		ae := apiActiveExercise{Name: ex.Name, Order: ex.OrderNum}
+		for _, s := range ex.Sets {
+			ae.Sets = append(ae.Sets, apiActiveSet{
+				SetNum: s.SetNum, Weight: s.Weight, Reps: s.Reps,
+				RPE: s.RPE, RestSeconds: s.RestSeconds, Done: s.Done,
+			})
+		}
+		resp.Exercises = append(resp.Exercises, ae)
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"active": resp})
+}
+
 type apiImportSet struct {
 	Weight      *float64 `json:"weight"`
 	Reps        *int     `json:"reps"`
