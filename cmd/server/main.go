@@ -113,6 +113,7 @@ func main() {
 	r.Post("/api/import", apiHandler.Import)
 	r.Get("/api/gyms", apiHandler.Gyms)
 	r.Get("/api/active-session", apiHandler.ActiveSession) // источник для Apple Watch-пульта
+	r.Post("/api/set-done", apiHandler.SetDone)            // отметка подхода с Apple Watch-пульта
 
 	// Публичные маршруты
 	r.Get("/login", authHandler.LoginPage)

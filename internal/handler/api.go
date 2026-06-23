@@ -68,6 +68,7 @@ func (h *APIHandler) Gyms(w http.ResponseWriter, r *http.Request) {
 // ── Активная сессия (источник для Apple Watch-пульта) ─────────────────────────
 
 type apiActiveSet struct {
+	ID          string   `json:"id"`
 	SetNum      int      `json:"set_num"`
 	Weight      *float64 `json:"weight"`
 	Reps        *int     `json:"reps"`
@@ -124,6 +125,7 @@ func (h *APIHandler) ActiveSession(w http.ResponseWriter, r *http.Request) {
 		ae := apiActiveExercise{Name: ex.Name, Order: ex.OrderNum}
 		for _, s := range ex.Sets {
 			ae.Sets = append(ae.Sets, apiActiveSet{
+				ID:     s.ID.String(),
 				SetNum: s.SetNum, Weight: s.Weight, Reps: s.Reps,
 				RPE: s.RPE, RestSeconds: s.RestSeconds, Done: s.Done,
 			})
@@ -131,6 +133,51 @@ func (h *APIHandler) ActiveSession(w http.ResponseWriter, r *http.Request) {
 		resp.Exercises = append(resp.Exercises, ae)
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"active": resp})
+}
+
+type apiSetDoneReq struct {
+	Login string `json:"login"`
+	SetID string `json:"set_id"`
+	Done  bool   `json:"done"`
+}
+
+// SetDone marks a single set done/undone — the write path for the Apple Watch
+// remote. Idempotent (asserts the state, not a toggle). Ownership is enforced by
+// resolving the login to a user and scoping the update to that user's sets.
+func (h *APIHandler) SetDone(w http.ResponseWriter, r *http.Request) {
+	if !h.authOK(r) {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+	var req apiSetDoneReq
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<16)).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "bad json: " + err.Error()})
+		return
+	}
+	if strings.TrimSpace(req.Login) == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "login required"})
+		return
+	}
+	setID, err := uuid.Parse(strings.TrimSpace(req.SetID))
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "bad set_id"})
+		return
+	}
+	user, err := h.users.GetByLogin(r.Context(), req.Login)
+	if err != nil || user == nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unknown user: " + req.Login})
+		return
+	}
+	ok, err := h.workouts.SetSetDone(r.Context(), setID, user.ID, req.Done)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "db"})
+		return
+	}
+	if !ok {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "set not found"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"done": req.Done})
 }
 
 type apiImportSet struct {

@@ -648,6 +648,26 @@ func (r *WorkoutRepository) ToggleSetDone(ctx context.Context, setID, userID uui
 	return done, err
 }
 
+// SetSetDone explicitly sets the done flag (idempotent — unlike ToggleSetDone).
+// Used by external remotes (Apple Watch) that want to assert a state rather than
+// flip it. Ownership is enforced via the workout's user_id. Returns whether a
+// row was actually updated (false → set not found or not owned by the user).
+func (r *WorkoutRepository) SetSetDone(ctx context.Context, setID, userID uuid.UUID, done bool) (bool, error) {
+	ct, err := r.db.Exec(ctx, `
+		UPDATE sets SET done = $3
+		WHERE id = $1
+		  AND workout_exercise_id IN (
+		      SELECT we.id FROM workout_exercises we
+		      JOIN workouts w ON w.id = we.workout_id
+		      WHERE w.user_id = $2
+		  )`,
+		setID, userID, done)
+	if err != nil {
+		return false, err
+	}
+	return ct.RowsAffected() > 0, nil
+}
+
 // GetTodayStatus returns whether the user already finished a workout today and
 // the title of a workout planned for today (not finished yet) — feeds the
 // contextual dashboard headline.
