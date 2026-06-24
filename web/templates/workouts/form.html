@@ -39,7 +39,22 @@
   filter:grayscale(1) opacity(0.25);transition:transform 0.15s,filter 0.15s;
 }
 .wb-radio:checked + .wb-emoji { filter:none;transform:scale(1.25); }
+/* Блок упражнения и строка подхода (вынесено из inline партиалов, 2.3) */
+.ex-card { background:#FFFFFF;border:1px solid #E0DDD8; }
+.ex-head { padding:12px 14px;display:flex;gap:8px;align-items:flex-start;border-bottom:1px solid #E9E8E4; }
+.ex-name { font-family:'Anton',Impact,sans-serif;font-size:17px;letter-spacing:0.5px;padding:8px 10px; }
+.ex-del { flex-shrink:0;background:none;border:none;padding:4px;cursor:pointer;color:#9E9893;line-height:1;margin-top:8px; }
+.ex-suggest { position:absolute;left:0;right:0;top:100%;z-index:30;background:#FFFFFF;border:1px solid #E0DDD8;border-top:none; }
 .ex-suggest:empty { border: none !important; }
+.set-head { display:grid;grid-template-columns:22px 1fr 14px 1fr 1fr 28px;gap:4px;padding:8px 14px 2px;align-items:center; }
+.sets-list { padding:0 14px 4px;display:flex;flex-direction:column;gap:4px; }
+.set-row { display:grid;grid-template-columns:22px 1fr 14px 1fr 1fr 28px;gap:4px;align-items:center; }
+.set-num { font-family:'JetBrains Mono',ui-monospace;font-size:11px;color:#9E9893;text-align:right; }
+.set-x { text-align:center;color:#9E9893;font-size:12px;font-family:'JetBrains Mono',ui-monospace; }
+.row-del { background:none;border:none;padding:4px;cursor:pointer;color:#9E9893;text-align:right;line-height:1; }
+.ex-addset { padding:8px 14px;border-top:1px solid #E9E8E4; }
+.ex-note { font-size:12px;color:#6B6560;padding:8px 10px; }
+.link-action { background:none;border:none;padding:0;cursor:pointer;font-family:'Space Grotesk',system-ui;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#7A9200; }
 /* нативный date input — высота и вид как у остальных полей */
 input[type="date"].dk-input { min-height:47px; }
 input[type="date"].dk-input::-webkit-date-and-time-value { text-align:left; }
@@ -276,32 +291,63 @@ document.querySelectorAll('.copy-from-btn').forEach(function(btn) {
   });
 });
 
-document.body.addEventListener('htmx:afterSwap', function(e) {
-  if (e.target.id === 'exercises-list') {
-    const btn = document.getElementById('add-exercise-btn');
-    if (btn) {
-      const count = document.querySelectorAll('#exercises-list .exercise-block').length;
-      btn.setAttribute('hx-get', '/workouts/htmx/add-exercise?idx=' + count);
-      htmx.process(btn);
+// Пересчёт индексов формы. Имена полей exercises[i][sets][j] должны идти
+// подряд 0..n-1: иначе удаление среднего упражнения/подхода оставляет дыру, а
+// следующее добавление берёт индекс уцелевшего блока → коллизия → при сабмите
+// Go FormValue берёт только первое значение и данные молча теряются. Поэтому
+// после ЛЮБОГО добавления/удаления нумеруем всё заново.
+function reindexForm() {
+  var blocks = document.querySelectorAll('#exercises-list .exercise-block');
+  blocks.forEach(function(block, ei) {
+    block.querySelectorAll('[name^="exercises["]').forEach(function(el) {
+      el.name = el.name.replace(/^exercises\[\d+\]/, 'exercises[' + ei + ']');
+    });
+    var rows = block.querySelectorAll('.set-row');
+    rows.forEach(function(row, si) {
+      row.querySelectorAll('[name*="[sets]["]').forEach(function(el) {
+        el.name = el.name.replace(/\[sets\]\[\d+\]/, '[sets][' + si + ']');
+      });
+      var num = row.querySelector('.set-num');
+      if (num) num.textContent = si + 1;
+    });
+    var setsList = block.querySelector('.sets-list');
+    if (setsList) setsList.id = 'sets-' + ei;
+    var addSet = block.querySelector('button[hx-get*="add-set"]');
+    if (addSet) {
+      addSet.setAttribute('hx-get', '/workouts/htmx/add-set?ex_idx=' + ei + '&set_idx=' + rows.length);
+      if (window.htmx) htmx.process(addSet);
     }
+  });
+  var addEx = document.getElementById('add-exercise-btn');
+  if (addEx) {
+    addEx.setAttribute('hx-get', '/workouts/htmx/add-exercise?idx=' + blocks.length);
+    if (window.htmx) htmx.process(addEx);
+  }
+}
+
+function removeExercise(btn) {
+  var block = btn.closest('.exercise-block');
+  if (block) block.remove();
+  reindexForm();
+}
+
+function removeSet(btn) {
+  var row = btn.closest('.set-row');
+  if (row) row.remove();
+  reindexForm();
+}
+
+document.body.addEventListener('htmx:afterSwap', function(e) {
+  if (e.target.id === 'exercises-list' || (e.target.classList && e.target.classList.contains('sets-list'))) {
+    reindexForm();
+  }
+  if (e.target.id === 'exercises-list') {
     // pre-select gym from copied workout
-    const gymHidden = document.getElementById('copy-gym-id');
+    var gymHidden = document.getElementById('copy-gym-id');
     if (gymHidden) {
       var gymSel = document.querySelector('[name=gym_id]');
       if (gymSel) gymSel.value = gymHidden.value;
       gymHidden.remove();
-    }
-  }
-  if (e.target.classList && e.target.classList.contains('sets-list')) {
-    const block = e.target.closest('.exercise-block');
-    if (block) {
-      const addBtn = block.querySelector('button[hx-get*="add-set"]');
-      if (addBtn) {
-        const setCount = e.target.querySelectorAll('.set-row').length;
-        addBtn.setAttribute('hx-get',
-          addBtn.getAttribute('hx-get').replace(/set_idx=\d+/, 'set_idx=' + setCount));
-        htmx.process(addBtn);
-      }
     }
   }
 });

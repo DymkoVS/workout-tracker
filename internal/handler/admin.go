@@ -65,11 +65,6 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Header.Get("HX-Request") == "true" {
-		users, _ := h.users.List(r.Context())
-		renderTemplate(w, r, "admin/users_table.html", map[string]any{"Users": users})
-		return
-	}
 	http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
 }
 

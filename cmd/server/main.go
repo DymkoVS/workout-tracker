@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,6 +23,10 @@ import (
 
 func main() {
 	cfg := config.Load()
+
+	// .woff2 нет в стандартной mime-таблице Go — без этого локальные шрифты
+	// отдаются как octet-stream. Регистрируем явно (локализация шрифтов, 2.5).
+	_ = mime.AddExtensionType(".woff2", "font/woff2")
 
 	pool, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
@@ -98,10 +103,9 @@ func main() {
 		http.ServeFile(w, r, "web/static/sw.js")
 	})
 	r.Handle("/icons/*", http.StripPrefix("/icons", http.FileServer(http.Dir("web/static/icons"))))
-	r.Get("/static/app.css", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		http.ServeFile(w, r, "web/static/app.css")
-	})
+	// Статика: app.css + локальные вендоры (htmx, Chart.js, шрифты) — без CDN.
+	// FileServer сам проставляет Content-Type по расширению (.css/.js/.woff2).
+	r.Handle("/static/*", http.StripPrefix("/static", http.FileServer(http.Dir("web/static"))))
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/static/icons/favicon-32.png")
 	})

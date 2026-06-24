@@ -568,10 +568,17 @@ func (h *WorkoutHandler) FinishSession(w http.ResponseWriter, r *http.Request) {
 
 func (h *WorkoutHandler) AddExerciseRow(w http.ResponseWriter, r *http.Request) {
 	idx, _ := strconv.Atoi(r.URL.Query().Get("idx"))
-	renderPartial(w, r, "workouts/partials/exercise_row.html", map[string]any{
-		"ExIdx": idx,
-		"Ex":    model.FormExercise{Sets: []model.FormSet{{}}},
-	})
+	// exercise_row делегирует в exercise_block, который рендерит set_row —
+	// подгружаем оба общих партиала, чтобы шаблоны были определены.
+	renderPartialWith(w, r, "workouts/partials/exercise_row.html",
+		[]string{
+			"web/templates/workouts/partials/exercise_block.html",
+			"web/templates/workouts/partials/set_row.html",
+		},
+		map[string]any{
+			"ExIdx": idx,
+			"Ex":    model.FormExercise{Sets: []model.FormSet{{}}},
+		})
 }
 
 func (h *WorkoutHandler) AddSetRow(w http.ResponseWriter, r *http.Request) {
