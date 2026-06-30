@@ -1,0 +1,9 @@
+{
+  "chatgpt.openOnStartup": true,
+  "chatgpt.localeOverride": "ru-RU",
+  "chat.fontSize": 15,
+  "chat.editor.fontSize": 14,
+  "go.testFlags": [
+    "-count=1"
+  ]
+}

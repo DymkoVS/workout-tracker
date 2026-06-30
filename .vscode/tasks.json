@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Workout: start database",
+      "type": "shell",
+      "command": "make db",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Workout: run dev server",
+      "type": "shell",
+      "command": "make dev",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Workout: run tests",
+      "type": "shell",
+      "command": "make test",
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}
